@@ -389,10 +389,14 @@ async function checkLastControl(page, report, name) {
     const control = controls.sort(
       (left, right) => right.getBoundingClientRect().bottom - left.getBoundingClientRect().bottom
     )[0];
+    const header = document.querySelector(".topbar");
+    const visibleTop = header && getComputedStyle(header).position === "sticky"
+      ? Math.max(0, header.getBoundingClientRect().bottom)
+      : 0;
     // Read-only material can follow the last action, especially on Billing.
     // An action above the viewport at document end must be reachable by scroll;
     // actions already at the end still face the stricter bottom-dock check.
-    if (control && control.getBoundingClientRect().top < 0) {
+    if (control && control.getBoundingClientRect().top < visibleTop) {
       control.scrollIntoView({ block: "center", behavior: "instant" });
       return true;
     }
@@ -416,11 +420,15 @@ async function checkLastControl(page, report, name) {
     const point = { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 };
     const hit = document.elementFromPoint(point.x, point.y);
     const nav = document.querySelector(".mobile-tabbar");
+    const header = document.querySelector(".topbar");
     return {
       label: control.getAttribute("aria-label") || control.textContent.trim() || control.tagName,
       top: box.top,
       bottom: box.bottom,
       height: innerHeight,
+      visibleTop: header && getComputedStyle(header).position === "sticky"
+        ? Math.max(0, header.getBoundingClientRect().bottom)
+        : 0,
       navTop:
         nav?.getClientRects().length && getComputedStyle(nav).position === "fixed"
           ? nav.getBoundingClientRect().top
@@ -430,7 +438,7 @@ async function checkLastControl(page, report, name) {
   });
   assert(last, `${name}: no final interactive control to inspect`);
   assert(
-    last.top >= -tolerance && last.bottom <= Math.min(last.height, last.navTop) + tolerance,
+    last.top >= last.visibleTop - tolerance && last.bottom <= Math.min(last.height, last.navTop) + tolerance,
     `${name}: final control obscured at document end ${JSON.stringify(last)}`
   );
   assert(last.hit, `${name}: final control is not hit-testable ${JSON.stringify(last)}`);

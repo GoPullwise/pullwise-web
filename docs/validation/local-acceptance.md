@@ -1,5 +1,90 @@
 # Current local acceptance
 
+## Final console presentation verification (2026-10-10)
+
+[Final local evidence](final-console-ui-local-2026-10-10.json) records ESLint,
+72 files / 1,536 tests, production build, Worker configuration, contract mirror
+and final preview dry-run passing. After the small Project-header reorder,
+136 Ledger/Projects tests and its lint pass again. The last Members-only CSS
+width correction has final-build native geometry and phone regression evidence.
+
+Billing meters pass 24 Chromium contexts / 72 section states across six locales,
+light/dark and 1906/1024/390/320px, with exact/stress values, manual refresh and
+personal-ledger scope. Eight WebKit 26 desktop contexts / 16 section states pass;
+they cover normal native ratios and accessible text, not the 320px stress branch.
+Billing evidence precedes only the unrelated, scoped Members width correction.
+
+The phone/tablet suite covers ten unique profiles / 207 settled states. Its
+first seven contexts pass; the eighth reveals that the test only scrolls a final
+action into view above y=0, overlooking a sticky header at y=6. The corrected
+checker retains the bottom-dock and actual hit-test guards. Only that failed
+profile, the two remaining profiles and the two narrow profiles affected by
+the Owner correction run again. Thirteen actual contexts include that failed
+attempt and repeats; the missing prefix request aggregate is not invented.
+
+[Members/Projects native evidence](owner-projects-native-browser-local-2026-10-10.json)
+records exact role boxes and search/count behavior. A real 320px French Owner
+label initially wraps; the shared role field now retains enough width and
+removal actions wrap below. Final Owner/Admin boxes are both 144×48 at 320px
+and 154×48 at 390px. Owner stays bold and immutable. Screenshot touch recovery,
+that initial width failure, retained desktop scope and all local request counts
+are disclosed. All requests are intercepted; no business/provider/D1 write or
+remote account acceptance occurs. Physical devices, WebKit mobile and Firefox
+remain outside this local proof.
+
+## Projects count and search alignment (2026-10-10)
+
+Projects keeps its main heading and removes the intermediate Projects/count
+label. Search is left-aligned in that toolbar. The loaded project count and
+pagination `+` now sit beside the Project column title, using its typography.
+That title/count stays visible with one or zero search matches and on phone
+layouts, where the other column headings stay hidden above stacked project
+cards. Existing search, clear/focus, load-more and reload tests confirm that
+filtering does not change the loaded total. Ledger/Projects targeted suites
+pass 136 tests; ESLint and whitespace checks pass.
+
+## Compact Billing capacity graphics (2026-10-10)
+
+Billing's Projects, Expense records and paid Jev figures now sit in flat usage
+cards with native accessible ratio meters. Used and Total allowance remain exact
+and visible, including usage above a lowered allowance. Visual fill clamps at
+the allowance; accessible text retains the full actual values. There is no
+fabricated minimum fill, remaining-capacity calculation or over-limit status
+copy. Positive allowances support true zero use; a valid zero Jev allowance
+keeps both values but omits its undefined ratio. Read/refresh, personal-ledger
+scope, unavailable states and UTC-month reservation accounting are unchanged.
+The targeted Billing suite passes 111 tests, with ESLint and independent review.
+The bounded browser checker now validates the native ratio, exact localized
+accessible text, visible track and containment rather than the retired no-meter
+presentation. Final built-browser checks and publication follow below.
+
+## GitHub popup closure and aligned immutable roles (2026-10-10)
+
+Closing the GitHub window triggers one finite verification of the current
+account's repository access and an honest unverified-close notice. Cached
+repository access and a manage continuation cannot prove that this particular
+GitHub change was saved. Only the matching-origin, matching-popup callback with
+the current flow nonce establishes completion. Explicit provider, authorization,
+malformed-response and refresh errors remain errors; account, unmount and stale
+response fences are preserved. Settings, Projects and the OAuth return include
+six-language save/return guidance.
+
+[Native popup evidence](github-popup-close-native-browser-local-2026-10-10.json)
+records nine passing real-window Chromium cases, including the original return
+gate, retained opener/name, source and nonce checks, account change and sync
+failure. All 206 browser requests and 19 API requests, including failed local
+navigation fixtures and the initial request-cap stop, were intercepted locally.
+No real provider or remote D1 operation ran; source hashes stayed unchanged.
+Helper/auth tests (66), Settings/Public/locales (124), Projects (43), Ledger
+(93), ESLint and an independent security review passed.
+
+Immutable member roles now occupy the same first control column, with matching
+border, background, padding and responsive font size. Owner retains bold text
+and its existing noninteractive semantics. Narrow layouts reserve the same
+control width even when the row has no removal action. Existing Members tests
+(61) pass. Final built-browser geometry and publication are recorded below
+after the remaining Billing and Projects presentation changes.
+
 [Jev/overview preview publication](jev-overview-preview-release-2026-10-10.json)
 records both main runtime commits and 100%-active preview versions. The original
 Server database, coordinator namespace, inherited bindings, hourly schedule and

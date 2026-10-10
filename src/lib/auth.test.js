@@ -240,7 +240,8 @@ describe("auth redirects", () => {
     });
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
-      items: [{ fullName: "octocat/private-repo" }],
+      githubAccess: "authorized",
+      items: [{ fullName: "octocat/private-repo", installationId: "999" }],
     });
 
     await expect(connectGitHubRepositories()).resolves.toBeUndefined();
@@ -259,7 +260,8 @@ describe("auth redirects", () => {
     openGitHubInstallPopup.mockResolvedValueOnce(undefined);
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
-      items: [{ fullName: "octocat/private-repo" }],
+      githubAccess: "authorized",
+      items: [{ fullName: "octocat/private-repo", installationId: "999" }],
     });
 
     await expect(connectGitHubRepositories({ manage: true })).resolves.toBeUndefined();
@@ -270,10 +272,34 @@ describe("auth redirects", () => {
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
-      undefined,
+      { installationId: "999", githubIdentityId: undefined, requireCloseSyncReady: true },
+      expect.objectContaining({ scope: captureGitHubRefreshScope(), signal: undefined, nonce: expect.stringMatching(/^[0-9a-f]{32}$/) })
+    );
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a completed connect-manage popup when fresh access belongs to another installation", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      mode: "github-installation-manage",
+      url: "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+      installationId: 999,
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    pullwiseApi.repositories.sync.mockResolvedValueOnce({
+      needsAuthorization: false,
+      githubAccess: "authorized",
+      items: [{ fullName: "alice/other", installationId: "111" }],
+    });
+
+    await expect(connectGitHubRepositories({ manage: true })).rejects.toMatchObject({
+      code: "no_authorized_repositories",
+    });
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith(
+      { installationId: "999", githubIdentityId: undefined },
       { scope: captureGitHubRefreshScope(), signal: undefined }
     );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+    expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
   });
 
   it("creates a manage session for a specific installation and syncs only that installation", async () => {
@@ -285,7 +311,8 @@ describe("auth redirects", () => {
     openGitHubInstallPopup.mockResolvedValueOnce(undefined);
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
-      items: [{ fullName: "octocat/private-repo" }],
+      githubAccess: "authorized",
+      items: [{ fullName: "octocat/private-repo", installationId: "999" }],
     });
 
     await expect(
@@ -299,7 +326,7 @@ describe("auth redirects", () => {
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
       { installationId: "999", githubIdentityId: "ghi_1", requireCloseSyncReady: true },
-      { scope: captureGitHubRefreshScope(), signal: undefined }
+      expect.objectContaining({ scope: captureGitHubRefreshScope(), signal: undefined, nonce: expect.stringMatching(/^[0-9a-f]{32}$/) })
     );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith(
       { installationId: "999", githubIdentityId: "ghi_1" },
@@ -321,7 +348,8 @@ describe("auth redirects", () => {
     );
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
-      items: [{ fullName: "octocat/private-repo" }],
+      githubAccess: "authorized",
+      items: [{ fullName: "octocat/private-repo", installationId: "999" }],
     });
 
     const completion = manageGitHubInstallation("999", { githubIdentityId: "ghi_1" });
@@ -335,6 +363,51 @@ describe("auth redirects", () => {
     await completion;
 
     expect(markGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+  });
+
+  it.each(["connect", "manage"])("passes a neutral %s close outcome to the caller without a second sync", async (mode) => {
+    const repositories = { githubAccess: "authorized", needsAuthorization: false,
+      items: [{ fullName: "old/repository", installationId: "999" }] };
+    const outcome = { status: "closed_unverified", repositories };
+    openGitHubInstallPopup.mockResolvedValueOnce(outcome);
+    let completion;
+    if (mode === "manage") {
+      pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+        url: "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+      });
+      completion = manageGitHubInstallation("999");
+    } else {
+      pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+        url: "https://github.com/apps/pullwise/installations/new",
+      });
+      completion = connectGitHubRepositories();
+    }
+    await expect(completion).resolves.toBe(outcome);
+    expect(pullwiseApi.repositories.sync).not.toHaveBeenCalled();
+    const options = openGitHubInstallPopup.mock.calls[0][2];
+    const returnUrl = mode === "manage"
+      ? pullwiseApi.integrations.createGitHubInstallationManageSession.mock.calls[0][1].returnUrl
+      : pullwiseApi.integrations.getGitHubAuthorizeUrl.mock.calls[0][0].redirectTo;
+    expect(new URL(returnUrl).searchParams.get("github_popup_nonce")).toBe(options.nonce);
+    expect(options.nonce).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it.each(["lost", "other-installation", "provider-unavailable"])("does not confirm a managed callback when fresh access is %s", async (state) => {
+    pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({
+      url: "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+    });
+    openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+    const providerFailure = Object.assign(new Error("GitHub provider unavailable"), { code: "GITHUB_UNAVAILABLE" });
+    pullwiseApi.repositories.sync.mockResolvedValueOnce(state === "lost"
+      ? { githubAccess: "lost", needsAuthorization: true, items: [] }
+      : { githubAccess: "authorized", needsAuthorization: false,
+          items: [{ installationId: "other", fullName: "other/repository" }],
+          ...(state === "provider-unavailable" ? { githubRefreshError: providerFailure } : {}) });
+    await expect(manageGitHubInstallation("999")).rejects.toMatchObject({
+      code: state === "provider-unavailable" ? "GITHUB_UNAVAILABLE" : "no_authorized_repositories",
+    });
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+    expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
   });
 
   it("maps manage account mismatch errors to a readable message", async () => {
@@ -370,6 +443,7 @@ describe("auth redirects", () => {
     openGitHubInstallPopup.mockResolvedValueOnce(undefined);
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: false,
+      githubAccess: "authorized",
       items: [{ fullName: "acme/service" }],
     });
 
@@ -382,7 +456,7 @@ describe("auth redirects", () => {
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pull-wise.com/integrations/github/install/start?state=abc",
       undefined,
-      { scope: captureGitHubRefreshScope(), signal: undefined }
+      expect.objectContaining({ scope: captureGitHubRefreshScope(), signal: undefined, nonce: expect.stringMatching(/^[0-9a-f]{32}$/) })
     );
   });
 
@@ -393,6 +467,7 @@ describe("auth redirects", () => {
     });
     pullwiseApi.repositories.sync.mockResolvedValueOnce({
       needsAuthorization: true,
+      githubAccess: "not_connected",
       items: [],
       repositories: [],
     });
@@ -446,7 +521,7 @@ describe("auth redirects", () => {
         : manageGitHubInstallation("999", { signal: controller.signal });
       const aborted = expect(completion).rejects.toMatchObject({ name: "AbortError" });
       await vi.waitFor(() => expect(openGitHubInstallPopup).toHaveBeenCalledTimes(1));
-      expect(openGitHubInstallPopup.mock.calls[0][2]).toEqual({ scope, signal: controller.signal });
+      expect(openGitHubInstallPopup.mock.calls[0][2]).toEqual({ scope, signal: controller.signal, nonce: expect.stringMatching(/^[0-9a-f]{32}$/) });
       markGitHubRepositoryAccessRefreshNeeded.mockClear();
       clearGitHubRepositoryAccessRefreshNeeded.mockClear();
 
@@ -472,7 +547,8 @@ describe("auth redirects", () => {
       openGitHubInstallPopup.mockResolvedValueOnce(undefined);
       pullwiseApi.repositories.sync.mockResolvedValueOnce({
         needsAuthorization: false,
-        items: [{ id: "repo_1" }],
+        githubAccess: "authorized",
+        items: [{ id: "repo_1", installationId: "999" }],
       });
       const scope = captureGitHubRefreshScope();
       const controller = new AbortController();

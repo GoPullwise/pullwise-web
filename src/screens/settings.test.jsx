@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../api/http.js";
@@ -41,6 +41,19 @@ const connectedGitHub = {
       },
       { id: "202", account: "team-b", manage: { mode: "needs_identity" } },
     ],
+  },
+};
+const authorizationGuidance =
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.";
+const closedNotice = "GitHub window closed. Current repository access has been refreshed.";
+const noAccessNotice = "No repository access was found. Finish saving on GitHub and reconnect.";
+const githubAccess = () => within(screen.getByRole("region", { name: "GitHub access" }));
+const closedWithAccess = {
+  status: "closed_unverified",
+  repositories: {
+    githubAccess: "authorized",
+    needsAuthorization: false,
+    items: [{ githubRepoId: "1", fullName: "team-a/service", installationId: "101" }],
   },
 };
 function deferred() {
@@ -108,6 +121,7 @@ describe("product settings", () => {
     render(<SettingsScreen go={vi.fn()} />);
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
     expect(screen.getByText(/repository links are optional/i)).toBeInTheDocument();
+    expect(screen.getByText(authorizationGuidance)).toBeVisible();
     expect(screen.queryByText(/review output language/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/scan history/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /^connect repositories$/i }));
@@ -440,6 +454,107 @@ describe("product settings", () => {
     expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["connect", "manage"])(
+    "shows a neutral %s closure notice only after the required account and integration reload",
+    async (action) => {
+      const sessionRead = deferred();
+      const integrationsRead = deferred();
+      pullwiseApi.auth.getSession
+        .mockResolvedValueOnce(session)
+        .mockReturnValueOnce(sessionRead.promise);
+      pullwiseApi.integrations.list
+        .mockResolvedValueOnce(connectedGitHub)
+        .mockReturnValueOnce(integrationsRead.promise);
+      const authorize = action === "connect" ? connectGitHubRepositories : manageGitHubInstallation;
+      authorize.mockResolvedValueOnce(closedWithAccess);
+      render(<SettingsScreen go={vi.fn()} />);
+      const button = await screen.findByRole("button", {
+        name:
+          action === "connect"
+            ? "Add account or organization"
+            : "Manage team-a GitHub App installation",
+      });
+      expect(screen.getByText(authorizationGuidance)).toBeVisible();
+      fireEvent.click(button);
+      await waitFor(() => expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(2));
+      expect(button).toBeDisabled();
+      expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+      await act(async () => integrationsRead.resolve(connectedGitHub));
+      expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+      await act(async () => sessionRead.resolve(session));
+      expect(githubAccess().getByRole("status")).toHaveTextContent(closedNotice);
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.queryByText(/cancelled|confirmed|successfully/i)).not.toBeInTheDocument();
+      expect(button).toBeEnabled();
+
+      const nextAction = deferred();
+      authorize.mockReturnValueOnce(nextAction.promise);
+      fireEvent.click(button);
+      expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+      await act(async () => nextAction.reject(new Error("GitHub access unavailable")));
+      expect(screen.getByRole("alert")).toHaveTextContent("GitHub access unavailable");
+      expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+      expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("shows reconnect guidance when closing the window leaves no repository access", async () => {
+    connectGitHubRepositories.mockResolvedValueOnce({
+      status: "closed_unverified",
+      repositories: { githubAccess: "not_linked", needsAuthorization: true, items: [] },
+    });
+    render(<SettingsScreen go={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Connect repositories" }));
+    expect(await githubAccess().findByRole("status")).toHaveTextContent(noAccessNotice);
+    expect(screen.queryByText(closedNotice)).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Connect repositories" })).toBeEnabled();
+  });
+
+  it("keeps a reauthorization requirement as an error without claiming refreshed access", async () => {
+    connectGitHubRepositories.mockRejectedValueOnce(
+      Object.assign(new Error("GitHub token expired"), { code: "GITHUB_REAUTHORIZATION_REQUIRED" })
+    );
+    render(<SettingsScreen go={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Connect repositories" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Reconnect your GitHub account before checking repository access."
+    );
+    expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["account changed", "read failed"])(
+    "does not claim refreshed GitHub access after a closure when the required reload %s",
+    async (failure) => {
+      connectGitHubRepositories.mockResolvedValueOnce(closedWithAccess);
+      pullwiseApi.auth.getSession.mockResolvedValueOnce(session);
+      if (failure === "account changed")
+        pullwiseApi.auth.getSession.mockResolvedValueOnce({
+          ...session,
+          user: { ...session.user, id: "other-account", name: "Other user" },
+        });
+      else
+        pullwiseApi.integrations.list
+          .mockResolvedValueOnce(connectedGitHub)
+          .mockRejectedValueOnce(new Error("Repository access could not be checked"));
+      render(<SettingsScreen go={vi.fn()} />);
+      fireEvent.click(
+        await screen.findByRole("button", {
+          name: failure === "read failed" ? "Add account or organization" : "Connect repositories",
+        })
+      );
+      await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
+      expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(2);
+      expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+      if (failure === "account changed") expect(screen.getByText("Other user")).toBeVisible();
+      else
+        expect(screen.getByRole("alert")).toHaveTextContent(
+          "Repository access could not be checked"
+        );
+    }
+  );
+
   it("releases the busy lock after a failed connection without automatically retrying or refreshing", async () => {
     connectGitHubRepositories.mockRejectedValueOnce(new Error("Popup canceled"));
     withLedgers();
@@ -539,7 +654,7 @@ describe("product settings", () => {
     const view = render(<SettingsScreen go={vi.fn()} />);
     fireEvent.click(await screen.findByRole("button", { name: /^connect repositories$/i }));
     view.unmount();
-    finish();
+    finish(closedWithAccess);
     await Promise.resolve();
     expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(1);
     expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(1);

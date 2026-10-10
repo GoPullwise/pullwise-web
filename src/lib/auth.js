@@ -28,6 +28,18 @@ function getContinueRepositoryRedirectUrl(redirectTo) {
   return redirectUrl.toString();
 }
 
+function popupReturnUrl(redirectTo, nonce) {
+  const url = new URL(redirectTo);
+  url.searchParams.set("github_popup_nonce", nonce);
+  return url.toString();
+}
+
+function popupNonce() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+}
+
 function repositoryItemsFrom(payload) {
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.repositories)) return payload.repositories;
@@ -73,11 +85,34 @@ function assertAuthorizationActive(scope, signal) {
     throw new DOMException("Account changed", "AbortError");
 }
 
-async function verifyConnectedRepositories({ scope, signal }) {
+async function verifyConnectedRepositories({ scope, signal, syncPayload }) {
   assertAuthorizationActive(scope, signal);
-  const payload = await pullwiseApi.repositories.sync(undefined, { scope, signal });
+  const payload = await pullwiseApi.repositories.sync(syncPayload, { scope, signal });
   assertAuthorizationActive(scope, signal);
-  if (!payload?.needsAuthorization && repositoryItemsFrom(payload).length > 0) return;
+  assertRepositoryAuthorization(payload, syncPayload?.installationId);
+}
+
+function assertRepositoryAuthorization(payload, installationId) {
+  if (payload?.githubRefreshError) throw payload.githubRefreshError;
+  if (payload?.authorizationIssue) throw repositoryAuthorizationError(payload);
+  if (payload?.githubAccess === "reauthorization_required") {
+    const error = new Error("Reconnect your GitHub account before checking repository access.");
+    error.code = "GITHUB_REAUTHORIZATION_REQUIRED";
+    throw error;
+  }
+  const items = repositoryItemsFrom(payload);
+  if ((!Array.isArray(payload?.items) && !Array.isArray(payload?.repositories)) ||
+      typeof payload?.needsAuthorization !== "boolean" ||
+      !["authorized", "not_connected", "lost"].includes(payload?.githubAccess) ||
+      items.some((item) => !item || typeof item !== "object") ||
+      (payload.githubAccess === "authorized" && payload.needsAuthorization !== false)) {
+    const error = new Error("GitHub returned an unexpected repository access response.");
+    error.code = "GITHUB_RESPONSE_INVALID";
+    throw error;
+  }
+  if (payload?.needsAuthorization === false && payload?.githubAccess === "authorized" &&
+      items.length > 0 && items.every((item) => item && typeof item === "object") &&
+      (!installationId || items.some((item) => String(item.installationId) === installationId))) return;
   throw repositoryAuthorizationError(payload);
 }
 
@@ -139,11 +174,12 @@ export async function connectGitHubRepositories({
   const scope = captureGitHubRefreshScope();
   assertAuthorizationActive(scope, signal);
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
+  const nonce = popupNonce();
   let result;
   try {
     result = await pullwiseApi.integrations.getGitHubAuthorizeUrl(
       {
-        redirectTo: repositoryRedirect,
+        redirectTo: popupReturnUrl(repositoryRedirect, nonce),
         manage: manage && !add ? "1" : undefined,
         add: add ? "1" : undefined,
       },
@@ -164,9 +200,13 @@ export async function connectGitHubRepositories({
   }
   assertAuthorizationActive(scope, signal);
 
+  const repositorySyncPayload = result?.mode === "github-installation-manage" && result.installationId
+    ? { installationId: installationIdFrom(result.installationId), githubIdentityId: result.githubIdentityId }
+    : undefined;
+
   if (!result?.url) {
     if (result?.connected) {
-      await verifyConnectedRepositories({ scope, signal });
+      await verifyConnectedRepositories({ scope, signal, syncPayload: repositorySyncPayload });
       clearGitHubRepositoryAccessRefreshNeeded();
       return;
     }
@@ -177,20 +217,27 @@ export async function connectGitHubRepositories({
 
   const authorizeUrl = safeGitHubInstallationUrl(result.url, "GitHub repository authorization URL");
   markGitHubRepositoryAccessRefreshNeeded();
-  const completion = openGitHubInstallPopup(authorizeUrl, undefined, { scope, signal });
+  const popupSyncPayload = repositorySyncPayload
+    ? { ...repositorySyncPayload, requireCloseSyncReady: true }
+    : undefined;
+  const completion = openGitHubInstallPopup(authorizeUrl, popupSyncPayload, { scope, signal, nonce });
   if (!completion) {
     window.location.assign(authorizeUrl);
     return;
   }
   try {
-    await completion;
+    const outcome = await completion;
     assertAuthorizationActive(scope, signal);
+    if (outcome?.repositories) {
+      clearGitHubRepositoryAccessRefreshNeeded();
+      return outcome;
+    }
   } catch (error) {
     if (scope === captureGitHubRefreshScope()) clearGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
   try {
-    await verifyConnectedRepositories({ scope, signal });
+    await verifyConnectedRepositories({ scope, signal, syncPayload: repositorySyncPayload });
   } catch (error) {
     if (scope === captureGitHubRefreshScope()) markGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
@@ -206,11 +253,12 @@ export async function manageGitHubInstallation(
   assertAuthorizationActive(scope, signal);
   const cleanInstallationId = installationIdFrom(installationId);
   const cleanIdentityId = identityIdFrom(githubIdentityId);
+  const nonce = popupNonce();
   const result = await pullwiseApi.integrations.createGitHubInstallationManageSession(
     cleanInstallationId,
     {
       githubIdentityId: cleanIdentityId,
-      returnUrl: getRepositoryRedirectUrl(redirectTo),
+      returnUrl: popupReturnUrl(getRepositoryRedirectUrl(redirectTo), nonce),
     }
   );
   assertAuthorizationActive(scope, signal);
@@ -223,22 +271,27 @@ export async function manageGitHubInstallation(
     ...repositorySyncPayload,
     requireCloseSyncReady: true,
   };
-  const completion = openGitHubInstallPopup(manageUrl, popupSyncPayload, { scope, signal });
+  const completion = openGitHubInstallPopup(manageUrl, popupSyncPayload, { scope, signal, nonce });
   if (!completion) {
     markGitHubRepositoryAccessRefreshNeeded();
     window.location.assign(manageUrl);
     return;
   }
   try {
-    await completion;
+    const outcome = await completion;
     assertAuthorizationActive(scope, signal);
+    if (outcome?.repositories) {
+      clearGitHubRepositoryAccessRefreshNeeded();
+      return outcome;
+    }
   } catch (error) {
     throw normalizeGitHubPopupError(error);
   }
   try {
     assertAuthorizationActive(scope, signal);
-    await pullwiseApi.repositories.sync(repositorySyncPayload, { scope, signal });
+    const repositories = await pullwiseApi.repositories.sync(repositorySyncPayload, { scope, signal });
     assertAuthorizationActive(scope, signal);
+    assertRepositoryAuthorization(repositories, cleanInstallationId);
   } catch (error) {
     if (scope === captureGitHubRefreshScope()) markGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);

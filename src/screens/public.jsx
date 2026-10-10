@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { I } from "../icons.jsx";
 import { useErrorNotification } from "../components/notifications.jsx";
 import { EmailSignIn } from "../components/email-sign-in.jsx";
+import {
+  GitHubAuthorizationGuidance,
+  GitHubClosedNotice,
+} from "../components/github-authorization-notice.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -17,6 +21,8 @@ function getAuthErrorMessage(error) {
 function getRepositoryAuthErrorMessage(error) {
   const message = String(error?.message || "");
   const code = String(error?.code || "");
+  if (code === "GITHUB_REAUTHORIZATION_REQUIRED")
+    return T("Reconnect your GitHub account before checking repository access.");
   if (error?.status === 409 || message.includes("private or not publicly visible")) {
     return T(
       "Repository connection is currently unavailable for this GitHub account. Please contact Pullwise support.",
@@ -453,6 +459,23 @@ export function OAuthScreen({ go, auth }) {
   useLang();
   const [authing, setAuthing] = useState(false);
   const [error, setError] = useState("");
+  const [githubClosedNotice, setGithubClosedNotice] = useState(null);
+  const identity = auth?.session?.user?.id || "";
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
+  const mountedRef = useRef(false);
+  const actionRef = useRef(null);
+  useEffect(() => {
+    mountedRef.current = true;
+    setAuthing(false);
+    setError("");
+    setGithubClosedNotice(null);
+    return () => {
+      mountedRef.current = false;
+      actionRef.current?.controller.abort();
+      actionRef.current = null;
+    };
+  }, [identity]);
   useErrorNotification(error, {
     title: T("Authorization error", "Authorization error"),
     key: `oauth:${error}`,
@@ -460,21 +483,31 @@ export function OAuthScreen({ go, auth }) {
   const backTarget = auth?.authenticated ? "ledgerProjects" : "login";
 
   const handleAuthorize = async () => {
+    if (!mountedRef.current || actionRef.current) return;
+    const operation = { identity, controller: new AbortController() };
+    actionRef.current = operation;
     setAuthing(true);
     setError("");
+    setGithubClosedNotice(null);
+    const live = () =>
+      mountedRef.current &&
+      actionRef.current === operation &&
+      identityRef.current === operation.identity &&
+      !operation.controller.signal.aborted;
 
     try {
-      await connectGitHubRepositories();
-      go("ledgerProjects");
+      const outcome = await connectGitHubRepositories({ signal: operation.controller.signal });
+      if (!live()) return;
+      if (outcome?.status === "closed_unverified")
+        setGithubClosedNotice({ identity: operation.identity, outcome });
+      else go("ledgerProjects");
     } catch (authError) {
-      if (authError?.code === "popup_closed") {
-        setError(
-          T("GitHub installation was cancelled. Please try again.", "GitHub 安装已取消。请重试。")
-        );
-      } else {
-        setError(getRepositoryAuthErrorMessage(authError));
+      if (live()) setError(getRepositoryAuthErrorMessage(authError));
+    } finally {
+      if (actionRef.current === operation) {
+        actionRef.current = null;
+        if (mountedRef.current) setAuthing(false);
       }
-      setAuthing(false);
     }
   };
 
@@ -582,6 +615,14 @@ export function OAuthScreen({ go, auth }) {
               "之后可以在设置中调整已选仓库。组织仓库可能需要组织所有者批准。"
             )}
           </div>
+          <div className="oauth-org-p">
+            <GitHubAuthorizationGuidance />
+          </div>
+          {githubClosedNotice && githubClosedNotice.identity === identity && (
+            <div className="oauth-org-p">
+              <GitHubClosedNotice outcome={githubClosedNotice.outcome} />
+            </div>
+          )}
         </div>
 
         <div className="oauth-actions">

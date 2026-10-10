@@ -133,7 +133,7 @@
 .ledger-your-projects .ledger-project-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -141,13 +141,13 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: var(--text-3);
-  font-size: var(--fs-md);
   white-space: nowrap;
 }
 .ledger-your-projects .ledger-project-count .count {
   margin: 0;
-  color: var(--text-2);
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }
 .ledger-your-projects .ledger-search {
   flex: 1;
@@ -273,6 +273,9 @@
 }
 @container (max-width: 759px) {
   .ledger-your-projects .ledger-project-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ledger-your-projects .ledger-project-head > :not(.ledger-project-count) {
     display: none;
   }
   .ledger-your-projects .ledger-project-row {

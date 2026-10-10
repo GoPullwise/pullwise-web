@@ -570,14 +570,91 @@ describe("Projects authorization and creation", () => {
     expect(api.createProject).not.toHaveBeenCalled();
   });
 
-  it("shows popup cancellation and allows a manual retry", async () => {
-    github.connect.mockRejectedValueOnce(new Error("GitHub authorization was cancelled"));
+  it("refreshes after closing GitHub and shows a neutral notice only after the required reload", async () => {
+    const message = "GitHub window closed. Current repository access has been refreshed.";
+    const outcome = {
+      status: "closed_unverified",
+      repositories: {
+        needsAuthorization: false,
+        githubAccess: "authorized",
+        items: [{ githubRepoId: 202, fullName: "alice/project" }],
+      },
+    };
+    let finishReload;
+    api.projects.mockResolvedValueOnce({ items: [], nextCursor: null }).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishReload = resolve;
+        })
+    );
+    api.repositories.mockResolvedValueOnce({ items: [], nextCursor: null });
+    github.connect.mockResolvedValueOnce(outcome);
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    await openGitHubLinks();
+    expect(screen.getByText(/On GitHub, finish saving, then close the window/)).toBeVisible();
+    fireEvent.click(await screen.findByRole("button", { name: /Manage GitHub access/i }));
+    await waitFor(() => expect(api.projects).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+
+    finishReload({ items: [], nextCursor: null });
+    expect((await screen.findByText(message)).closest('[role="status"]')).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "alice/project" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(api.repositories).toHaveBeenCalledTimes(2);
+    expect(api.createProject).not.toHaveBeenCalled();
+  });
+
+  it("keeps a failed required reload visible without a stale GitHub closure notice", async () => {
+    api.projects
+      .mockResolvedValueOnce({ items: [], nextCursor: null })
+      .mockRejectedValueOnce(new Error("Projects could not be read"));
+    github.connect.mockResolvedValueOnce({
+      status: "closed_unverified",
+      repositories: { needsAuthorization: true, githubAccess: "not_connected", items: [] },
+    });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     await openGitHubLinks();
     fireEvent.click(await screen.findByRole("button", { name: /Manage GitHub access/i }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "GitHub authorization was cancelled"
+    expect(await screen.findByRole("alert")).toHaveTextContent("Projects could not be read");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("discards a GitHub closure outcome after the workspace changes", async () => {
+    let finish;
+    github.connect.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        })
     );
+    const workspace = {
+      id: "usr_first",
+      revision: 1,
+      permissions: { manageProjects: true, manageCategories: true, writeExpenses: true },
+    };
+    const view = render(<LedgerScreen go={vi.fn()} mode="projects" workspace={workspace} />);
+    await openGitHubLinks();
+    fireEvent.click(await screen.findByRole("button", { name: /Manage GitHub access/i }));
+    view.rerender(
+      <LedgerScreen go={vi.fn()} mode="projects" workspace={{ ...workspace, id: "usr_second" }} />
+    );
+    await screen.findByLabelText("Project name");
+    finish({
+      status: "closed_unverified",
+      repositories: { needsAuthorization: true, githubAccess: "not_connected", items: [] },
+    });
+    await Promise.resolve();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(api.projects).toHaveBeenCalledTimes(2);
+    expect(api.repositories).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves an explicit GitHub authorization error and allows a manual retry", async () => {
+    github.connect.mockRejectedValueOnce(new Error("GitHub denied authorization"));
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    await openGitHubLinks();
+    fireEvent.click(await screen.findByRole("button", { name: /Manage GitHub access/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("GitHub denied authorization");
     expect(screen.getByRole("button", { name: /Manage GitHub access/i })).toBeEnabled();
     expect(api.repositories).toHaveBeenCalledTimes(1);
   });
@@ -615,14 +692,19 @@ describe("Projects authorization and creation", () => {
       .mockResolvedValueOnce({ items: [first], nextCursor: null });
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
     await screen.findByRole("link", { name: first.name });
+    const projectCount = () =>
+      screen.getByText("Project", { selector: ".ledger-project-count > span" }).nextElementSibling;
+    expect(projectCount()).toHaveTextContent("1+");
     fireEvent.change(screen.getByRole("searchbox", { name: "Find a project" }), {
       target: { value: "Nothing matches" },
     });
     expect(screen.getByRole("heading", { name: "No matching projects" })).toBeVisible();
+    expect(projectCount()).toHaveTextContent("1+");
     expect(api.projects).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
     fireEvent.click(screen.getByRole("button", { name: "Load more projects" }));
     expect(await screen.findByRole("link", { name: next.name })).toBeVisible();
+    expect(projectCount()).toHaveTextContent(/^2$/);
     expect(api.projects).toHaveBeenLastCalledWith(
       { cursor: "projects-page-2" },
       expect.objectContaining({ signal: expect.any(AbortSignal) })
@@ -633,6 +715,7 @@ describe("Projects authorization and creation", () => {
       expect(screen.queryByRole("link", { name: next.name })).not.toBeInTheDocument()
     );
     expect(screen.getByRole("link", { name: first.name })).toBeVisible();
+    expect(projectCount()).toHaveTextContent(/^1$/);
     expect(api.categories).not.toHaveBeenCalled();
     expect(api.reportSummary).not.toHaveBeenCalled();
     expect(api.reportTimeseries).not.toHaveBeenCalled();

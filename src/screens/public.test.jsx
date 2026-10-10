@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LandingScreen, LoginScreen, OAuthScreen } from "./public.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
-import { startGitHubLogin } from "../lib/auth.js";
+import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
+import { NotificationProvider } from "../components/notifications.jsx";
+import { setLang } from "../i18n.jsx";
 
 vi.mock("../api/pullwise.js", () => ({
   pullwiseApi: { auth: { requestEmailCode: vi.fn(), verifyEmailCode: vi.fn() } },
@@ -14,6 +16,171 @@ vi.mock("../lib/auth.js", () => ({
   signOut: vi.fn(),
   startGitHubLogin: vi.fn(),
 }));
+
+const authorizationGuidance =
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.";
+const closedNotice = "GitHub window closed. Current repository access has been refreshed.";
+const noAccessNotice = "No repository access was found. Finish saving on GitHub and reconnect.";
+const reconnectError = "Reconnect your GitHub account before checking repository access.";
+const closedWithAccess = {
+  status: "closed_unverified",
+  repositories: {
+    githubAccess: "authorized",
+    needsAuthorization: false,
+    items: [{ githubRepoId: "1", fullName: "team-a/service", installationId: "101" }],
+  },
+};
+const closedWithoutAccess = {
+  status: "closed_unverified",
+  repositories: { githubAccess: "not_linked", needsAuthorization: true, items: [] },
+};
+const signedIn = { authenticated: true, session: { user: { id: "account-a" } } };
+
+describe("repository authorization outcomes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    connectGitHubRepositories.mockResolvedValue(undefined);
+  });
+
+  it.each([
+    [closedWithAccess, closedNotice],
+    [closedWithoutAccess, noAccessNotice],
+    [
+      { ...closedWithAccess, repositories: { ...closedWithAccess.repositories, items: [] } },
+      noAccessNotice,
+    ],
+  ])("keeps a closed window outcome inline without navigating", async (outcome, message) => {
+    connectGitHubRepositories.mockResolvedValueOnce(outcome);
+    const go = vi.fn();
+    render(
+      <NotificationProvider>
+        <OAuthScreen go={go} auth={signedIn} />
+      </NotificationProvider>
+    );
+    expect(screen.getByText(authorizationGuidance)).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(message);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText(/cancelled|confirmed|successfully/i)).not.toBeInTheDocument();
+    expect(go).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Connect GitHub repositories" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute("href", "/projects");
+  });
+
+  it("clears a closed-window notice on the next attempt and preserves provider errors", async () => {
+    connectGitHubRepositories
+      .mockResolvedValueOnce(closedWithAccess)
+      .mockRejectedValueOnce(Object.assign(new Error("GitHub denied access"), { status: 503 }));
+    const go = vi.fn();
+    render(
+      <NotificationProvider>
+        <OAuthScreen go={go} auth={signedIn} />
+      </NotificationProvider>
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(closedNotice);
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Pullwise could not verify repository access. Please try again later."
+    );
+    expect(screen.queryByText(closedNotice)).not.toBeInTheDocument();
+    expect(go).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Connect GitHub repositories" })).toBeEnabled();
+  });
+
+  it("navigates after a verified callback completes", async () => {
+    const go = vi.fn();
+    render(<OAuthScreen go={go} auth={signedIn} />);
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+    await waitFor(() => expect(go).toHaveBeenCalledExactlyOnceWith("ledgerProjects"));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it.each(["unmount", "identity change"])(
+    "aborts and ignores an obsolete authorization after %s",
+    async (transition) => {
+      let finish;
+      connectGitHubRepositories.mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+      );
+      const go = vi.fn();
+      const view = render(<OAuthScreen go={go} auth={signedIn} />);
+      fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+      const signal = connectGitHubRepositories.mock.calls[0][0].signal;
+      if (transition === "unmount") view.unmount();
+      else
+        view.rerender(
+          <OAuthScreen go={go} auth={{ ...signedIn, session: { user: { id: "account-b" } } }} />
+        );
+      expect(signal.aborted).toBe(true);
+      await act(async () => finish(closedWithAccess));
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      expect(go).not.toHaveBeenCalled();
+      if (transition === "identity change")
+        expect(screen.getByRole("button", { name: "Connect GitHub repositories" })).toBeEnabled();
+    }
+  );
+
+  it("clears a completed closure notice when the account changes", async () => {
+    connectGitHubRepositories.mockResolvedValueOnce(closedWithAccess);
+    const view = render(<OAuthScreen go={vi.fn()} auth={signedIn} />);
+    fireEvent.click(screen.getByRole("button", { name: "Connect GitHub repositories" }));
+    await screen.findByRole("status");
+    view.rerender(<OAuthScreen go={vi.fn()} auth={{ authenticated: false }} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it.each(["zh", "ja", "ko", "fr", "es"])(
+    "renders the shared authorization guidance and both closure notices in %s",
+    async (language) => {
+      const { PHRASES } = await import(`../locales/${language}.js`);
+      try {
+        await act(async () => setLang(language));
+        connectGitHubRepositories
+          .mockResolvedValueOnce(closedWithAccess)
+          .mockResolvedValueOnce(closedWithoutAccess)
+          .mockRejectedValueOnce(
+            Object.assign(new Error("GitHub token expired"), {
+              code: "GITHUB_REAUTHORIZATION_REQUIRED",
+            })
+          );
+        render(
+          <NotificationProvider>
+            <OAuthScreen go={vi.fn()} auth={signedIn} />
+          </NotificationProvider>
+        );
+        for (const phrase of [
+          authorizationGuidance,
+          closedNotice,
+          noAccessNotice,
+          reconnectError,
+        ]) {
+          expect(PHRASES[phrase]).toBeTruthy();
+          expect(PHRASES[phrase]).not.toBe(phrase);
+        }
+        expect(PHRASES["GitHub installation was cancelled. Please try again."]).toBeUndefined();
+        expect(screen.getByText(PHRASES[authorizationGuidance])).toBeVisible();
+        const connect = screen.getByRole("button", {
+          name: PHRASES["Connect GitHub repositories"],
+        });
+        fireEvent.click(connect);
+        expect(await screen.findByRole("status")).toHaveTextContent(PHRASES[closedNotice]);
+        fireEvent.click(connect);
+        await waitFor(() =>
+          expect(screen.getByRole("status")).toHaveTextContent(PHRASES[noAccessNotice])
+        );
+        fireEvent.click(connect);
+        expect(await screen.findByRole("alert")).toHaveTextContent(PHRASES[reconnectError]);
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+      } finally {
+        await act(async () => setLang("en"));
+      }
+    }
+  );
+});
 
 describe("public navigation links", () => {
   it("exposes landing header actions as real screen links", async () => {

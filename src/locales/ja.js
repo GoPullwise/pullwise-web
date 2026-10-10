@@ -84,8 +84,14 @@ export const PHRASES = {
   "Sign in with your GitHub identity.": "GitHub ID でサインインします。",
   "By signing in you agree to our": "サインインすると、以下に同意したものとみなされます:",
   and: "および",
-  "GitHub installation was cancelled. Please try again.":
-    "GitHub インストールがキャンセルされました。もう一度お試しください。",
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.":
+    "GitHub で保存を完了してから、ウィンドウを閉じるか Pullwise に戻ってください。リポジトリへのアクセス権を再確認します。",
+  "GitHub window closed. Current repository access has been refreshed.":
+    "GitHub ウィンドウが閉じられました。現在のリポジトリへのアクセス権を更新しました。",
+  "No repository access was found. Finish saving on GitHub and reconnect.":
+    "リポジトリへのアクセス権が見つかりませんでした。GitHub で保存を完了してから再接続してください。",
+  "Reconnect your GitHub account before checking repository access.":
+    "リポジトリへのアクセス権を確認する前に、GitHub アカウントを再接続してください。",
   "Connect GitHub repository access": "GitHub リポジトリアクセスを接続",
   "Requested GitHub permissions": "要求される GitHub 権限",
   "List authorized repositories, branches, languages, and installation status.":

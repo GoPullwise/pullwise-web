@@ -84,7 +84,14 @@ export const PHRASES = {
   "Sign in with your GitHub identity.": "使用你的 GitHub 身份登录。",
   "By signing in you agree to our": "登录即表示你同意我们的",
   and: "和",
-  "GitHub installation was cancelled. Please try again.": "GitHub 安装已取消。请重试。",
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.":
+    "在 GitHub 上完成保存后，关闭窗口或返回 Pullwise。我们会重新检查仓库访问权限。",
+  "GitHub window closed. Current repository access has been refreshed.":
+    "GitHub 窗口已关闭。当前仓库访问权限已刷新。",
+  "No repository access was found. Finish saving on GitHub and reconnect.":
+    "未找到仓库访问权限。请在 GitHub 上完成保存后重新连接。",
+  "Reconnect your GitHub account before checking repository access.":
+    "请先重新连接 GitHub 账户，再检查仓库访问权限。",
   "Connect GitHub repository access": "连接 GitHub 仓库访问",
   "Requested GitHub permissions": "请求的 GitHub 权限",
   "List authorized repositories, branches, languages, and installation status.":

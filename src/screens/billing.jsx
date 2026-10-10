@@ -422,6 +422,22 @@ function jevUsageAmount(microusd, lang) {
   return `USD ${whole}${separator}${fraction}`;
 }
 
+function BillingUsageMeter({ used, limit, titleId, usedLabel, totalLabel }) {
+  // A zero allowance has no defined ratio. Keep its exact values visible,
+  // without inventing a denominator or a minimum visible amount of use.
+  if (limit === 0) return null;
+  return (
+    <meter
+      className="billing-usage-meter"
+      min={0}
+      max={limit}
+      value={Math.min(used, limit)}
+      aria-labelledby={titleId}
+      aria-valuetext={`${usageText("used")}: ${usedLabel}; ${usageText("total")}: ${totalLabel}`}
+    />
+  );
+}
+
 function BillingJevUsage({ usage, lang }) {
   const metric = jevUsageMetric(usage);
   return (
@@ -434,16 +450,25 @@ function BillingJevUsage({ usage, lang }) {
         <article className="billing-usage-row" aria-labelledby="billing-jev-allowance-title">
           <h3 id="billing-jev-allowance-title">{usageText("jevAllowance")}</h3>
           {metric ? (
-            <dl className="billing-usage-values">
-              <div className="billing-usage-used">
-                <dt>{usageText("used")}</dt>
-                <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.usedMicrousd, lang)} /></dd>
-              </div>
-              <div className="billing-usage-total">
-                <dt>{usageText("total")}</dt>
-                <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.limitMicrousd, lang)} /></dd>
-              </div>
-            </dl>
+            <>
+              <dl className="billing-usage-values">
+                <div className="billing-usage-used">
+                  <dt>{usageText("used")}</dt>
+                  <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.usedMicrousd, lang)} /></dd>
+                </div>
+                <div className="billing-usage-total">
+                  <dt>{usageText("total")}</dt>
+                  <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.limitMicrousd, lang)} /></dd>
+                </div>
+              </dl>
+              <BillingUsageMeter
+                used={metric.usedMicrousd}
+                limit={metric.limitMicrousd}
+                titleId="billing-jev-allowance-title"
+                usedLabel={jevUsageAmount(metric.usedMicrousd, lang)}
+                totalLabel={jevUsageAmount(metric.limitMicrousd, lang)}
+              />
+            </>
           ) : <p className="muted">{usageText("unavailable")}</p>}
         </article>
       </div>
@@ -472,16 +497,25 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
             <article className="billing-usage-row" key={key} aria-labelledby={titleId}>
               <h3 id={titleId}>{label}</h3>
               {metric ? (
-                <dl className="billing-usage-values">
-                  <div className="billing-usage-used">
-                    <dt>{usageText("used")}</dt>
-                    <dd><FinancialValue value={number(metric.used)} /></dd>
-                  </div>
-                  <div className="billing-usage-total">
-                    <dt>{usageText("total")}</dt>
-                    <dd><FinancialValue value={number(metric.limit)} /></dd>
-                  </div>
-                </dl>
+                <>
+                  <dl className="billing-usage-values">
+                    <div className="billing-usage-used">
+                      <dt>{usageText("used")}</dt>
+                      <dd><FinancialValue value={number(metric.used)} /></dd>
+                    </div>
+                    <div className="billing-usage-total">
+                      <dt>{usageText("total")}</dt>
+                      <dd><FinancialValue value={number(metric.limit)} /></dd>
+                    </div>
+                  </dl>
+                  <BillingUsageMeter
+                    used={metric.used}
+                    limit={metric.limit}
+                    titleId={titleId}
+                    usedLabel={number(metric.used)}
+                    totalLabel={number(metric.limit)}
+                  />
+                </>
               ) : <p className="muted">{usageText("unavailable")}</p>}
             </article>
           );

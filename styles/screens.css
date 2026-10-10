@@ -897,8 +897,18 @@
   min-width: 0;
   max-width: 100%;
 }
-.member-role-control > .member-role {
-  grid-column: 1 / -1;
+.members-screen .member-role-control > .member-role {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 .members-screen .main .member-role-control select,
 .members-screen .member-row .btn {
@@ -954,11 +964,21 @@
     flex: 1 0 100%;
   }
   .member-row > .member-role-control {
-    flex: 1 1 calc(100% - 112px);
+    flex: 0 1 max(196px, calc(100% - 112px));
   }
   .member-actions {
     justify-content: flex-start;
     flex: 0 1 auto;
+  }
+}
+@media (any-pointer: coarse) {
+  .members-screen .member-role-control > .member-role {
+    font-size: var(--fs-2xl);
+  }
+}
+@media (max-width: 760px) {
+  .members-screen .member-role-control > .member-role {
+    min-height: 48px;
   }
 }
 @container (max-width: 560px) {
@@ -1133,15 +1153,18 @@
 }
 .billing-usage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 32px 48px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
   margin-block: 24px;
 }
 .billing-usage-row {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
 }
 .billing-usage-row h3 {
   font-size: var(--fs-lg);
@@ -1176,6 +1199,35 @@
 .billing-usage-total dd {
   color: var(--text-2);
   --financial-size: var(--fs-value-row);
+}
+.billing-usage-meter {
+  appearance: none;
+  display: block;
+  inline-size: 100%;
+  block-size: 10px;
+  margin-block-start: auto;
+  border: 0;
+  border-radius: 0;
+  background: var(--border);
+  accent-color: var(--accent);
+}
+.billing-usage-meter::-webkit-meter-bar {
+  block-size: 100%;
+  border: 0;
+  border-radius: 0;
+  background: var(--border);
+  box-shadow: none;
+}
+.billing-usage-meter::-webkit-meter-optimum-value,
+.billing-usage-meter::-webkit-meter-suboptimum-value,
+.billing-usage-meter::-webkit-meter-even-less-good-value {
+  border-radius: 0;
+  background: var(--accent);
+}
+.billing-usage-meter::-moz-meter-bar {
+  border: 0;
+  border-radius: 0;
+  background: var(--accent);
 }
 .billing-skeleton .billing-usage-values > div {
   flex: 1;

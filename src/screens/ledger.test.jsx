@@ -891,7 +891,9 @@ describe("ledger screens", () => {
     expect(screen.getByLabelText("Project status")).toHaveValue("archived");
     fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
     expect(screen.getByText("Historical hosting")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Edit Historical hosting" })).toBeEnabled();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Edit Historical hosting" })).toBeEnabled()
+    );
     expect(screen.getByRole("link", { name: "Export CSV" })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Project settings" }));
@@ -1132,17 +1134,25 @@ describe("ledger screens", () => {
     });
     render(<LedgerScreen go={vi.fn()} />);
     const search = await screen.findByRole("searchbox", { name: "Find a project" });
+    const count = screen.getByText("Project", {
+      selector: ".ledger-project-count > span",
+    }).nextElementSibling;
+    expect(screen.getByRole("heading", { name: "Projects", level: 1 })).toBeVisible();
+    expect(count).toHaveTextContent("2+");
     fireEvent.change(search, { target: { value: "BACKEND" } });
     expect(screen.getByRole("link", { name: /alice\/api/ })).toHaveAttribute(
       "href",
       "/projects/prj_2"
     );
     expect(screen.queryByRole("link", { name: /alice\/web/ })).not.toBeInTheDocument();
+    expect(count).toHaveTextContent("2+");
     fireEvent.change(search, { target: { value: "missing" } });
     expect(screen.getByText("No matching projects")).toBeVisible();
+    expect(count).toHaveTextContent("2+");
     expect(screen.getByRole("button", { name: "Load more projects" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
     expect(screen.getByRole("link", { name: /alice\/web/ })).toBeVisible();
+    expect(search).toHaveFocus();
     expect(api.projects).toHaveBeenCalledTimes(1);
   });
 

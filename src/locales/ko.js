@@ -84,8 +84,14 @@ export const PHRASES = {
   "Sign in with your GitHub identity.": "GitHub ID로 로그인하세요.",
   "By signing in you agree to our": "로그인하면 다음에 동의하는 것입니다",
   and: "및",
-  "GitHub installation was cancelled. Please try again.":
-    "GitHub 설치가 취소되었습니다. 다시 시도하세요.",
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.":
+    "GitHub에서 저장을 완료한 뒤 창을 닫거나 Pullwise로 돌아오세요. 저장소 접근 권한을 다시 확인합니다.",
+  "GitHub window closed. Current repository access has been refreshed.":
+    "GitHub 창이 닫혔습니다. 현재 저장소 접근 권한을 새로고침했습니다.",
+  "No repository access was found. Finish saving on GitHub and reconnect.":
+    "저장소 접근 권한을 찾을 수 없습니다. GitHub에서 저장을 완료한 뒤 다시 연결하세요.",
+  "Reconnect your GitHub account before checking repository access.":
+    "저장소 접근 권한을 확인하기 전에 GitHub 계정을 다시 연결하세요.",
   "Connect GitHub repository access": "GitHub 저장소 접근 연결",
   "Requested GitHub permissions": "요청된 GitHub 권한",
   "List authorized repositories, branches, languages, and installation status.":

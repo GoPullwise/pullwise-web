@@ -84,8 +84,14 @@ export const PHRASES = {
   "Sign in with your GitHub identity.": "Connectez-vous avec votre identité GitHub.",
   "By signing in you agree to our": "En vous connectant, vous acceptez nos",
   and: "et",
-  "GitHub installation was cancelled. Please try again.":
-    "L'installation GitHub a été annulée. Veuillez réessayer.",
+  "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.":
+    "Sur GitHub, terminez l'enregistrement, puis fermez la fenêtre ou revenez à Pullwise. L'accès aux dépôts sera vérifié à nouveau.",
+  "GitHub window closed. Current repository access has been refreshed.":
+    "La fenêtre GitHub a été fermée. L'accès actuel aux dépôts a été actualisé.",
+  "No repository access was found. Finish saving on GitHub and reconnect.":
+    "Aucun accès aux dépôts n'a été trouvé. Terminez l'enregistrement sur GitHub, puis reconnectez GitHub.",
+  "Reconnect your GitHub account before checking repository access.":
+    "Reconnectez votre compte GitHub avant de vérifier l'accès aux dépôts.",
   "Connect GitHub repository access": "Connecter l'accès aux dépôts GitHub",
   "Requested GitHub permissions": "Autorisations GitHub demandées",
   "List authorized repositories, branches, languages, and installation status.":

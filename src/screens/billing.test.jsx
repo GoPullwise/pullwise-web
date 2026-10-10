@@ -119,7 +119,12 @@ describe("BillingScreen", () => {
         .getAllByRole("definition")
         .map((definition) => definition.textContent)
     ).toEqual([used, total].map((value) => new Intl.NumberFormat(locale).format(value)));
-    expect(within(article).queryByRole("meter")).not.toBeInTheDocument();
+    const meter = within(article).getByRole("meter", { name: label });
+    expect(meter).toHaveAttribute("min", "0");
+    expect(meter).toHaveAttribute("max", String(total));
+    expect(meter).toHaveAttribute("value", String(Math.min(used, total)));
+    expect(meter).toHaveAttribute("aria-valuetext",
+      `${labels[0]}: ${new Intl.NumberFormat(locale).format(used)}; ${labels[1]}: ${new Intl.NumberFormat(locale).format(total)}`);
     return article;
   }
 
@@ -151,18 +156,23 @@ describe("BillingScreen", () => {
       expect(region).toHaveTextContent("not the provider’s actual invoice");
       expect(region).toHaveTextContent("without rollover, including annual subscriptions");
       expect(region).not.toHaveTextContent(/Remaining|Over limit|Daily/);
+      const meter = within(region).getByRole("meter", { name: "Jev assistance allowance" });
+      expect(meter).toHaveAttribute("value", "1234567");
+      expect(meter).toHaveAttribute("max", "3000000");
+      expect(meter).toHaveAttribute("aria-valuetext", "Used: USD 1.234567; Total allowance: USD 3.00");
       expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
     }
   );
 
-  it("keeps zero reservations and configured zero allowance exact", async () => {
+  it.each([0, 1])("keeps %i micro-USD reservations with zero allowance exact and omits an undefined ratio", async (usedMicrousd) => {
     pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("pro", {
-      month: "2026-10", currency: "USD", usedMicrousd: 0, limitMicrousd: 0,
+      month: "2026-10", currency: "USD", usedMicrousd, limitMicrousd: 0,
     }));
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
     const region = await screen.findByRole("region", { name: "Jev usage" });
     expect(within(region).getAllByRole("definition").map((node) => node.textContent))
-      .toEqual(["USD 0.00", "USD 0.00"]);
+      .toEqual([usedMicrousd === 0 ? "USD 0.00" : "USD 0.000001", "USD 0.00"]);
+    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
   });
 
   it("does not round a safe-integer reservation or hide usage above a changed allowance", async () => {
@@ -174,6 +184,10 @@ describe("BillingScreen", () => {
     const region = await screen.findByRole("region", { name: "Jev usage" });
     expect(within(region).getAllByRole("definition").map((node) => node.textContent))
       .toEqual(["USD 9,007,199,254.740991", "USD 4.250001"]);
+    const meter = within(region).getByRole("meter", { name: "Jev assistance allowance" });
+    expect(meter).toHaveAttribute("value", "4250001");
+    expect(meter).toHaveAttribute("max", "4250001");
+    expect(meter).toHaveAttribute("aria-valuetext", "Used: USD 9,007,199,254.740991; Total allowance: USD 4.250001");
   });
 
   it.each([
@@ -193,6 +207,7 @@ describe("BillingScreen", () => {
     const region = await screen.findByRole("region", { name: "Jev usage" });
     expect(within(region).getByText("Usage unavailable")).toBeInTheDocument();
     expect(within(region).queryByRole("definition")).not.toBeInTheDocument();
+    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
     expect(region).not.toHaveTextContent("USD 0.00");
     expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
   });
@@ -303,7 +318,7 @@ describe("BillingScreen", () => {
     expectUsageValues(region, "Projects", 7, 3);
     expectUsageValues(region, "Expense records", 112, 100);
     expect(region).not.toHaveTextContent(/Remaining|Over limit by|Limit reached/);
-    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
+    expect(within(region).getAllByRole("meter")).toHaveLength(2);
   });
 
   it("keeps missing or malformed usage unavailable until an explicit read succeeds", async () => {

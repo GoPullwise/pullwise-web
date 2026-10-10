@@ -20,19 +20,12 @@ function safeManageContinueUrl(value) {
   throw new Error("A safe GitHub installation popup URL is required.");
 }
 
-export class GitHubInstallCancelled extends Error {
-  constructor() {
-    super("GitHub installation was cancelled.");
-    this.name = "GitHubInstallCancelled";
-    this.code = "popup_closed";
-  }
-}
-
 export class GitHubInstallVerificationError extends Error {
   constructor(cause) {
     super(cause?.message || "Unable to verify GitHub installation after the popup closed.");
     this.name = "GitHubInstallVerificationError";
-    this.code = cause?.code || cause?.payload?.code || "github_installation_verification_failed";
+    this.code = cause?.code || cause?.payload?.error?.code || cause?.payload?.code || "github_installation_verification_failed";
+    this.status = cause?.status;
     this.cause = cause;
   }
 }
@@ -67,6 +60,7 @@ export function notifyOpenerAndClose() {
         ok: !githubError,
         error: githubError || null,
         closeSyncReady: Boolean(continueUrl),
+        nonce: params.get("github_popup_nonce"),
       },
       window.location.origin
     );
@@ -93,7 +87,7 @@ function assertPopupActive(scope, signal) {
 export function openGitHubInstallPopup(
   url,
   syncPayload,
-  { scope = captureGitHubRefreshScope(), signal } = {}
+  { scope = captureGitHubRefreshScope(), signal, nonce } = {}
 ) {
   assertPopupActive(scope, signal);
   const popupUrl = safePopupUrl(url);
@@ -108,20 +102,19 @@ export function openGitHubInstallPopup(
   let removeAbortListeners = () => {};
   return new Promise((resolve, reject) => {
     let settled = false;
-    const requireCloseSyncReady = Boolean(syncPayload?.requireCloseSyncReady);
     const repositorySyncPayload =
       syncPayload && typeof syncPayload === "object"
         ? Object.fromEntries(
             Object.entries(syncPayload).filter(([key]) => key !== "requireCloseSyncReady")
           )
         : syncPayload;
-    let closeSyncReady = !requireCloseSyncReady;
 
     const onMessage = (event) => {
       if (event.origin !== window.location.origin) return;
       if (event.source !== popup) return;
       const data = event.data;
       if (!data || data.type !== MESSAGE_TYPE) return;
+      if (nonce && data.nonce !== nonce) return;
       try {
         assertPopupActive(scope, signal);
       } catch (error) {
@@ -129,12 +122,11 @@ export function openGitHubInstallPopup(
         reject(error);
         return;
       }
-      if (data.ok && data.closeSyncReady) {
-        closeSyncReady = true;
+      if (data.ok === true && data.closeSyncReady === true) {
         return;
       }
       finish();
-      if (data.ok) resolve();
+      if (data.ok === true) resolve();
       else {
         const error = new Error(data.error || "GitHub installation did not complete.");
         error.code = data.error || "github_installation_failed";
@@ -158,36 +150,50 @@ export function openGitHubInstallPopup(
       }
       if (!closed) return;
       finish();
-      if (!closeSyncReady) {
-        reject(new GitHubInstallCancelled());
-        return;
-      }
       try {
         const session = await pullwiseApi.auth.getSession({ signal });
         assertPopupActive(scope, signal);
-        if (session?.github?.repositoriesConnected) {
-          resolve();
-          return;
-        }
+        // The session's repositoriesConnected field is cached. Only its exact
+        // account identity is evidence for this close-time read.
+        if (!scope?.identity || session?.authenticated !== true || session.user?.id !== scope.identity)
+          throw new DOMException("Account changed", "AbortError");
 
         const repositories = await pullwiseApi.repositories.sync(repositorySyncPayload, {
           scope,
           signal,
         });
         assertPopupActive(scope, signal);
+        if (repositories?.githubRefreshError) throw repositories.githubRefreshError;
         if (repositories?.authorizationIssue) {
           const error = new Error(repositories.message || repositories.authorizationIssue);
           error.code = repositories.authorizationIssue;
           reject(error);
           return;
         }
-        if (!repositories?.needsAuthorization) {
-          resolve();
+        if (repositories?.githubAccess === "reauthorization_required") {
+          const error = new Error("Reconnect your GitHub account before checking repository access.");
+          error.code = "GITHUB_REAUTHORIZATION_REQUIRED";
+          throw error;
+        }
+        if (
+          !Array.isArray(repositories?.items) ||
+          typeof repositories.needsAuthorization !== "boolean" ||
+          !["authorized", "not_connected", "lost"].includes(repositories.githubAccess) ||
+          repositories.items.some((item) => !item || typeof item !== "object") ||
+          (repositories.githubAccess === "authorized" && repositories.needsAuthorization !== false)
+        ) {
+          const error = new Error("GitHub returned an unexpected repository access response.");
+          error.code = "GITHUB_RESPONSE_INVALID";
+          throw error;
+        }
+        // Even a trusted manage continuation only proves GitHub was opened.
+        // Existing grants cannot prove that this particular change was saved.
+        resolve({ status: "closed_unverified", repositories });
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          reject(error);
           return;
         }
-
-        reject(new GitHubInstallCancelled());
-      } catch (error) {
         try {
           assertPopupActive(scope, signal);
           reject(new GitHubInstallVerificationError(error));

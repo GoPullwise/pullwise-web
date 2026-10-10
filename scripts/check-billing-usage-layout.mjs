@@ -39,7 +39,7 @@ const normalUsage = {
 const stressUsage = {
   workspaceId: ownerId,
   // A deliberately inconsistent legacy field must neither invalidate nor
-  // produce a calculated status in this two-value presentation.
+  // produce a calculated status alongside the exact values and meter.
   projects: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER - 1, remaining: -1 },
   expenseRecords: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER, remaining: 999 },
   jev: { month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER, limitMicrousd: 4250001 },
@@ -295,6 +295,17 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
         scrollWidth: row.scrollWidth,
         clientWidth: row.clientWidth,
         statuses: row.querySelectorAll(".tag, [data-over-limit]").length,
+        meter: (() => {
+          const meter = row.querySelector("meter");
+          return meter ? {
+            rect: rect(meter),
+            min: meter.min,
+            max: meter.max,
+            value: meter.value,
+            namedBy: meter.getAttribute("aria-labelledby"),
+            valueText: meter.getAttribute("aria-valuetext"),
+          } : null;
+        })(),
         groups: Array.from(row.querySelectorAll("dl > div")).map((group) => {
           const label = group.querySelector("dt");
           const dd = group.querySelector("dd");
@@ -340,10 +351,10 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
   assert.equal(measured.coarse, profile.touch, details);
   if (profile.touch) assert(measured.touchPoints > 0, `No touch emulation: ${details}`);
   assert(measured.documentWidth <= measured.viewport + tolerance, `Document overflow: ${details}`);
-  assert.equal(measured.meters, 0, `Retired usage meter is visible: ${details}`);
   assert.equal(measured.headingIcons, 0, `Decorative usage heading icon remains: ${details}`);
   const keys = kind === "jev" ? ["jevAllowance"] : ["projects", "expenseRecords"];
   assert.equal(measured.rows.length, keys.length, `Missing usage articles: ${details}`);
+  assert.equal(measured.meters, keys.length, `Missing or unexpected usage graphics: ${details}`);
   for (const phrase of forbiddenCopy)
     assert(
       !measured.text.includes(phrase),
@@ -363,6 +374,19 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
     assert(row.scrollWidth <= row.clientWidth + tolerance, `Article overflow: ${details}`);
     const used = row.groups[0];
     const total = row.groups[1];
+    const usedAmount = kind === "jev" ? usage.jev.usedMicrousd : usage[key].used;
+    const allowance = kind === "jev" ? usage.jev.limitMicrousd : usage[key].limit;
+    assert(row.meter, `Missing native usage meter: ${details}`);
+    assert.equal(row.meter.min, 0, details);
+    assert.equal(row.meter.max, allowance, details);
+    assert.equal(row.meter.value, Math.min(usedAmount, allowance), details);
+    assert.equal(row.meter.namedBy, row.titleId, details);
+    assert.equal(row.meter.valueText,
+      `${copy("used", lang)}: ${used.value}; ${copy("total", lang)}: ${total.value}`, details);
+    assert(inside(row.meter.rect, row.rect), `Meter escapes card: ${details}`);
+    assert(row.meter.rect.width > 0 && row.meter.rect.height >= 8, `Meter is not visible: ${details}`);
+    assert(row.meter.rect.top >= Math.max(used.rect.bottom, total.rect.bottom) - tolerance,
+      `Meter overlaps exact usage values: ${details}`);
     assert.equal(used.className, "billing-usage-used", details);
     assert.equal(total.className, "billing-usage-total", details);
     assert.equal(used.label, copy("used", lang), details);

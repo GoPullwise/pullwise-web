@@ -1,5 +1,23 @@
 # Pullwise Web
 
+## GitHub popup close recovery (2026-10-10)
+
+After publishing the Jev/overview batch, the user requests fixing Connect GitHub
+when GitHub has completed an installation update but the window is manually
+closed. Closing a provider window is not proof of cancellation. Use finite
+current-account verification, preserve popup source/Origin and flow/session
+identity fences, and distinguish explicit provider failures from an unverified
+closure. Old repository access alone cannot establish completion of the new
+installation/manage action. Keep polling/retry behavior unchanged and use local
+intercepted OAuth fixtures rather than real remote authorization acceptance.
+
+The subsequent UI tasks are ordered: first align immutable Owner roles with the
+editable role controls while preserving bold text and immutable semantics; next
+replace Billing's plain capacity figures with concise usage graphics and exact
+values; last remove the intermediate Projects/count heading, put its count next
+to the Project column heading, and left-align search in the old heading position.
+Complete verification and publish only Web preview; production stays paused.
+
 ## Jev usage and expense totals (2026-10-10)
 
 The user removes Jev's application-side daily attempt cap and increases the

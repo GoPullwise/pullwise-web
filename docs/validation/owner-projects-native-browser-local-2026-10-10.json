@@ -1,0 +1,4381 @@
+{
+  "date": "2026-10-10",
+  "localOnly": true,
+  "browser": "Chromium",
+  "actualBuiltApplication": true,
+  "fixture": "original createMobileLayoutFixture with local GET-only Owner/Admin and two-project DTO variants",
+  "fixturePortAdapter": {
+    "realOrigin": "http://127.0.0.1:4251",
+    "fixtureOrigin": "http://127.0.0.1:4248",
+    "networkForwarding": false,
+    "requestRecordsUseRealURLs": true
+  },
+  "contextCap": 7,
+  "uniqueProfileCap": 4,
+  "aggregateRequestCap": 700,
+  "requestCapPerContext": 100,
+  "realProviderRequests": 0,
+  "realD1Requests": 0,
+  "writes": 0,
+  "retries": 0,
+  "cases": [
+    {
+      "profile": {
+        "name": "desktop-1906-en-light",
+        "width": 1906,
+        "height": 1080,
+        "lang": "en",
+        "theme": "light",
+        "touch": false
+      },
+      "touch": {
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "projects": {
+        "h1Count": 1,
+        "h1": "Projects",
+        "intermediateCountHeading": false,
+        "toolbarChildCount": 1,
+        "search": {
+          "x": 256,
+          "y": 169.09375,
+          "width": 400,
+          "height": 44
+        },
+        "section": {
+          "x": 256,
+          "y": 169.09375,
+          "width": 1614,
+          "height": 333.96875
+        },
+        "sectionPaddingLeft": 0,
+        "head": {
+          "x": 256,
+          "y": 233.09375,
+          "width": 1614,
+          "height": 44.1875
+        },
+        "titleLabel": {
+          "x": 272,
+          "y": 245.09375,
+          "width": 38.21875,
+          "height": 19.1875
+        },
+        "countRect": {
+          "x": 318.21875,
+          "y": 245.09375,
+          "width": 6.734375,
+          "height": 19.1875
+        },
+        "titleText": "Project2",
+        "count": "2",
+        "countInsideTitle": true,
+        "titleFont": {
+          "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400"
+        },
+        "countFont": {
+          "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400"
+        },
+        "rowCount": 2,
+        "overflow": false,
+        "afterFilter": {
+          "rowCount": 1,
+          "count": "2"
+        },
+        "noMatchState": true,
+        "noMatchCount": "2",
+        "clearedRowCount": 2,
+        "pointer": {
+          "coarse": false,
+          "touchPoints": 0
+        }
+      },
+      "projectsCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-projects.png",
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "ownerRole": {
+        "owner": {
+          "tag": "P",
+          "text": "Owner",
+          "x": 1554,
+          "y": 255.484375,
+          "width": 128,
+          "height": 44,
+          "styles": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "14px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "Admin",
+          "x": 1554,
+          "y": 387.78125,
+          "width": 128,
+          "height": 44,
+          "styles": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "14px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "membersCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-members.png",
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "requests": {
+        "total": 27,
+        "api": 9,
+        "blockedFonts": 1,
+        "writes": 0,
+        "externalDelivered": 0
+      },
+      "requestRecords": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ],
+      "retainedBeforeNarrowCSSFix": true,
+      "currentBuildValidated": false
+    },
+    {
+      "profile": {
+        "name": "desktop-1906-zh-dark",
+        "width": 1906,
+        "height": 1080,
+        "lang": "zh",
+        "theme": "dark",
+        "touch": false
+      },
+      "touch": {
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "projects": {
+        "h1Count": 1,
+        "h1": "项目",
+        "intermediateCountHeading": false,
+        "toolbarChildCount": 1,
+        "search": {
+          "x": 256,
+          "y": 169.09375,
+          "width": 400,
+          "height": 44
+        },
+        "section": {
+          "x": 256,
+          "y": 169.09375,
+          "width": 1614,
+          "height": 333.96875
+        },
+        "sectionPaddingLeft": 0,
+        "head": {
+          "x": 256,
+          "y": 233.09375,
+          "width": 1614,
+          "height": 44.1875
+        },
+        "titleLabel": {
+          "x": 272,
+          "y": 245.09375,
+          "width": 23.734375,
+          "height": 19.1875
+        },
+        "countRect": {
+          "x": 303.734375,
+          "y": 245.09375,
+          "width": 6.734375,
+          "height": 19.1875
+        },
+        "titleText": "项目2",
+        "count": "2",
+        "countInsideTitle": true,
+        "titleFont": {
+          "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400"
+        },
+        "countFont": {
+          "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "fontSize": "12px",
+          "fontWeight": "400"
+        },
+        "rowCount": 2,
+        "overflow": false,
+        "afterFilter": {
+          "rowCount": 1,
+          "count": "2"
+        },
+        "noMatchState": true,
+        "noMatchCount": "2",
+        "clearedRowCount": 2,
+        "pointer": {
+          "coarse": false,
+          "touchPoints": 0
+        }
+      },
+      "projectsCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-projects.png",
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "ownerRole": {
+        "owner": {
+          "tag": "P",
+          "text": "所有者",
+          "x": 1554,
+          "y": 255.484375,
+          "width": 128,
+          "height": 44,
+          "styles": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "14px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "管理员",
+          "x": 1554,
+          "y": 387.78125,
+          "width": 128,
+          "height": 44,
+          "styles": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "14px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "membersCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-members.png",
+        "coarse": false,
+        "touchPoints": 0
+      },
+      "requests": {
+        "total": 35,
+        "api": 9,
+        "blockedFonts": 1,
+        "writes": 0,
+        "externalDelivered": 0
+      },
+      "requestRecords": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/zh-BbjDFDlj.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ],
+      "retainedBeforeNarrowCSSFix": true,
+      "currentBuildValidated": false
+    },
+    {
+      "profile": {
+        "name": "phone-390-zh-dark",
+        "width": 390,
+        "height": 844,
+        "lang": "zh",
+        "theme": "dark",
+        "touch": true
+      },
+      "currentBuildValidated": true,
+      "touch": {
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "projects": {
+        "h1Count": 1,
+        "h1": "项目",
+        "intermediateCountHeading": false,
+        "toolbarChildCount": 1,
+        "search": {
+          "x": 20,
+          "y": 256.1875,
+          "width": 350,
+          "height": 50
+        },
+        "section": {
+          "x": 20,
+          "y": 256.1875,
+          "width": 350,
+          "height": 615.140625
+        },
+        "sectionPaddingLeft": 0,
+        "head": {
+          "x": 20,
+          "y": 326.1875,
+          "width": 350,
+          "height": 45.796875
+        },
+        "titleLabel": {
+          "x": 36,
+          "y": 338.1875,
+          "width": 25.6875,
+          "height": 20.796875
+        },
+        "countRect": {
+          "x": 69.6875,
+          "y": 338.1875,
+          "width": 7.0625,
+          "height": 20.796875
+        },
+        "titleText": "项目2",
+        "count": "2",
+        "countInsideTitle": true,
+        "titleFont": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px",
+          "fontWeight": "400"
+        },
+        "countFont": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px",
+          "fontWeight": "400"
+        },
+        "rowCount": 2,
+        "overflow": false,
+        "afterFilter": {
+          "rowCount": 1,
+          "count": "2"
+        },
+        "noMatchState": true,
+        "noMatchCount": "2",
+        "clearedRowCount": 2,
+        "pointer": {
+          "coarse": true,
+          "touchPoints": 1
+        }
+      },
+      "projectsCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-projects.png",
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "ownerRoleMeasured": {
+        "owner": {
+          "tag": "P",
+          "text": "所有者",
+          "x": 36,
+          "y": 429.375,
+          "width": 154,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "管理员",
+          "x": 36,
+          "y": 620.765625,
+          "width": 154,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "ownerRole": {
+        "owner": {
+          "tag": "P",
+          "text": "所有者",
+          "x": 36,
+          "y": 429.375,
+          "width": 154,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "管理员",
+          "x": 36,
+          "y": 620.765625,
+          "width": 154,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(20, 20, 20)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(255, 255, 255, 0.1)",
+            "borderRightColor": "rgba(255, 255, 255, 0.1)",
+            "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+            "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "membersCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-members.png",
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "requests": {
+        "total": 35,
+        "api": 9,
+        "blockedFonts": 1,
+        "writes": 0,
+        "externalDelivered": 0
+      },
+      "requestRecords": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-K9y-4CwJ.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-DNhFcwSk.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/zh-BbjDFDlj.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-D4_1n2lO.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-CA2OrWmi.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-B0dM6o7O.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BNKM6RJ-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-DMu-BlWR.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/members-jEgKHTeS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "phone-320-fr-light",
+        "width": 320,
+        "height": 720,
+        "lang": "fr",
+        "theme": "light",
+        "touch": true
+      },
+      "currentBuildValidated": true,
+      "touch": {
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "projects": {
+        "h1Count": 1,
+        "h1": "Projets",
+        "intermediateCountHeading": false,
+        "toolbarChildCount": 1,
+        "search": {
+          "x": 20,
+          "y": 279.984375,
+          "width": 280,
+          "height": 50
+        },
+        "section": {
+          "x": 20,
+          "y": 279.984375,
+          "width": 280,
+          "height": 615.140625
+        },
+        "sectionPaddingLeft": 0,
+        "head": {
+          "x": 20,
+          "y": 349.984375,
+          "width": 280,
+          "height": 45.796875
+        },
+        "titleLabel": {
+          "x": 36,
+          "y": 361.984375,
+          "width": 35.59375,
+          "height": 20.796875
+        },
+        "countRect": {
+          "x": 79.59375,
+          "y": 361.984375,
+          "width": 7.0625,
+          "height": 20.796875
+        },
+        "titleText": "Projet2",
+        "count": "2",
+        "countInsideTitle": true,
+        "titleFont": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px",
+          "fontWeight": "400"
+        },
+        "countFont": {
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px",
+          "fontWeight": "400"
+        },
+        "rowCount": 2,
+        "overflow": false,
+        "afterFilter": {
+          "rowCount": 1,
+          "count": "2"
+        },
+        "noMatchState": true,
+        "noMatchCount": "2",
+        "clearedRowCount": 2,
+        "pointer": {
+          "coarse": true,
+          "touchPoints": 1
+        }
+      },
+      "projectsCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/phone-320-fr-light-projects.png",
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "ownerRoleMeasured": {
+        "owner": {
+          "tag": "P",
+          "text": "Propriétaire",
+          "x": 36,
+          "y": 536.671875,
+          "width": 144,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "Administrateur",
+          "x": 36,
+          "y": 770.96875,
+          "width": 144,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "ownerRole": {
+        "owner": {
+          "tag": "P",
+          "text": "Propriétaire",
+          "x": 36,
+          "y": 536.671875,
+          "width": 144,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "600"
+        },
+        "admin": {
+          "tag": "SELECT",
+          "text": "Administrateur",
+          "x": 36,
+          "y": 770.96875,
+          "width": 144,
+          "height": 48,
+          "styles": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "16px",
+            "backgroundColor": "rgb(241, 240, 239)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopStyle": "solid",
+            "borderRightStyle": "solid",
+            "borderBottomStyle": "solid",
+            "borderLeftStyle": "solid",
+            "borderTopColor": "rgba(0, 0, 0, 0.1)",
+            "borderRightColor": "rgba(0, 0, 0, 0.1)",
+            "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+            "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+            "paddingTop": "10px",
+            "paddingRight": "12px",
+            "paddingBottom": "10px",
+            "paddingLeft": "12px",
+            "boxSizing": "border-box"
+          },
+          "fontWeight": "400"
+        },
+        "ownerInteractiveCount": 0,
+        "adminRole": "admin",
+        "ownerControlChildren": 1,
+        "overflow": false
+      },
+      "membersCapture": {
+        "path": "/workspace/work/final-ui-layout/captures/phone-320-fr-light-members.png",
+        "coarse": true,
+        "touchPoints": 1
+      },
+      "requests": {
+        "total": 35,
+        "api": 9,
+        "blockedFonts": 1,
+        "writes": 0,
+        "externalDelivered": 0
+      },
+      "requestRecords": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-K9y-4CwJ.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-DNhFcwSk.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/fr-5GT2vyiO.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-D4_1n2lO.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-CA2OrWmi.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-B0dM6o7O.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BNKM6RJ-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-DMu-BlWR.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/members-jEgKHTeS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ]
+    }
+  ],
+  "failedAttempts": [
+    {
+      "profile": {
+        "name": "phone-390-zh-dark",
+        "width": 390,
+        "height": 844,
+        "lang": "zh",
+        "theme": "dark",
+        "touch": true
+      },
+      "reason": "Actual pointer media must match profile\n\nfalse !== true\n",
+      "partial": {
+        "profile": {
+          "name": "phone-390-zh-dark",
+          "width": 390,
+          "height": 844,
+          "lang": "zh",
+          "theme": "dark",
+          "touch": true
+        },
+        "touch": {
+          "coarse": true,
+          "touchPoints": 1
+        },
+        "projects": {
+          "h1Count": 1,
+          "h1": "项目",
+          "intermediateCountHeading": false,
+          "toolbarChildCount": 1,
+          "search": {
+            "x": 20,
+            "y": 256.1875,
+            "width": 350,
+            "height": 50
+          },
+          "section": {
+            "x": 20,
+            "y": 256.1875,
+            "width": 350,
+            "height": 615.140625
+          },
+          "sectionPaddingLeft": 0,
+          "head": {
+            "x": 20,
+            "y": 326.1875,
+            "width": 350,
+            "height": 45.796875
+          },
+          "titleLabel": {
+            "x": 36,
+            "y": 338.1875,
+            "width": 25.6875,
+            "height": 20.796875
+          },
+          "countRect": {
+            "x": 69.6875,
+            "y": 338.1875,
+            "width": 7.0625,
+            "height": 20.796875
+          },
+          "titleText": "项目2",
+          "count": "2",
+          "countInsideTitle": true,
+          "titleFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "countFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "rowCount": 2,
+          "overflow": false,
+          "afterFilter": {
+            "rowCount": 1,
+            "count": "2"
+          },
+          "noMatchState": true,
+          "noMatchCount": "2",
+          "clearedRowCount": 2,
+          "pointer": {
+            "coarse": true,
+            "touchPoints": 1
+          }
+        }
+      },
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/zh-BbjDFDlj.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ],
+      "violations": [],
+      "fixture": {
+        "requests": [
+          {
+            "path": "/projects",
+            "url": "http://127.0.0.1:4248/projects",
+            "method": "GET",
+            "resourceType": "document",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/css2",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/index-17VFZ_ZS.js",
+            "url": "http://127.0.0.1:4248/assets/index-17VFZ_ZS.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+            "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/vendor-react-9XhioiGP.js",
+            "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/vendor-CHwUWPSh.js",
+            "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/navigation-kP-tcLHs.js",
+            "url": "http://127.0.0.1:4248/assets/navigation-kP-tcLHs.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/pullwise-C1X_voS-.js",
+            "url": "http://127.0.0.1:4248/assets/pullwise-C1X_voS-.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/index-CwCiid8O.css",
+            "url": "http://127.0.0.1:4248/assets/index-CwCiid8O.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/zh-BbjDFDlj.js",
+            "url": "http://127.0.0.1:4248/assets/zh-BbjDFDlj.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/dynamic-CqKDyOhl.js",
+            "url": "http://127.0.0.1:4248/assets/dynamic-CqKDyOhl.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-DeOm4bfo.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-DeOm4bfo.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-longform-BQcOHLw-.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-longform-BQcOHLw-.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-ui-DfrRlsyf.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-ui-DfrRlsyf.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-scopes-CgghSozq.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-scopes-CgghSozq.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-screen-Bzv3_0s3.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-screen-Bzv3_0s3.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-summary-CFqdLNCc.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-summary-CFqdLNCc.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/auth/session",
+            "url": "http://127.0.0.1:4248/api/auth/session",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true
+          },
+          {
+            "path": "/brand-mark.png",
+            "url": "http://127.0.0.1:4248/brand-mark.png",
+            "method": "GET",
+            "resourceType": "image",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/api/v1/workspace-invitation-requests",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/recurring-expense-notifications",
+            "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/workspaces",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true
+          },
+          {
+            "path": "/assets/ledger-Cl4OWhZG.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-Cl4OWhZG.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/skeleton-BArGszhF.js",
+            "url": "http://127.0.0.1:4248/assets/skeleton-BArGszhF.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-split-D1MikAZE.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-split-D1MikAZE.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-summary-BmkTk4Ct.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-summary-BmkTk4Ct.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/shell-B-8mQq2u.js",
+            "url": "http://127.0.0.1:4248/assets/shell-B-8mQq2u.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-MONuzrdS.css",
+            "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-Cs7CWJL6.css",
+            "url": "http://127.0.0.1:4248/assets/ledger-Cs7CWJL6.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/api/v1/projects",
+            "url": "http://127.0.0.1:4248/api/api/v1/projects",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": "usr_date_layout",
+            "api": true
+          }
+        ],
+        "violations": [],
+        "core": {
+          "requests": [
+            {
+              "index": 1,
+              "url": "http://127.0.0.1:4248/projects",
+              "method": "GET",
+              "resourceType": "document",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/projects"
+            },
+            {
+              "index": 2,
+              "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "blocked-font",
+              "outcome": "aborted",
+              "path": "/css2"
+            },
+            {
+              "index": 3,
+              "url": "http://127.0.0.1:4248/assets/index-17VFZ_ZS.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/index-17VFZ_ZS.js"
+            },
+            {
+              "index": 4,
+              "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+            },
+            {
+              "index": 5,
+              "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/vendor-react-9XhioiGP.js"
+            },
+            {
+              "index": 6,
+              "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/vendor-CHwUWPSh.js"
+            },
+            {
+              "index": 7,
+              "url": "http://127.0.0.1:4248/assets/navigation-kP-tcLHs.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/navigation-kP-tcLHs.js"
+            },
+            {
+              "index": 8,
+              "url": "http://127.0.0.1:4248/assets/pullwise-C1X_voS-.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/pullwise-C1X_voS-.js"
+            },
+            {
+              "index": 9,
+              "url": "http://127.0.0.1:4248/assets/index-CwCiid8O.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/index-CwCiid8O.css"
+            },
+            {
+              "index": 10,
+              "url": "http://127.0.0.1:4248/assets/zh-BbjDFDlj.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/zh-BbjDFDlj.js"
+            },
+            {
+              "index": 11,
+              "url": "http://127.0.0.1:4248/assets/dynamic-CqKDyOhl.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/dynamic-CqKDyOhl.js"
+            },
+            {
+              "index": 12,
+              "url": "http://127.0.0.1:4248/assets/ledger-DeOm4bfo.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-DeOm4bfo.js"
+            },
+            {
+              "index": 13,
+              "url": "http://127.0.0.1:4248/assets/ledger-longform-BQcOHLw-.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-longform-BQcOHLw-.js"
+            },
+            {
+              "index": 14,
+              "url": "http://127.0.0.1:4248/assets/ledger-ui-DfrRlsyf.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-ui-DfrRlsyf.js"
+            },
+            {
+              "index": 15,
+              "url": "http://127.0.0.1:4248/assets/ledger-scopes-CgghSozq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-scopes-CgghSozq.js"
+            },
+            {
+              "index": 16,
+              "url": "http://127.0.0.1:4248/assets/ledger-screen-Bzv3_0s3.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-screen-Bzv3_0s3.js"
+            },
+            {
+              "index": 17,
+              "url": "http://127.0.0.1:4248/assets/ledger-summary-CFqdLNCc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-summary-CFqdLNCc.js"
+            },
+            {
+              "index": 18,
+              "url": "http://127.0.0.1:4248/api/auth/session",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": null,
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/auth/session"
+            },
+            {
+              "index": 19,
+              "url": "http://127.0.0.1:4248/brand-mark.png",
+              "method": "GET",
+              "resourceType": "image",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/brand-mark.png"
+            },
+            {
+              "index": 20,
+              "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": null,
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/api/v1/workspaces"
+            },
+            {
+              "index": 21,
+              "url": "http://127.0.0.1:4248/assets/ledger-Cl4OWhZG.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-Cl4OWhZG.js"
+            },
+            {
+              "index": 22,
+              "url": "http://127.0.0.1:4248/assets/skeleton-BArGszhF.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/skeleton-BArGszhF.js"
+            },
+            {
+              "index": 23,
+              "url": "http://127.0.0.1:4248/assets/ledger-split-D1MikAZE.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-split-D1MikAZE.js"
+            },
+            {
+              "index": 24,
+              "url": "http://127.0.0.1:4248/assets/ledger-summary-BmkTk4Ct.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-summary-BmkTk4Ct.js"
+            },
+            {
+              "index": 25,
+              "url": "http://127.0.0.1:4248/assets/shell-B-8mQq2u.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/shell-B-8mQq2u.js"
+            },
+            {
+              "index": 26,
+              "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-MONuzrdS.css"
+            },
+            {
+              "index": 27,
+              "url": "http://127.0.0.1:4248/assets/ledger-Cs7CWJL6.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-Cs7CWJL6.css"
+            },
+            {
+              "index": 28,
+              "url": "http://127.0.0.1:4248/api/api/v1/projects",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": "usr_date_layout",
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/api/v1/projects"
+            }
+          ],
+          "counts": {
+            "total": 28,
+            "api": 3,
+            "static": 24,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0
+          },
+          "blockedFonts": [
+            {
+              "index": 2,
+              "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "blocked-font",
+              "outcome": "aborted",
+              "path": "/css2"
+            }
+          ],
+          "violations": [],
+          "externalDelivered": []
+        }
+      },
+      "browserErrors": []
+    },
+    {
+      "profile": {
+        "name": "phone-320-fr-light",
+        "width": 320,
+        "height": 720,
+        "lang": "fr",
+        "theme": "light",
+        "touch": true
+      },
+      "reason": "Owner/Admin height: 70 vs 48",
+      "partial": {
+        "profile": {
+          "name": "phone-320-fr-light",
+          "width": 320,
+          "height": 720,
+          "lang": "fr",
+          "theme": "light",
+          "touch": true
+        },
+        "touch": {
+          "coarse": true,
+          "touchPoints": 1
+        },
+        "projects": {
+          "h1Count": 1,
+          "h1": "Projets",
+          "intermediateCountHeading": false,
+          "toolbarChildCount": 1,
+          "search": {
+            "x": 20,
+            "y": 279.984375,
+            "width": 280,
+            "height": 50
+          },
+          "section": {
+            "x": 20,
+            "y": 279.984375,
+            "width": 280,
+            "height": 615.140625
+          },
+          "sectionPaddingLeft": 0,
+          "head": {
+            "x": 20,
+            "y": 349.984375,
+            "width": 280,
+            "height": 45.796875
+          },
+          "titleLabel": {
+            "x": 36,
+            "y": 361.984375,
+            "width": 35.59375,
+            "height": 20.796875
+          },
+          "countRect": {
+            "x": 79.59375,
+            "y": 361.984375,
+            "width": 7.0625,
+            "height": 20.796875
+          },
+          "titleText": "Projet2",
+          "count": "2",
+          "countInsideTitle": true,
+          "titleFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "countFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "rowCount": 2,
+          "overflow": false,
+          "afterFilter": {
+            "rowCount": 1,
+            "count": "2"
+          },
+          "noMatchState": true,
+          "noMatchCount": "2",
+          "clearedRowCount": 2,
+          "pointer": {
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        "projectsCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/phone-320-fr-light-projects.png",
+          "coarse": true,
+          "touchPoints": 1
+        }
+      },
+      "requests": [
+        {
+          "url": "http://127.0.0.1:4251/projects",
+          "method": "GET",
+          "resourceType": "document"
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/fr-5GT2vyiO.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/auth/session",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/brand-mark.png",
+          "method": "GET",
+          "resourceType": "image"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+          "method": "GET",
+          "resourceType": "stylesheet"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/projects",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+          "method": "GET",
+          "resourceType": "script"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+          "method": "GET",
+          "resourceType": "fetch"
+        },
+        {
+          "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+          "method": "GET",
+          "resourceType": "fetch"
+        }
+      ],
+      "violations": [],
+      "fixture": {
+        "requests": [
+          {
+            "path": "/projects",
+            "url": "http://127.0.0.1:4248/projects",
+            "method": "GET",
+            "resourceType": "document",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/css2",
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/index-17VFZ_ZS.js",
+            "url": "http://127.0.0.1:4248/assets/index-17VFZ_ZS.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+            "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/vendor-react-9XhioiGP.js",
+            "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/vendor-CHwUWPSh.js",
+            "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/navigation-kP-tcLHs.js",
+            "url": "http://127.0.0.1:4248/assets/navigation-kP-tcLHs.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/pullwise-C1X_voS-.js",
+            "url": "http://127.0.0.1:4248/assets/pullwise-C1X_voS-.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/index-CwCiid8O.css",
+            "url": "http://127.0.0.1:4248/assets/index-CwCiid8O.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/fr-5GT2vyiO.js",
+            "url": "http://127.0.0.1:4248/assets/fr-5GT2vyiO.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/dynamic-CqKDyOhl.js",
+            "url": "http://127.0.0.1:4248/assets/dynamic-CqKDyOhl.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-DeOm4bfo.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-DeOm4bfo.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-longform-BQcOHLw-.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-longform-BQcOHLw-.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-ui-DfrRlsyf.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-ui-DfrRlsyf.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-scopes-CgghSozq.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-scopes-CgghSozq.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-screen-Bzv3_0s3.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-screen-Bzv3_0s3.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-summary-CFqdLNCc.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-summary-CFqdLNCc.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/auth/session",
+            "url": "http://127.0.0.1:4248/api/auth/session",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true
+          },
+          {
+            "path": "/brand-mark.png",
+            "url": "http://127.0.0.1:4248/brand-mark.png",
+            "method": "GET",
+            "resourceType": "image",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/api/v1/workspace-invitation-requests",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/recurring-expense-notifications",
+            "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/workspaces",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true
+          },
+          {
+            "path": "/assets/ledger-Cl4OWhZG.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-Cl4OWhZG.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/skeleton-BArGszhF.js",
+            "url": "http://127.0.0.1:4248/assets/skeleton-BArGszhF.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-split-D1MikAZE.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-split-D1MikAZE.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-summary-BmkTk4Ct.js",
+            "url": "http://127.0.0.1:4248/assets/ledger-summary-BmkTk4Ct.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/shell-B-8mQq2u.js",
+            "url": "http://127.0.0.1:4248/assets/shell-B-8mQq2u.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-MONuzrdS.css",
+            "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/assets/ledger-Cs7CWJL6.css",
+            "url": "http://127.0.0.1:4248/assets/ledger-Cs7CWJL6.css",
+            "method": "GET",
+            "resourceType": "stylesheet",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/api/v1/projects",
+            "url": "http://127.0.0.1:4248/api/api/v1/projects",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": "usr_date_layout",
+            "api": true
+          },
+          {
+            "path": "/assets/members-CGQsUSY0.js",
+            "url": "http://127.0.0.1:4248/assets/members-CGQsUSY0.js",
+            "method": "GET",
+            "resourceType": "script",
+            "workspace": null,
+            "api": false
+          },
+          {
+            "path": "/api/v1/workspaces",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": null,
+            "api": true
+          },
+          {
+            "path": "/api/v1/workspaces/usr_date_layout/members",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces/usr_date_layout/members",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": "usr_date_layout",
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/workspaces/usr_date_layout/invites",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces/usr_date_layout/invites",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": "usr_date_layout",
+            "api": true,
+            "extraFixture": true
+          },
+          {
+            "path": "/api/v1/workspaces/usr_date_layout/join-requests",
+            "url": "http://127.0.0.1:4248/api/api/v1/workspaces/usr_date_layout/join-requests",
+            "method": "GET",
+            "resourceType": "fetch",
+            "workspace": "usr_date_layout",
+            "api": true,
+            "extraFixture": true
+          }
+        ],
+        "violations": [],
+        "core": {
+          "requests": [
+            {
+              "index": 1,
+              "url": "http://127.0.0.1:4248/projects",
+              "method": "GET",
+              "resourceType": "document",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/projects"
+            },
+            {
+              "index": 2,
+              "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "blocked-font",
+              "outcome": "aborted",
+              "path": "/css2"
+            },
+            {
+              "index": 3,
+              "url": "http://127.0.0.1:4248/assets/index-17VFZ_ZS.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/index-17VFZ_ZS.js"
+            },
+            {
+              "index": 4,
+              "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+            },
+            {
+              "index": 5,
+              "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/vendor-react-9XhioiGP.js"
+            },
+            {
+              "index": 6,
+              "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/vendor-CHwUWPSh.js"
+            },
+            {
+              "index": 7,
+              "url": "http://127.0.0.1:4248/assets/navigation-kP-tcLHs.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/navigation-kP-tcLHs.js"
+            },
+            {
+              "index": 8,
+              "url": "http://127.0.0.1:4248/assets/pullwise-C1X_voS-.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/pullwise-C1X_voS-.js"
+            },
+            {
+              "index": 9,
+              "url": "http://127.0.0.1:4248/assets/index-CwCiid8O.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/index-CwCiid8O.css"
+            },
+            {
+              "index": 10,
+              "url": "http://127.0.0.1:4248/assets/fr-5GT2vyiO.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/fr-5GT2vyiO.js"
+            },
+            {
+              "index": 11,
+              "url": "http://127.0.0.1:4248/assets/dynamic-CqKDyOhl.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/dynamic-CqKDyOhl.js"
+            },
+            {
+              "index": 12,
+              "url": "http://127.0.0.1:4248/assets/ledger-DeOm4bfo.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-DeOm4bfo.js"
+            },
+            {
+              "index": 13,
+              "url": "http://127.0.0.1:4248/assets/ledger-longform-BQcOHLw-.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-longform-BQcOHLw-.js"
+            },
+            {
+              "index": 14,
+              "url": "http://127.0.0.1:4248/assets/ledger-ui-DfrRlsyf.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-ui-DfrRlsyf.js"
+            },
+            {
+              "index": 15,
+              "url": "http://127.0.0.1:4248/assets/ledger-scopes-CgghSozq.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-scopes-CgghSozq.js"
+            },
+            {
+              "index": 16,
+              "url": "http://127.0.0.1:4248/assets/ledger-screen-Bzv3_0s3.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-screen-Bzv3_0s3.js"
+            },
+            {
+              "index": 17,
+              "url": "http://127.0.0.1:4248/assets/ledger-summary-CFqdLNCc.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-summary-CFqdLNCc.js"
+            },
+            {
+              "index": 18,
+              "url": "http://127.0.0.1:4248/api/auth/session",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": null,
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/auth/session"
+            },
+            {
+              "index": 19,
+              "url": "http://127.0.0.1:4248/brand-mark.png",
+              "method": "GET",
+              "resourceType": "image",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/brand-mark.png"
+            },
+            {
+              "index": 20,
+              "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": null,
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/api/v1/workspaces"
+            },
+            {
+              "index": 21,
+              "url": "http://127.0.0.1:4248/assets/ledger-Cl4OWhZG.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-Cl4OWhZG.js"
+            },
+            {
+              "index": 22,
+              "url": "http://127.0.0.1:4248/assets/skeleton-BArGszhF.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/skeleton-BArGszhF.js"
+            },
+            {
+              "index": 23,
+              "url": "http://127.0.0.1:4248/assets/ledger-split-D1MikAZE.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-split-D1MikAZE.js"
+            },
+            {
+              "index": 24,
+              "url": "http://127.0.0.1:4248/assets/ledger-summary-BmkTk4Ct.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-summary-BmkTk4Ct.js"
+            },
+            {
+              "index": 25,
+              "url": "http://127.0.0.1:4248/assets/shell-B-8mQq2u.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/shell-B-8mQq2u.js"
+            },
+            {
+              "index": 26,
+              "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-MONuzrdS.css"
+            },
+            {
+              "index": 27,
+              "url": "http://127.0.0.1:4248/assets/ledger-Cs7CWJL6.css",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/ledger-Cs7CWJL6.css"
+            },
+            {
+              "index": 28,
+              "url": "http://127.0.0.1:4248/api/api/v1/projects",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": "usr_date_layout",
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/api/v1/projects"
+            },
+            {
+              "index": 29,
+              "url": "http://127.0.0.1:4248/assets/members-CGQsUSY0.js",
+              "method": "GET",
+              "resourceType": "script",
+              "workspaceHeader": null,
+              "kind": "static",
+              "outcome": "continued",
+              "path": "/assets/members-CGQsUSY0.js"
+            },
+            {
+              "index": 30,
+              "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+              "method": "GET",
+              "resourceType": "fetch",
+              "workspaceHeader": null,
+              "kind": "api",
+              "outcome": "fulfilled",
+              "path": "/api/v1/workspaces"
+            }
+          ],
+          "counts": {
+            "total": 30,
+            "api": 4,
+            "static": 25,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0
+          },
+          "blockedFonts": [
+            {
+              "index": 2,
+              "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+              "method": "GET",
+              "resourceType": "stylesheet",
+              "workspaceHeader": null,
+              "kind": "blocked-font",
+              "outcome": "aborted",
+              "path": "/css2"
+            }
+          ],
+          "violations": [],
+          "externalDelivered": []
+        }
+      },
+      "browserErrors": []
+    }
+  ],
+  "passed": true,
+  "sourceSha256Before": {
+    "styles/screens.css": "4efbb553c43f42c0390732b38b794dedc6a4ae4eb131109f0e9ad15c10ee7f29",
+    "styles/base.css": "ba01c9d06087620a505f9f969c8d101d69c87090fbb998599defdb731d73552b",
+    "src/app.css": "ffba30ebbb05338476b9aa36a67f15e0e28fd3429d89dbd29c793640c0157718",
+    "src/screens/members.jsx": "cf9734344639f519291c21a0238fd8c9529ad59b088860d9030cf7edf1b82c84",
+    "src/screens/ledger.jsx": "9945397b95ab9ee93ceafc0eea5637fec4a5594719009aba2d2e88d91125d059",
+    "src/screens/ledger.css": "5500e14340a665cd7eaf9611967b3da61eb16610e3e51005060e4e1a67b5d570",
+    "scripts/mobile-layout-fixtures.mjs": "f43a7445925741166cc01ce8ecc516e5f8a90759defa312da40617f74edce55d",
+    "scripts/date-layout-fixtures.mjs": "8199fd2ad8aae4cefcbc0f654e29972081354b0159124682fc70733197a08612"
+  },
+  "distSha256Before": {
+    "_headers": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96",
+    "assets/api-Cm7_cGhL.css": "f89ce42e21807b58f2eeb338082ab25f60c04abbe523e766bcca312f8aa4f908",
+    "assets/api-DR_b7WyU.js": "50748303b526cbd527fde45314dacba2a6d3fcead4a2cbf4af0435f264d8e0d6",
+    "assets/api-docs-1Tb6TLvE.js": "d3dbe6bb688ee7ef58a5627564ec71218c0fbc2a427d5e517b446d255c7317db",
+    "assets/billing-96PqV0R7.js": "95f1ea2b17d70f944be11f671f19bbb6f4822dc47893a6c4980a5ec94c36d9b1",
+    "assets/docs-BPxBf6iv.js": "2ec3cd739adb74a4c5832e6577cbd2f44c8c66857f6d0f2d2ea82c9f623d0bb7",
+    "assets/dynamic-CqKDyOhl.js": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae",
+    "assets/es-Bg5r_XTY.js": "3029703a452153d19bd819542c15131cbb8a2112779ed93b960a29b87362af96",
+    "assets/fr-5GT2vyiO.js": "bdf0fa72709140b867f8e432f969fa2ff740dcbf34a691aa630f38a1b20dc694",
+    "assets/index-DNhFcwSk.css": "4174b3a0c32d2360a31f4a69c926db900476d54cc98bf910dfde254331f77f89",
+    "assets/index-K9y-4CwJ.js": "9aeacfb314d042cd7afcc8be587497d968119f3e41d915711cbdaca16dde1b78",
+    "assets/ja-Ikl1IqYN.js": "e9bfc83e9e819007e603aa6f20ee5c0e49fcdd59b645e7be4e08e948c2f58ada",
+    "assets/ko-D7Kv_1qL.js": "89803a049d0fb2df7019555e8d9b56bfc8df6f1d83c3a7a3fcc4fe715f9efb9e",
+    "assets/ledger-Cs7CWJL6.css": "0f442255d5130a80f0a1570764c575c9a10db8d5a673ddfe1e88da0f96faea1a",
+    "assets/ledger-D4_1n2lO.js": "8a3cf387b9b431614c75e4c1114d8cacbcae04384711bab9fef9884724575b1a",
+    "assets/ledger-DeOm4bfo.js": "b000023b4210ac4dbcfff9274445edc64a9325318c700745958e32d1a4cd4557",
+    "assets/ledger-MONuzrdS.css": "6fdb470dffb4185faa409620282e7bbfc4de3fd17f5b31deed8dad287e41700a",
+    "assets/ledger-longform-BQcOHLw-.js": "44397b3cc6182d76a8d300cc2644c0206bbc954eed0593a18b9550c395bcc628",
+    "assets/ledger-overview-Bb-ViccX.js": "c29471204a8e2822a6eb5c8408f97e5bc1543d101c6348621fa5e6406a22380b",
+    "assets/ledger-scopes-CgghSozq.js": "4d04142c0046461dda609d641dcf1c91c01f0cbdd601bd4feb47a24f6ef42543",
+    "assets/ledger-screen-Bzv3_0s3.js": "539e75f96acd9e5c19393085591cfd5690c787dfe712ae252b016ba8efa24954",
+    "assets/ledger-split-B0dM6o7O.js": "2dd367ab90f3618606f2751b14c8f99d6b34a2b24cc1cf630f384411ce4dbf21",
+    "assets/ledger-summary-BNKM6RJ-.js": "d523375ca7e85c89a4a40df27aa9232136fb37baa979d2b26cf2bbf74e504301",
+    "assets/ledger-summary-CFqdLNCc.js": "fe66d04e1abfbdabe310a1a9167a90dfcdee862ef1ac3d969b4ae177f5ee9bc0",
+    "assets/ledger-ui-DfrRlsyf.js": "6a42f2ec49870947e53fe7777f033f5e228d7c3e816cf22b361aa1b030c9b4cd",
+    "assets/legal-D7eacYc5.js": "1d63a82d7778b3d0d15b4fe02ba8f570449a5a97bf75e2ffb4684467aa3dce6d",
+    "assets/members-jEgKHTeS.js": "7959d5b2d85e86a0a09974a781955197f8736d9b13b74e43f219734252547af5",
+    "assets/navigation-kP-tcLHs.js": "07bb0e1003bfe4fb4382f98c369c7e62a13ed57bf4e218e9cac951cce0bb4bfb",
+    "assets/pullwise-C1X_voS-.js": "e425231a1d6303d8edee05924248c8b7472c7ed03f0557d81034b4ed993b636f",
+    "assets/rolldown-runtime-Bh1tDfsg.js": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7",
+    "assets/settings-B0SkK730.js": "bb8880d622b9a18299922ceb3ab926169b892c98c72cc7a9a13c08ace0a2f44e",
+    "assets/settings-rHEo4AzC.css": "c9d0793049bb3625b95593852b6891d3619172bb636d4fc7fb565e35b8144820",
+    "assets/shell-DMu-BlWR.js": "99345526b3b2bcf79c68048e6ada634b950ad21c5661566dbd4d49ae3f195cc0",
+    "assets/skeleton-CA2OrWmi.js": "94b4f35e1f7b51c965fcfd203cb9350d8b11472143e8f77da5a1fae5e776bd10",
+    "assets/vendor-CHwUWPSh.js": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1",
+    "assets/vendor-react-9XhioiGP.js": "109ae04dfb036b92515ae052411c426365e48876c4b00de7f1d7a289e0e6ef75",
+    "assets/zh-BbjDFDlj.js": "943dbbc09d10079ad336ed6592ec7594d3a9ad79bbddff0384647261c8160b29",
+    "brand-mark.png": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e",
+    "favicon.ico": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1",
+    "index.html": "fae63fc3dcab186d6a05e03cd3f74380f0cb6fa4fe578b4aaf3aaf0f5466344b",
+    "openapi/ledger-v1.json": "fde7d5cf9cc7bb859d616b1b6e63b7d7f95ff78028e80c1dbf6158fb6ae1cf0d",
+    "robots.txt": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec",
+    "sitemap.xml": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c",
+    "social-card.png": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077",
+    "social-card.svg": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+  },
+  "previousBuildProof": {
+    "sourceSha256Before": {
+      "styles/screens.css": "841cea95de9d6112966ea5526389237cf313c0c5be39d607b6c318c3f3f994d6",
+      "styles/base.css": "ba01c9d06087620a505f9f969c8d101d69c87090fbb998599defdb731d73552b",
+      "src/app.css": "ffba30ebbb05338476b9aa36a67f15e0e28fd3429d89dbd29c793640c0157718",
+      "src/screens/members.jsx": "cf9734344639f519291c21a0238fd8c9529ad59b088860d9030cf7edf1b82c84",
+      "src/screens/ledger.jsx": "9945397b95ab9ee93ceafc0eea5637fec4a5594719009aba2d2e88d91125d059",
+      "src/screens/ledger.css": "5500e14340a665cd7eaf9611967b3da61eb16610e3e51005060e4e1a67b5d570",
+      "scripts/mobile-layout-fixtures.mjs": "f43a7445925741166cc01ce8ecc516e5f8a90759defa312da40617f74edce55d",
+      "scripts/date-layout-fixtures.mjs": "8199fd2ad8aae4cefcbc0f654e29972081354b0159124682fc70733197a08612"
+    },
+    "distSha256Before": {
+      "_headers": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96",
+      "assets/api-B_E0bppR.js": "0cb45867b8a8b23cd397242f1c04c7beaea2bad3ad58e223ca27c4adda51a851",
+      "assets/api-Cm7_cGhL.css": "f89ce42e21807b58f2eeb338082ab25f60c04abbe523e766bcca312f8aa4f908",
+      "assets/api-docs-BpvrvkqQ.js": "b5c3d88f7d220021d6ecf6f577ffaaf84becb5f062c6f4dc52a5d0a620a466fd",
+      "assets/billing-C2OwtCyE.js": "b21f90723349c5ca873bce9c4d042dcb7a1733c38c30e4ee3887014cff55fc55",
+      "assets/docs-I9lI-Lw7.js": "509d994047bfac056b189f0f4f8509eeace62243be4b1479f35303b503b1884d",
+      "assets/dynamic-CqKDyOhl.js": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae",
+      "assets/es-Bg5r_XTY.js": "3029703a452153d19bd819542c15131cbb8a2112779ed93b960a29b87362af96",
+      "assets/fr-5GT2vyiO.js": "bdf0fa72709140b867f8e432f969fa2ff740dcbf34a691aa630f38a1b20dc694",
+      "assets/index-17VFZ_ZS.js": "70cbab64b5c30e66fb7ac82855d9518fb29c8c0d8346e26e5040ff450bbfe3b1",
+      "assets/index-CwCiid8O.css": "129256d51687962bbda6f2db1eb8712c0313280a8408de2a8476aca916e40ab3",
+      "assets/ja-Ikl1IqYN.js": "e9bfc83e9e819007e603aa6f20ee5c0e49fcdd59b645e7be4e08e948c2f58ada",
+      "assets/ko-D7Kv_1qL.js": "89803a049d0fb2df7019555e8d9b56bfc8df6f1d83c3a7a3fcc4fe715f9efb9e",
+      "assets/ledger-Cl4OWhZG.js": "d208513744f30806e78dbce9389c3b58eb2e8f033c000f036a70f373e12f7c96",
+      "assets/ledger-Cs7CWJL6.css": "0f442255d5130a80f0a1570764c575c9a10db8d5a673ddfe1e88da0f96faea1a",
+      "assets/ledger-DeOm4bfo.js": "b000023b4210ac4dbcfff9274445edc64a9325318c700745958e32d1a4cd4557",
+      "assets/ledger-MONuzrdS.css": "6fdb470dffb4185faa409620282e7bbfc4de3fd17f5b31deed8dad287e41700a",
+      "assets/ledger-longform-BQcOHLw-.js": "44397b3cc6182d76a8d300cc2644c0206bbc954eed0593a18b9550c395bcc628",
+      "assets/ledger-overview-DRYqwKFb.js": "72cf566ccb9ad008f22e5b55b9ecb6424ea1c3fd84135cb751a66da191250da1",
+      "assets/ledger-scopes-CgghSozq.js": "4d04142c0046461dda609d641dcf1c91c01f0cbdd601bd4feb47a24f6ef42543",
+      "assets/ledger-screen-Bzv3_0s3.js": "539e75f96acd9e5c19393085591cfd5690c787dfe712ae252b016ba8efa24954",
+      "assets/ledger-split-D1MikAZE.js": "a85f1f0ff9c2446d0b87bbf405557f9fa10e49dcac20ae5c0d5df55544104c39",
+      "assets/ledger-summary-BmkTk4Ct.js": "b23fe3206d6aa50fde000a347b22b69f3d209240367a0472789e32ffd0a3f3b5",
+      "assets/ledger-summary-CFqdLNCc.js": "fe66d04e1abfbdabe310a1a9167a90dfcdee862ef1ac3d969b4ae177f5ee9bc0",
+      "assets/ledger-ui-DfrRlsyf.js": "6a42f2ec49870947e53fe7777f033f5e228d7c3e816cf22b361aa1b030c9b4cd",
+      "assets/legal-DrWu_JJk.js": "6098355ec5ca91675cc1d40fce9da35119962e44bc9e60bb271ea7218fb53304",
+      "assets/members-CGQsUSY0.js": "b9c8e4273e438c6b7c4ca323e98e63c6f4afa03962178cb808362773aea06d8b",
+      "assets/navigation-kP-tcLHs.js": "07bb0e1003bfe4fb4382f98c369c7e62a13ed57bf4e218e9cac951cce0bb4bfb",
+      "assets/pullwise-C1X_voS-.js": "e425231a1d6303d8edee05924248c8b7472c7ed03f0557d81034b4ed993b636f",
+      "assets/rolldown-runtime-Bh1tDfsg.js": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7",
+      "assets/settings-BxnUpwdz.js": "fd3769d532551d4fb1ba25b8ab318215cc99d5e7dc04427cf34264b02e744ab0",
+      "assets/settings-rHEo4AzC.css": "c9d0793049bb3625b95593852b6891d3619172bb636d4fc7fb565e35b8144820",
+      "assets/shell-B-8mQq2u.js": "d91ef94607dd5f0b5de6466778c70f0767d8b738a87439076e04b1c7acb32989",
+      "assets/skeleton-BArGszhF.js": "9680f5a7acc57a8225e141693e05cad2f7d666359269c42eb435f0baa704a139",
+      "assets/vendor-CHwUWPSh.js": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1",
+      "assets/vendor-react-9XhioiGP.js": "109ae04dfb036b92515ae052411c426365e48876c4b00de7f1d7a289e0e6ef75",
+      "assets/zh-BbjDFDlj.js": "943dbbc09d10079ad336ed6592ec7594d3a9ad79bbddff0384647261c8160b29",
+      "brand-mark.png": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e",
+      "favicon.ico": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1",
+      "index.html": "bcf976c1f0b2c06a5c94196c48e1aa0e5838cb605592d23d4043a5341667ecc9",
+      "openapi/ledger-v1.json": "fde7d5cf9cc7bb859d616b1b6e63b7d7f95ff78028e80c1dbf6158fb6ae1cf0d",
+      "robots.txt": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec",
+      "sitemap.xml": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c",
+      "social-card.png": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077",
+      "social-card.svg": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+    },
+    "passedCases": [
+      {
+        "profile": {
+          "name": "desktop-1906-en-light",
+          "width": 1906,
+          "height": 1080,
+          "lang": "en",
+          "theme": "light",
+          "touch": false
+        },
+        "touch": {
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "projects": {
+          "h1Count": 1,
+          "h1": "Projects",
+          "intermediateCountHeading": false,
+          "toolbarChildCount": 1,
+          "search": {
+            "x": 256,
+            "y": 169.09375,
+            "width": 400,
+            "height": 44
+          },
+          "section": {
+            "x": 256,
+            "y": 169.09375,
+            "width": 1614,
+            "height": 333.96875
+          },
+          "sectionPaddingLeft": 0,
+          "head": {
+            "x": 256,
+            "y": 233.09375,
+            "width": 1614,
+            "height": 44.1875
+          },
+          "titleLabel": {
+            "x": 272,
+            "y": 245.09375,
+            "width": 38.21875,
+            "height": 19.1875
+          },
+          "countRect": {
+            "x": 318.21875,
+            "y": 245.09375,
+            "width": 6.734375,
+            "height": 19.1875
+          },
+          "titleText": "Project2",
+          "count": "2",
+          "countInsideTitle": true,
+          "titleFont": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "12px",
+            "fontWeight": "400"
+          },
+          "countFont": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "12px",
+            "fontWeight": "400"
+          },
+          "rowCount": 2,
+          "overflow": false,
+          "afterFilter": {
+            "rowCount": 1,
+            "count": "2"
+          },
+          "noMatchState": true,
+          "noMatchCount": "2",
+          "clearedRowCount": 2,
+          "pointer": {
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        "projectsCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-projects.png",
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "ownerRole": {
+          "owner": {
+            "tag": "P",
+            "text": "Owner",
+            "x": 1554,
+            "y": 255.484375,
+            "width": 128,
+            "height": 44,
+            "styles": {
+              "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+              "fontSize": "14px",
+              "backgroundColor": "rgb(241, 240, 239)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(0, 0, 0, 0.1)",
+              "borderRightColor": "rgba(0, 0, 0, 0.1)",
+              "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+              "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "600"
+          },
+          "admin": {
+            "tag": "SELECT",
+            "text": "Admin",
+            "x": 1554,
+            "y": 387.78125,
+            "width": 128,
+            "height": 44,
+            "styles": {
+              "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+              "fontSize": "14px",
+              "backgroundColor": "rgb(241, 240, 239)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(0, 0, 0, 0.1)",
+              "borderRightColor": "rgba(0, 0, 0, 0.1)",
+              "borderBottomColor": "rgba(0, 0, 0, 0.1)",
+              "borderLeftColor": "rgba(0, 0, 0, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "400"
+          },
+          "ownerInteractiveCount": 0,
+          "adminRole": "admin",
+          "ownerControlChildren": 1,
+          "overflow": false
+        },
+        "membersCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-members.png",
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "requests": {
+          "total": 27,
+          "api": 9,
+          "blockedFonts": 1,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        "requestRecords": [
+          {
+            "url": "http://127.0.0.1:4251/projects",
+            "method": "GET",
+            "resourceType": "document"
+          },
+          {
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/auth/session",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/brand-mark.png",
+            "method": "GET",
+            "resourceType": "image"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/projects",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "name": "desktop-1906-zh-dark",
+          "width": 1906,
+          "height": 1080,
+          "lang": "zh",
+          "theme": "dark",
+          "touch": false
+        },
+        "touch": {
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "projects": {
+          "h1Count": 1,
+          "h1": "项目",
+          "intermediateCountHeading": false,
+          "toolbarChildCount": 1,
+          "search": {
+            "x": 256,
+            "y": 169.09375,
+            "width": 400,
+            "height": 44
+          },
+          "section": {
+            "x": 256,
+            "y": 169.09375,
+            "width": 1614,
+            "height": 333.96875
+          },
+          "sectionPaddingLeft": 0,
+          "head": {
+            "x": 256,
+            "y": 233.09375,
+            "width": 1614,
+            "height": 44.1875
+          },
+          "titleLabel": {
+            "x": 272,
+            "y": 245.09375,
+            "width": 23.734375,
+            "height": 19.1875
+          },
+          "countRect": {
+            "x": 303.734375,
+            "y": 245.09375,
+            "width": 6.734375,
+            "height": 19.1875
+          },
+          "titleText": "项目2",
+          "count": "2",
+          "countInsideTitle": true,
+          "titleFont": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "12px",
+            "fontWeight": "400"
+          },
+          "countFont": {
+            "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+            "fontSize": "12px",
+            "fontWeight": "400"
+          },
+          "rowCount": 2,
+          "overflow": false,
+          "afterFilter": {
+            "rowCount": 1,
+            "count": "2"
+          },
+          "noMatchState": true,
+          "noMatchCount": "2",
+          "clearedRowCount": 2,
+          "pointer": {
+            "coarse": false,
+            "touchPoints": 0
+          }
+        },
+        "projectsCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-projects.png",
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "ownerRole": {
+          "owner": {
+            "tag": "P",
+            "text": "所有者",
+            "x": 1554,
+            "y": 255.484375,
+            "width": 128,
+            "height": 44,
+            "styles": {
+              "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+              "fontSize": "14px",
+              "backgroundColor": "rgb(20, 20, 20)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(255, 255, 255, 0.1)",
+              "borderRightColor": "rgba(255, 255, 255, 0.1)",
+              "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+              "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "600"
+          },
+          "admin": {
+            "tag": "SELECT",
+            "text": "管理员",
+            "x": 1554,
+            "y": 387.78125,
+            "width": 128,
+            "height": 44,
+            "styles": {
+              "fontFamily": "Geist, Inter, ui-sans-serif, system-ui, -apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+              "fontSize": "14px",
+              "backgroundColor": "rgb(20, 20, 20)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(255, 255, 255, 0.1)",
+              "borderRightColor": "rgba(255, 255, 255, 0.1)",
+              "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+              "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "400"
+          },
+          "ownerInteractiveCount": 0,
+          "adminRole": "admin",
+          "ownerControlChildren": 1,
+          "overflow": false
+        },
+        "membersCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-members.png",
+          "coarse": false,
+          "touchPoints": 0
+        },
+        "requests": {
+          "total": 35,
+          "api": 9,
+          "blockedFonts": 1,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        "requestRecords": [
+          {
+            "url": "http://127.0.0.1:4251/projects",
+            "method": "GET",
+            "resourceType": "document"
+          },
+          {
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/zh-BbjDFDlj.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/auth/session",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/brand-mark.png",
+            "method": "GET",
+            "resourceType": "image"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/projects",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          }
+        ]
+      },
+      {
+        "profile": {
+          "name": "phone-390-zh-dark",
+          "width": 390,
+          "height": 844,
+          "lang": "zh",
+          "theme": "dark",
+          "touch": true
+        },
+        "touch": {
+          "coarse": true,
+          "touchPoints": 1
+        },
+        "projects": {
+          "h1Count": 1,
+          "h1": "项目",
+          "intermediateCountHeading": false,
+          "toolbarChildCount": 1,
+          "search": {
+            "x": 20,
+            "y": 256.1875,
+            "width": 350,
+            "height": 50
+          },
+          "section": {
+            "x": 20,
+            "y": 256.1875,
+            "width": 350,
+            "height": 615.140625
+          },
+          "sectionPaddingLeft": 0,
+          "head": {
+            "x": 20,
+            "y": 326.1875,
+            "width": 350,
+            "height": 45.796875
+          },
+          "titleLabel": {
+            "x": 36,
+            "y": 338.1875,
+            "width": 25.6875,
+            "height": 20.796875
+          },
+          "countRect": {
+            "x": 69.6875,
+            "y": 338.1875,
+            "width": 7.0625,
+            "height": 20.796875
+          },
+          "titleText": "项目2",
+          "count": "2",
+          "countInsideTitle": true,
+          "titleFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "countFont": {
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400"
+          },
+          "rowCount": 2,
+          "overflow": false,
+          "afterFilter": {
+            "rowCount": 1,
+            "count": "2"
+          },
+          "noMatchState": true,
+          "noMatchCount": "2",
+          "clearedRowCount": 2,
+          "pointer": {
+            "coarse": true,
+            "touchPoints": 1
+          }
+        },
+        "projectsCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-projects.png",
+          "coarse": true,
+          "touchPoints": 1
+        },
+        "ownerRole": {
+          "owner": {
+            "tag": "P",
+            "text": "所有者",
+            "x": 36,
+            "y": 429.375,
+            "width": 154,
+            "height": 48,
+            "styles": {
+              "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+              "fontSize": "16px",
+              "backgroundColor": "rgb(20, 20, 20)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(255, 255, 255, 0.1)",
+              "borderRightColor": "rgba(255, 255, 255, 0.1)",
+              "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+              "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "600"
+          },
+          "admin": {
+            "tag": "SELECT",
+            "text": "管理员",
+            "x": 36,
+            "y": 620.765625,
+            "width": 154,
+            "height": 48,
+            "styles": {
+              "fontFamily": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+              "fontSize": "16px",
+              "backgroundColor": "rgb(20, 20, 20)",
+              "borderTopWidth": "1px",
+              "borderRightWidth": "1px",
+              "borderBottomWidth": "1px",
+              "borderLeftWidth": "1px",
+              "borderTopStyle": "solid",
+              "borderRightStyle": "solid",
+              "borderBottomStyle": "solid",
+              "borderLeftStyle": "solid",
+              "borderTopColor": "rgba(255, 255, 255, 0.1)",
+              "borderRightColor": "rgba(255, 255, 255, 0.1)",
+              "borderBottomColor": "rgba(255, 255, 255, 0.1)",
+              "borderLeftColor": "rgba(255, 255, 255, 0.1)",
+              "paddingTop": "10px",
+              "paddingRight": "12px",
+              "paddingBottom": "10px",
+              "paddingLeft": "12px",
+              "boxSizing": "border-box"
+            },
+            "fontWeight": "400"
+          },
+          "ownerInteractiveCount": 0,
+          "adminRole": "admin",
+          "ownerControlChildren": 1,
+          "overflow": false
+        },
+        "membersCapture": {
+          "path": "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-members.png",
+          "coarse": true,
+          "touchPoints": 1
+        },
+        "requests": {
+          "total": 35,
+          "api": 9,
+          "blockedFonts": 1,
+          "writes": 0,
+          "externalDelivered": 0
+        },
+        "requestRecords": [
+          {
+            "url": "http://127.0.0.1:4251/projects",
+            "method": "GET",
+            "resourceType": "document"
+          },
+          {
+            "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-17VFZ_ZS.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/rolldown-runtime-Bh1tDfsg.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-react-9XhioiGP.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/vendor-CHwUWPSh.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/navigation-kP-tcLHs.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/pullwise-C1X_voS-.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/index-CwCiid8O.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/zh-BbjDFDlj.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/dynamic-CqKDyOhl.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-DeOm4bfo.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-longform-BQcOHLw-.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-ui-DfrRlsyf.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-scopes-CgghSozq.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-screen-Bzv3_0s3.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-summary-CFqdLNCc.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/auth/session",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/brand-mark.png",
+            "method": "GET",
+            "resourceType": "image"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspace-invitation-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/recurring-expense-notifications",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cl4OWhZG.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/skeleton-BArGszhF.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-split-D1MikAZE.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-summary-BmkTk4Ct.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/shell-B-8mQq2u.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-MONuzrdS.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/ledger-Cs7CWJL6.css",
+            "method": "GET",
+            "resourceType": "stylesheet"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/projects",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/assets/members-CGQsUSY0.js",
+            "method": "GET",
+            "resourceType": "script"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/members",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/invites",
+            "method": "GET",
+            "resourceType": "fetch"
+          },
+          {
+            "url": "http://127.0.0.1:4251/api/api/v1/workspaces/usr_date_layout/join-requests",
+            "method": "GET",
+            "resourceType": "fetch"
+          }
+        ]
+      }
+    ],
+    "changedSourcePaths": [
+      "styles/screens.css"
+    ],
+    "desktopScope": "Desktop geometry was proved before a CSS change confined to the max-width720px member-list container; final run rechecks both phone profiles."
+  },
+  "priorContextAttempts": 5,
+  "priorAggregateRequestCount": 162,
+  "priorAggregateApiGetCount": 41,
+  "fixtureRecovery": {
+    "reason": "Retain a live CDP touch session after screenshots; increase narrow role-control flex basis to avoid a real French Owner wrap at320.",
+    "applicationChanged": true,
+    "changedSourcePaths": [
+      "styles/screens.css"
+    ],
+    "firstAttemptSha256": "7983867d945a30664fb93045f073d741c3e8d4cc6d447d7406e95be1854b6dad",
+    "secondAttemptSha256": "152a5c581ea5fc1e944fc8a510e31d62b731918d82ecc2503fc4f3a036c8afe3"
+  },
+  "browserVersion": "151.0.7922.173",
+  "sourceSha256After": {
+    "styles/screens.css": "4efbb553c43f42c0390732b38b794dedc6a4ae4eb131109f0e9ad15c10ee7f29",
+    "styles/base.css": "ba01c9d06087620a505f9f969c8d101d69c87090fbb998599defdb731d73552b",
+    "src/app.css": "ffba30ebbb05338476b9aa36a67f15e0e28fd3429d89dbd29c793640c0157718",
+    "src/screens/members.jsx": "cf9734344639f519291c21a0238fd8c9529ad59b088860d9030cf7edf1b82c84",
+    "src/screens/ledger.jsx": "9945397b95ab9ee93ceafc0eea5637fec4a5594719009aba2d2e88d91125d059",
+    "src/screens/ledger.css": "5500e14340a665cd7eaf9611967b3da61eb16610e3e51005060e4e1a67b5d570",
+    "scripts/mobile-layout-fixtures.mjs": "f43a7445925741166cc01ce8ecc516e5f8a90759defa312da40617f74edce55d",
+    "scripts/date-layout-fixtures.mjs": "8199fd2ad8aae4cefcbc0f654e29972081354b0159124682fc70733197a08612"
+  },
+  "distSha256After": {
+    "_headers": "233e87f22193b04eef5a9fc218076d7e4e091a2d1887ccef3c2e891dba576b96",
+    "assets/api-Cm7_cGhL.css": "f89ce42e21807b58f2eeb338082ab25f60c04abbe523e766bcca312f8aa4f908",
+    "assets/api-DR_b7WyU.js": "50748303b526cbd527fde45314dacba2a6d3fcead4a2cbf4af0435f264d8e0d6",
+    "assets/api-docs-1Tb6TLvE.js": "d3dbe6bb688ee7ef58a5627564ec71218c0fbc2a427d5e517b446d255c7317db",
+    "assets/billing-96PqV0R7.js": "95f1ea2b17d70f944be11f671f19bbb6f4822dc47893a6c4980a5ec94c36d9b1",
+    "assets/docs-BPxBf6iv.js": "2ec3cd739adb74a4c5832e6577cbd2f44c8c66857f6d0f2d2ea82c9f623d0bb7",
+    "assets/dynamic-CqKDyOhl.js": "02aef13d9d050d645a6f1e1a876cdb8a5b79c0cdb955f38a8a109e1376d3ceae",
+    "assets/es-Bg5r_XTY.js": "3029703a452153d19bd819542c15131cbb8a2112779ed93b960a29b87362af96",
+    "assets/fr-5GT2vyiO.js": "bdf0fa72709140b867f8e432f969fa2ff740dcbf34a691aa630f38a1b20dc694",
+    "assets/index-DNhFcwSk.css": "4174b3a0c32d2360a31f4a69c926db900476d54cc98bf910dfde254331f77f89",
+    "assets/index-K9y-4CwJ.js": "9aeacfb314d042cd7afcc8be587497d968119f3e41d915711cbdaca16dde1b78",
+    "assets/ja-Ikl1IqYN.js": "e9bfc83e9e819007e603aa6f20ee5c0e49fcdd59b645e7be4e08e948c2f58ada",
+    "assets/ko-D7Kv_1qL.js": "89803a049d0fb2df7019555e8d9b56bfc8df6f1d83c3a7a3fcc4fe715f9efb9e",
+    "assets/ledger-Cs7CWJL6.css": "0f442255d5130a80f0a1570764c575c9a10db8d5a673ddfe1e88da0f96faea1a",
+    "assets/ledger-D4_1n2lO.js": "8a3cf387b9b431614c75e4c1114d8cacbcae04384711bab9fef9884724575b1a",
+    "assets/ledger-DeOm4bfo.js": "b000023b4210ac4dbcfff9274445edc64a9325318c700745958e32d1a4cd4557",
+    "assets/ledger-MONuzrdS.css": "6fdb470dffb4185faa409620282e7bbfc4de3fd17f5b31deed8dad287e41700a",
+    "assets/ledger-longform-BQcOHLw-.js": "44397b3cc6182d76a8d300cc2644c0206bbc954eed0593a18b9550c395bcc628",
+    "assets/ledger-overview-Bb-ViccX.js": "c29471204a8e2822a6eb5c8408f97e5bc1543d101c6348621fa5e6406a22380b",
+    "assets/ledger-scopes-CgghSozq.js": "4d04142c0046461dda609d641dcf1c91c01f0cbdd601bd4feb47a24f6ef42543",
+    "assets/ledger-screen-Bzv3_0s3.js": "539e75f96acd9e5c19393085591cfd5690c787dfe712ae252b016ba8efa24954",
+    "assets/ledger-split-B0dM6o7O.js": "2dd367ab90f3618606f2751b14c8f99d6b34a2b24cc1cf630f384411ce4dbf21",
+    "assets/ledger-summary-BNKM6RJ-.js": "d523375ca7e85c89a4a40df27aa9232136fb37baa979d2b26cf2bbf74e504301",
+    "assets/ledger-summary-CFqdLNCc.js": "fe66d04e1abfbdabe310a1a9167a90dfcdee862ef1ac3d969b4ae177f5ee9bc0",
+    "assets/ledger-ui-DfrRlsyf.js": "6a42f2ec49870947e53fe7777f033f5e228d7c3e816cf22b361aa1b030c9b4cd",
+    "assets/legal-D7eacYc5.js": "1d63a82d7778b3d0d15b4fe02ba8f570449a5a97bf75e2ffb4684467aa3dce6d",
+    "assets/members-jEgKHTeS.js": "7959d5b2d85e86a0a09974a781955197f8736d9b13b74e43f219734252547af5",
+    "assets/navigation-kP-tcLHs.js": "07bb0e1003bfe4fb4382f98c369c7e62a13ed57bf4e218e9cac951cce0bb4bfb",
+    "assets/pullwise-C1X_voS-.js": "e425231a1d6303d8edee05924248c8b7472c7ed03f0557d81034b4ed993b636f",
+    "assets/rolldown-runtime-Bh1tDfsg.js": "1b13387cb23dc39bf70e31677c21f6db5cad3377b96f286b6ee444496e5bfea7",
+    "assets/settings-B0SkK730.js": "bb8880d622b9a18299922ceb3ab926169b892c98c72cc7a9a13c08ace0a2f44e",
+    "assets/settings-rHEo4AzC.css": "c9d0793049bb3625b95593852b6891d3619172bb636d4fc7fb565e35b8144820",
+    "assets/shell-DMu-BlWR.js": "99345526b3b2bcf79c68048e6ada634b950ad21c5661566dbd4d49ae3f195cc0",
+    "assets/skeleton-CA2OrWmi.js": "94b4f35e1f7b51c965fcfd203cb9350d8b11472143e8f77da5a1fae5e776bd10",
+    "assets/vendor-CHwUWPSh.js": "bb88671736f2acdd1ab57aa4ca82fd7fa055a58dc8bf06a9a3f41f49dcb355e1",
+    "assets/vendor-react-9XhioiGP.js": "109ae04dfb036b92515ae052411c426365e48876c4b00de7f1d7a289e0e6ef75",
+    "assets/zh-BbjDFDlj.js": "943dbbc09d10079ad336ed6592ec7594d3a9ad79bbddff0384647261c8160b29",
+    "brand-mark.png": "62b11d241bd8a3752571e5a3556a01ef2413890146d9fa4473770f50f5a3f00e",
+    "favicon.ico": "1fbdf7c0b49fa12c903cf3d7ebae341fdb192fc4216d46131995386163f893e1",
+    "index.html": "fae63fc3dcab186d6a05e03cd3f74380f0cb6fa4fe578b4aaf3aaf0f5466344b",
+    "openapi/ledger-v1.json": "fde7d5cf9cc7bb859d616b1b6e63b7d7f95ff78028e80c1dbf6158fb6ae1cf0d",
+    "robots.txt": "052551d2eaacec92fdc18673548c1afc328428bf1580824c5104facb4e2978ec",
+    "sitemap.xml": "a15b23ead4dc2a0d6e69b0caf0a24887a8d5a9d27ce95f65d81c077a05182a1c",
+    "social-card.png": "8c3a53a5e6ce965bca7cad26dffc8f2d94953139a5fece4c79cccaa01ed80077",
+    "social-card.svg": "87aac484707303d38ae9b603810cf8eaf5408a7976dc69c73a94a48ffc982471"
+  },
+  "sourceAndDistUnchanged": true,
+  "runtimeStopped": true,
+  "actualContextAttempts": 7,
+  "uniqueProfiles": 4,
+  "aggregateRequestCount": 232,
+  "aggregateApiGetCount": 59,
+  "harnessSha256": "782ff9cc03a20d5f77cea036eaa148d1292cc784c9a876236e30dc3d3bdc89b5",
+  "sourceAndDistUnchangedDuringFinalPhoneRun": true,
+  "verificationScope": {
+    "finalBuildNativeProfiles": [
+      "phone-390-zh-dark",
+      "phone-320-fr-light"
+    ],
+    "retainedPreviousBuildNativeProfiles": [
+      "desktop-1906-en-light",
+      "desktop-1906-zh-dark"
+    ],
+    "retainedProofReason": "Only the member role-control flex basis within max-width720px container changed; root authorized retaining desktop proof and rerunning both phone profiles.",
+    "finalChangedSourcePaths": [
+      "styles/screens.css"
+    ]
+  },
+  "limitations": [
+    "Loopback synthetic GET-only browser evidence does not establish real accounts, GitHub authorization, payment, D1, physical phone browser chrome or virtual-keyboard acceptance.",
+    "One local screenshot adapter detached its touch CDP session, causing an honest failed pointer assertion; retaining the session restored genuine emulation.",
+    "A real320px French Owner wrap produced70px against48px Admin controls; the narrow CSS flex-basis correction passed both phone profiles afterward.",
+    "Desktop screenshots and geometry were retained from the preceding build, as the corrective CSS applies only to member-list containers through720px; this is not a claim of rerunning desktops against final assets."
+  ],
+  "scratchAttemptSha256": {
+    "result-first-attempt.json": "7983867d945a30664fb93045f073d741c3e8d4cc6d447d7406e95be1854b6dad",
+    "result-second-attempt.json": "152a5c581ea5fc1e944fc8a510e31d62b731918d82ecc2503fc4f3a036c8afe3",
+    "runtime-first-attempt.log": "e11f30470a99f354bef692542e74827647d3915ddcc10c059cf9ab80046a4c2a",
+    "runtime-second-attempt.log": "3fedab75b9f77834526a005a8153fbc2619d084aa2a749233a6f0d2d2361f1af",
+    "runtime.log": "48bcd90c44ca5f70d0695646ff0db0f757674d564ce23a331dc52785d97ab419"
+  },
+  "screenshotSha256": {
+    "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-members.png": "e4a356c35f835f70fe3a03e460eea9cb089958112fb8e21d19d5c2e5b4a9c433",
+    "/workspace/work/final-ui-layout/captures/desktop-1906-en-light-projects.png": "11ecd80ba729d2e5fa7ac351c537e3784a8b4b98e5d3462364894425da1c4ad3",
+    "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-members.png": "321e676c83cb190f35ee5b0c133d40399cd86d1be2a01a593a0eb671653f323b",
+    "/workspace/work/final-ui-layout/captures/desktop-1906-zh-dark-projects.png": "3782901254ca70403f508c7265f78018405a6b6098826fe788399115a234ca78",
+    "/workspace/work/final-ui-layout/captures/phone-320-fr-light-members.png": "c8d56d474c22b2dc24501cf5539de3cbd14cf67cef5e5cbb67c3c1bb02f0395a",
+    "/workspace/work/final-ui-layout/captures/phone-320-fr-light-projects.png": "1ec762a03a87ece6e3d6b6fb27c65cebf64293efc2ac8848649f574bca67db91",
+    "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-members.png": "d1c8890ff6588a9f5c34cb7393e342238b61824a4170df96beb69aae27cbb11b",
+    "/workspace/work/final-ui-layout/captures/phone-390-zh-dark-projects.png": "9a7baecd0d8271376b4109720f8badc847ab729c38efe3d492462eed5b1a7a17"
+  }
+}

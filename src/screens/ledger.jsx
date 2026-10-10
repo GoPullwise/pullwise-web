@@ -29,6 +29,10 @@ import {
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
+import {
+  GitHubAuthorizationGuidance,
+  GitHubClosedNotice,
+} from "../components/github-authorization-notice.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { normalizeDecimalInput } from "../lib/decimal-input.js";
 import { Topbar, Sidebar, ViewTabs } from "../shell.jsx";
@@ -989,6 +993,8 @@ function ScopedLedgerScreen({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [gitHubOutcome, setGitHubOutcome] = useState(null);
+  const pendingGitHubOutcome = useRef(null);
   const [savedAssistance, setSavedAssistance] = useState(null);
   const [savedSchedule, setSavedSchedule] = useState(null);
   const [revision, setRevision] = useState(0);
@@ -1263,6 +1269,8 @@ function ScopedLedgerScreen({
     setProjectRemovalConflict(false);
     const scope = `${workspaceScope}:${mode}:${projectId}:${authorizationRevision}`;
     if (loadedScope.current !== scope) {
+      pendingGitHubOutcome.current = null;
+      setGitHubOutcome(null);
       setData(null);
       setSavedAssistance(null);
       setSavedSchedule(null);
@@ -1381,6 +1389,10 @@ function ScopedLedgerScreen({
       .then((result) => {
         if (!controller.signal.aborted && request === requestId.current) {
           setData(result);
+          if (pendingGitHubOutcome.current?.scope === scope) {
+            setGitHubOutcome(pendingGitHubOutcome.current.outcome);
+            pendingGitHubOutcome.current = null;
+          }
           setLoadedRequest(request);
           if (
             mode === "project" &&
@@ -1408,6 +1420,8 @@ function ScopedLedgerScreen({
       })
       .catch((failure) => {
         if (!controller.signal.aborted && request === requestId.current) {
+          pendingGitHubOutcome.current = null;
+          setGitHubOutcome(null);
           setData(null);
           setError(errorText(failure));
           if (isLedgerAccessFailure(failure)) onAccessChanged?.(failure);
@@ -1658,6 +1672,8 @@ function ScopedLedgerScreen({
     inFlight.current = true;
     setBusy(true);
     setActionError("");
+    setGitHubOutcome(null);
+    pendingGitHubOutcome.current = null;
     const request = requestId.current;
     try {
       await callback();
@@ -1691,6 +1707,19 @@ function ScopedLedgerScreen({
         if (mounted.current) setBusy(false);
       }
     }
+  };
+
+  const manageGitHubAccess = () => {
+    const request = requestId.current;
+    return action(async () => {
+      const outcome = await connectGitHubRepositories({ add: true });
+      if (
+        mounted.current &&
+        request === requestId.current &&
+        outcome?.status === "closed_unverified"
+      )
+        pendingGitHubOutcome.current = { outcome, scope: loadedScope.current };
+    });
   };
 
   const closeCategoryAction = () => {
@@ -2307,6 +2336,7 @@ function ScopedLedgerScreen({
               {actionError}
             </p>
           )}
+          {gitHubOutcome && <GitHubClosedNotice outcome={gitHubOutcome} />}
           {savedAssistance &&
             (savedAssistance.categorySource === "jev" ||
               savedAssistance.suggestions?.duplicateExpenseId ||
@@ -2450,13 +2480,6 @@ function ScopedLedgerScreen({
                 {data.projects.items.length > 0 && (
                   <section className="panel ledger-your-projects" aria-label={T("Projects")}>
                     <div className="ledger-project-toolbar">
-                      <div className="ledger-project-count">
-                        <span>{T("Projects")}</span>
-                        <span className="count">
-                          {data.projects.items.length}
-                          {data.projects.nextCursor ? "+" : ""}
-                        </span>
-                      </div>
                       <div className="ledger-search">
                         <I.Search size={16} aria-hidden="true" />
                         <input
@@ -2483,6 +2506,19 @@ function ScopedLedgerScreen({
                         )}
                       </div>
                     </div>
+                    <div className="ledger-project-head">
+                      <span className="ledger-project-count">
+                        <span>{T("Project", "项目")}</span>
+                        <span className="count">
+                          {data.projects.items.length}
+                          {data.projects.nextCursor ? "+" : ""}
+                        </span>
+                      </span>
+                      <span className="ledger-project-head-amount">
+                        {T("Expense total", "支出合计")}
+                      </span>
+                      <span>{T("Product", "产品")}</span>
+                    </div>
                     {projectSearch.trim() && matchingProjects.length === 0 && (
                       <div className="empty">
                         <I.Search size={24} />
@@ -2493,15 +2529,6 @@ function ScopedLedgerScreen({
                             "换个名称搜索，或加载更多项目。"
                           )}
                         </p>
-                      </div>
-                    )}
-                    {matchingProjects.length > 0 && (
-                      <div className="ledger-project-head" aria-hidden="true">
-                        <span>{T("Project", "项目")}</span>
-                        <span className="ledger-project-head-amount">
-                          {T("Expense total", "支出合计")}
-                        </span>
-                        <span>{T("Product", "产品")}</span>
                       </div>
                     )}
                     <div className="ledger-list">
@@ -2777,11 +2804,12 @@ function ScopedLedgerScreen({
                               disabled={
                                 busy || loading || repositoryLoading || needsGitHubReconnect
                               }
-                              onClick={() => action(() => connectGitHubRepositories({ add: true }))}
+                              onClick={manageGitHubAccess}
                             >
                               <I.Github size={14} /> {T("Manage GitHub access")}
                             </button>
                           </div>
+                          <GitHubAuthorizationGuidance />
                         </div>
                       </details>
                       <div className="panel-actions">
@@ -3712,11 +3740,12 @@ function ScopedLedgerScreen({
                               disabled={
                                 busy || loading || repositoryLoading || needsGitHubReconnect
                               }
-                              onClick={() => action(() => connectGitHubRepositories({ add: true }))}
+                              onClick={manageGitHubAccess}
                             >
                               <I.Github size={14} /> {T("Manage GitHub access")}
                             </button>
                           </div>
+                          <GitHubAuthorizationGuidance />
                         </div>
                       </details>
                       <ProjectLinkFields

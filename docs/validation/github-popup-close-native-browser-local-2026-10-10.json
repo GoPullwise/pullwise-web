@@ -1,0 +1,310 @@
+{
+  "date": "2026-10-10",
+  "localOnly": true,
+  "browser": "Chromium",
+  "realPopupWindows": true,
+  "sourceSha256": {
+    "/src/lib/install-popup.js": "0c6582e36994a95a9547e8106db1426ef0ba5694c8c5b379746480e2792ae08f",
+    "/src/api/pullwise.js": "b36c551231ec025e534a2e12751d78ffc8b97f4f6537539b29d8ef1776710fb4",
+    "/src/api/github-refresh.js": "334132455b1a6c833d467319079ba8909c88e7f2c6d0b4b23bacb7e9d1493772",
+    "/src/api/http.js": "869b6a3542a7208cc7c583627b3e7bc1cdff4304d0f19e94d3c489943ebc40cf",
+    "/src/lib/trusted-redirects.js": "f73ef90ec19ed5cc3905a0387a474af38b8d9ebe215f0747bb46e6115fc85208"
+  },
+  "actualPopupApiHttpIdentityModules": true,
+  "configEnvOnlyFixture": true,
+  "sourceModified": false,
+  "realProviderRequests": 0,
+  "realD1Requests": 0,
+  "clientRetries": 0,
+  "applicationBuildRequired": false,
+  "cases": [
+    {
+      "name": "manual_close_existing_repository_access_is_unverified",
+      "result": {
+        "status": "resolved",
+        "value": {
+          "status": "closed_unverified",
+          "repositories": {
+            "githubAccess": "authorized",
+            "needsAuthorization": false,
+            "items": [
+              {
+                "id": "repo_fixture",
+                "fullName": "synthetic/local-only",
+                "installationId": "999",
+                "githubIdentityId": "ghi_fixture"
+              }
+            ]
+          }
+        }
+      },
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/auth/session",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/repositories/sync",
+          "body": null
+        }
+      ],
+      "popupClosed": true,
+      "noRepeatedApiVerification": true
+    },
+    {
+      "name": "manage_close_before_callback_is_unverified",
+      "result": {
+        "status": "resolved",
+        "value": {
+          "status": "closed_unverified",
+          "repositories": {
+            "githubAccess": "authorized",
+            "needsAuthorization": false,
+            "items": [
+              {
+                "id": "repo_fixture",
+                "fullName": "synthetic/local-only",
+                "installationId": "999",
+                "githubIdentityId": "ghi_fixture"
+              }
+            ]
+          }
+        }
+      },
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/auth/session",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/repositories/sync",
+          "body": {
+            "installationId": "999",
+            "githubIdentityId": "ghi_fixture"
+          }
+        }
+      ],
+      "popupClosed": true,
+      "noRepeatedApiVerification": true
+    },
+    {
+      "name": "manage_ready_then_close_with_matching_grants_remains_unverified",
+      "result": {
+        "status": "resolved",
+        "value": {
+          "status": "closed_unverified",
+          "repositories": {
+            "githubAccess": "authorized",
+            "needsAuthorization": false,
+            "items": [
+              {
+                "id": "repo_fixture",
+                "fullName": "synthetic/local-only",
+                "installationId": "999",
+                "githubIdentityId": "ghi_fixture"
+              }
+            ]
+          }
+        }
+      },
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/auth/session",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/repositories/sync",
+          "body": {
+            "installationId": "999",
+            "githubIdentityId": "ghi_fixture"
+          }
+        }
+      ],
+      "popupClosed": true,
+      "noRepeatedApiVerification": true
+    },
+    {
+      "name": "same_origin_actual_callback_success",
+      "result": {
+        "status": "resolved",
+        "value": null
+      },
+      "apiCalls": [],
+      "popupClosed": true,
+      "noRepeatedApiVerification": true,
+      "popupOpenerPresentBeforeAction": true,
+      "popupNameBeforeAction": "pullwise-github-install",
+      "messages": [
+        {
+          "origin": "http://127.0.0.1:8957",
+          "sourceEq": true,
+          "data": {
+            "type": "pullwise:github-install",
+            "ok": true,
+            "error": null,
+            "closeSyncReady": false,
+            "nonce": "fixture-popup-flow-000001"
+          }
+        }
+      ],
+      "consoleMessages": [
+        {
+          "type": "log",
+          "text": "fixtureCallback {\"origin\":\"http://127.0.0.1:8957\",\"search\":\"?github_popup_nonce=fixture-popup-flow-000001\",\"hasOpener\":true,\"name\":\"pullwise-github-install\",\"originalReturnGate\":true}"
+        }
+      ]
+    },
+    {
+      "name": "closed_popup_sync_provider_error_is_not_cancelled",
+      "result": {
+        "status": "rejected",
+        "name": "GitHubInstallVerificationError",
+        "code": "GITHUB_UNAVAILABLE",
+        "message": "Request failed with status 503"
+      },
+      "apiCalls": [
+        {
+          "method": "GET",
+          "path": "/api/auth/session",
+          "body": null
+        },
+        {
+          "method": "POST",
+          "path": "/api/repositories/sync",
+          "body": null
+        }
+      ],
+      "popupClosed": true,
+      "noRepeatedApiVerification": true,
+      "popupOpenerPresentBeforeAction": true,
+      "popupNameBeforeAction": "pullwise-github-install",
+      "messages": [],
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+        }
+      ]
+    },
+    {
+      "name": "explicit_provider_callback_failure_preserved",
+      "nativeRuntimeSummary": {
+        "case": "explicit_provider_callback_failure_preserved",
+        "status": "rejected",
+        "code": "github_account_mismatch",
+        "apiRequests": 0,
+        "passed": true
+      },
+      "evidenceDetail": "Retained native continuation stdout after local request-cap stop; immutable source snapshots match current hashes."
+    },
+    {
+      "name": "wrong_origin_and_wrong_window_messages_ignored",
+      "nativeRuntimeSummary": {
+        "case": "wrong_origin_and_wrong_window_messages_ignored",
+        "status": "resolved",
+        "code": "",
+        "apiRequests": 0,
+        "passed": true
+      },
+      "evidenceDetail": "Retained native continuation stdout after local request-cap stop; immutable source snapshots match current hashes."
+    },
+    {
+      "name": "open_popup_account_change_aborts_without_verification",
+      "nativeRuntimeSummary": {
+        "case": "open_popup_account_change_aborts_without_verification",
+        "status": "rejected",
+        "code": 20,
+        "apiRequests": 0,
+        "passed": true
+      },
+      "evidenceDetail": "Retained native continuation stdout after local request-cap stop; immutable source snapshots match current hashes."
+    },
+    {
+      "name": "closed_popup_session_result_cannot_cross_account_generation",
+      "nativeRuntimeSummary": {
+        "case": "closed_popup_session_result_cannot_cross_account_generation",
+        "status": "rejected",
+        "code": 20,
+        "apiRequests": 1,
+        "passed": true
+      },
+      "evidenceDetail": "Retained native continuation stdout after local request-cap stop; immutable source snapshots match current hashes."
+    }
+  ],
+  "passed": true,
+  "fixtureRecovery": {
+    "reason": "Playwright page.goto cleared popup window.opener; browser-native location.assign resolved terminal callbacks correctly. Original App return gate is now separately exercised.",
+    "applicationChanged": false,
+    "priorAttempts": [
+      {
+        "passed": false,
+        "passedCases": 3,
+        "browserRequests": 54,
+        "apiRequests": 8,
+        "failure": "Expected values to be strictly equal:\n\n2 !== 0\n"
+      },
+      {
+        "passed": false,
+        "passedCases": 3,
+        "browserRequests": 54,
+        "apiRequests": 8,
+        "failure": "Expected values to be strictly equal:\n\n2 !== 0\n"
+      }
+    ],
+    "boundedContinuation": {
+      "passedCases": 5,
+      "cumulativeBrowserRequestsAtStop": 181,
+      "reason": "Local static fixture request count exceeded original cumulative cap 180; no application failure",
+      "runtimeLogSha256": "cafac153da171bfef3cd44533d31e996415bdb91b307d4ff42a1ec9d70a5b5a3",
+      "apiRequestsAtStop": 17
+    },
+    "observedInvalidGotoCallback": {
+      "hasOpener": false,
+      "receivedMessages": []
+    }
+  },
+  "browserVersion": "151.0.7922.173",
+  "sourceUnchangedDuringValidation": true,
+  "sourceSha256After": {
+    "/src/lib/install-popup.js": "0c6582e36994a95a9547e8106db1426ef0ba5694c8c5b379746480e2792ae08f",
+    "/src/api/pullwise.js": "b36c551231ec025e534a2e12751d78ffc8b97f4f6537539b29d8ef1776710fb4",
+    "/src/api/github-refresh.js": "334132455b1a6c833d467319079ba8909c88e7f2c6d0b4b23bacb7e9d1493772",
+    "/src/api/http.js": "869b6a3542a7208cc7c583627b3e7bc1cdff4304d0f19e94d3c489943ebc40cf",
+    "/src/lib/trusted-redirects.js": "f73ef90ec19ed5cc3905a0387a474af38b8d9ebe215f0747bb46e6115fc85208"
+  },
+  "returnGateMatchesApp": true,
+  "browserRequests": 206,
+  "apiRequests": 19,
+  "unknownRequests": [],
+  "runtimeStopped": true,
+  "passedScenarioCount": 9,
+  "runtimeRequestCaps": {
+    "cases": 10,
+    "apiRequests": 30,
+    "browserRequests": 240
+  },
+  "authorizedAggregateLimits": {
+    "cases": 10,
+    "browserRequests": 240,
+    "apiRequests": 25
+  },
+  "withinAuthorizedAggregateLimits": true,
+  "harnessSha256": "c6c0a8f5562fa73bae44d975bc1a5152b2dfeba1589b515cb4672e24801306c7",
+  "limitations": [
+    "Synthetic intercepted GitHub responses prove native Chromium popup lifecycle and local module behavior; they do not establish real GitHub authorization acceptance.",
+    "The direct helper harness exercises the original App return gate but does not render the complete React application; auth and UI flow coverage is recorded in separate unit tests.",
+    "Two old page.goto fixtures cleared opener; their failed attempts and request totals are included. Five native continuation successes have stdout-level evidence because the local request-cap assertion stopped before full receipt finalization."
+  ],
+  "scratchEvidenceSha256": {
+    "result-first-attempt.json": "4858c7e6798321dd60c7de7fc79b90cf1911bdfc4c6b6ae643f8da38ba5daf0e",
+    "result-diagnostic-attempt.json": "e1b21ed682dc76ad836556da4e611f472808958b9bf2f62cb2baba8ee37983cb",
+    "runtime.log": "cafac153da171bfef3cd44533d31e996415bdb91b307d4ff42a1ec9d70a5b5a3",
+    "runtime-finish.log": "607ff585827091426a86180f85467b7e0fffc068d6e2b4d5d31564891cd9f236"
+  }
+}

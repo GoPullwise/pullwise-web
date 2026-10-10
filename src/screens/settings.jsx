@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { GitHubInstallationsList } from "../components/github-installations.jsx";
+import {
+  GitHubAuthorizationGuidance,
+  GitHubClosedNotice,
+} from "../components/github-authorization-notice.jsx";
 import { EmailSignIn } from "../components/email-sign-in.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
@@ -47,6 +51,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [githubClosedNotice, setGithubClosedNotice] = useState(null);
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const [jevSettings, setJevSettings] = useState(null);
   const [jevReloadRequired, setJevReloadRequired] = useState(false);
@@ -56,6 +61,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   const actionRef = useRef(false);
   const emailActionRef = useRef(false);
   const mountedRef = useRef(false);
+  const githubActionRef = useRef(null);
   const loadControllerRef = useRef(null);
   const jevOperationRef = useRef(null);
   const retentionOperationRef = useRef(null);
@@ -82,6 +88,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
+    setGithubClosedNotice(null);
     const [sessionResult, integrationsResult, jevResult, retentionResult] =
       await Promise.allSettled([
         pullwiseApi.auth.getSession({ signal: controller.signal }),
@@ -137,6 +144,16 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
         .join(" ")
     );
     setLoading(false);
+    return {
+      identity:
+        sessionResult.status === "fulfilled" && sessionResult.value?.authenticated
+          ? sessionResult.value.user?.id
+          : null,
+      githubReady:
+        integrationsResult.status === "fulfilled" &&
+        !integrationsResult.value?.githubRefreshError &&
+        typeof integrationsResult.value?.github?.connected === "boolean",
+    };
   }, []);
 
   useEffect(() => {
@@ -144,6 +161,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     load();
     return () => {
       mountedRef.current = false;
+      githubActionRef.current = null;
       requestRef.current += 1;
       loadControllerRef.current?.abort();
       jevOperationRef.current?.controller.abort();
@@ -159,22 +177,44 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   const runGitHubAction = async (action, installationId = "") => {
     if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
     if (onOperationBusyRef.current?.(true) === false) return;
+    const operation = { identity: sessionRef.current?.user?.id };
+    githubActionRef.current = operation;
     actionRef.current = true;
     setBusy(true);
     setManagingInstallationId(installationId);
     setError("");
+    setGithubClosedNotice(null);
+    const live = () =>
+      mountedRef.current &&
+      githubActionRef.current === operation &&
+      sessionRef.current?.user?.id === operation.identity;
     try {
-      await action();
-      if (mountedRef.current) await load();
+      const outcome = await action();
+      if (!live()) return;
+      const refreshed = await load();
+      if (
+        live() &&
+        refreshed?.identity === operation.identity &&
+        refreshed.githubReady &&
+        outcome?.status === "closed_unverified"
+      )
+        setGithubClosedNotice({ identity: operation.identity, outcome });
     } catch (failure) {
-      if (mountedRef.current)
-        setError(failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。"));
+      if (live())
+        setError(
+          failure?.code === "GITHUB_REAUTHORIZATION_REQUIRED"
+            ? T("Reconnect your GitHub account before checking repository access.")
+            : failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。")
+        );
     } finally {
-      actionRef.current = false;
-      onOperationBusyRef.current?.(false);
-      if (mountedRef.current) {
-        setBusy(false);
-        setManagingInstallationId("");
+      if (githubActionRef.current === operation) {
+        githubActionRef.current = null;
+        actionRef.current = false;
+        onOperationBusyRef.current?.(false);
+        if (mountedRef.current) {
+          setBusy(false);
+          setManagingInstallationId("");
+        }
       }
     }
   };
@@ -673,6 +713,10 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                     "打开项目页面，为项目起名即可记账，仓库关联可在之后添加或修改。"
                   )}
                 </p>
+                <GitHubAuthorizationGuidance />
+                {githubClosedNotice && githubClosedNotice.identity === user?.id && (
+                  <GitHubClosedNotice outcome={githubClosedNotice.outcome} />
+                )}
                 <div className="panel-actions">
                   {github?.connected && (
                     <button
