@@ -126,6 +126,14 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
               ]
         )
         .concat(retentionConfirmed ? [] : [retentionText("loadFailed")])
+        .concat(
+          integrationsResult.status === "fulfilled" && integrationsResult.value?.githubRefreshError
+            ? [
+                integrationsResult.value.githubRefreshError.message ||
+                  T("GitHub access unavailable."),
+              ]
+            : []
+        )
         .join(" ")
     );
     setLoading(false);
@@ -414,7 +422,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   };
 
   const github = integrations?.github;
-  const githubReady = typeof github?.connected === "boolean";
+  const githubReady = !integrations?.githubRefreshError && typeof github?.connected === "boolean";
   const user = session?.user;
   const emailProvider = Array.isArray(user?.providers) && user.providers.includes("email");
   const loginEmail = emailProvider && user?.emailVerified === true ? user.email : null;

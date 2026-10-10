@@ -1,4 +1,9 @@
 import { request } from "./http.js";
+import {
+  captureGitHubRefreshScope,
+  setGitHubRefreshIdentity,
+  withGitHubRefresh,
+} from "./github-refresh.js";
 
 function withSearchParams(path, params = {}) {
   const cleanParams = Object.fromEntries(
@@ -23,8 +28,12 @@ function getRequest(path, options = {}) {
 export const pullwiseApi = {
   auth: {
     getSession: (options = {}) => request("/auth/session", { signal: options.signal }),
-    signOut: (options = {}) =>
-      request("/auth/sign-out", { method: "POST", signal: options.signal }),
+    signOut: async (options = {}) => {
+      const scope = captureGitHubRefreshScope();
+      const result = await request("/auth/sign-out", { method: "POST", signal: options.signal });
+      if (captureGitHubRefreshScope() === scope) setGitHubRefreshIdentity(null);
+      return result;
+    },
     getGitHubAuthorizeUrl: (params = {}, options = {}) =>
       request(withSearchParams("/auth/github/authorize", params), { signal: options.signal }),
     requestEmailCode: (payload, options = {}) =>
@@ -62,13 +71,20 @@ export const pullwiseApi = {
 
   repositories: {
     list: (params = {}, options = {}) =>
-      getRequest(withSearchParams("/repositories", params), options),
+      withGitHubRefresh(
+        () => getRequest(withSearchParams("/repositories", params), options),
+        options
+      ),
     sync: (payload, options = {}) =>
-      request("/repositories/sync", { method: "POST", body: payload, signal: options.signal }),
+      withGitHubRefresh(
+        () =>
+          request("/repositories/sync", { method: "POST", body: payload, signal: options.signal }),
+        options
+      ),
   },
 
   integrations: {
-    list: (options = {}) => getRequest("/integrations", options),
+    list: (options = {}) => withGitHubRefresh(() => getRequest("/integrations", options), options),
     getGitHubAuthorizeUrl: (params = {}, options = {}) =>
       request(withSearchParams("/integrations/github/authorize", params), {
         signal: options.signal,

@@ -1,5 +1,18 @@
 # Pullwise Web
 
+## Automatic GitHub credential renewal (2026-10-10)
+
+The user explicitly requests automatic renewal of expiring GitHub authorization.
+Only a Server githubRefreshRequired signal permits one cookie-authenticated
+POST /integrations/github/refresh followed by one repeated GitHub-related read.
+Share concurrent refreshes within the actual account generation, abort/discard
+old-account work and preserve navigation/workspace/draft boundaries. Do not
+automatically redirect OAuth, poll, loop refreshes or replay business writes.
+Missing/expired/revoked refresh credentials keep explicit reconnect; temporary
+renewal failures retain successfully read financial history and distinct errors.
+Complete local verification and the established main/preview publication workflow;
+production remains paused. This supersedes the earlier manual-only renewal rule.
+
 ## Expense category guidance (2026-10-09)
 
 The user selected proposal A after reviewing temporary A/B/C screenshots.

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { App } from "./App.jsx";
 import { pullwiseApi } from "./api/pullwise.js";
 import { createLedgerApi, ledgerApi } from "./api/ledger.js";
+import { captureGitHubRefreshScope } from "./api/github-refresh.js";
 import { NotificationProvider } from "./components/notifications.jsx";
 import { screenFromPath } from "./lib/navigation.js";
 
@@ -125,6 +126,33 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+it("establishes GitHub renewal from the confirmed account and clears it on unmount", async () => {
+  window.history.replaceState({}, "", "/projects");
+  pullwiseApi.auth.getSession.mockResolvedValue({
+    authenticated: true,
+    user: { id: "usr_confirmed" },
+  });
+  const view = render(<App />);
+  await screen.findByRole("heading", { name: "Projects" });
+  const scope = captureGitHubRefreshScope("usr_confirmed");
+  expect(scope).not.toBeNull();
+  expect(createLedgerApi).toHaveBeenCalledWith("local-focus", expect.any(Function), scope);
+  view.unmount();
+  expect(captureGitHubRefreshScope()).toBeNull();
+  expect(scope.controller.signal.aborted).toBe(true);
+});
+
+it("does not establish GitHub renewal from a display login without a confirmed account ID", async () => {
+  window.history.replaceState({}, "", "/projects");
+  pullwiseApi.auth.getSession.mockResolvedValue({
+    authenticated: true,
+    user: { login: "display_login" },
+  });
+  render(<App />);
+  await screen.findByRole("heading", { name: "Projects" });
+  expect(captureGitHubRefreshScope()).toBeNull();
 });
 
 function pending() {

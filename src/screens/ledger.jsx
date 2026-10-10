@@ -52,7 +52,7 @@ function isLedgerAccessFailure(failure) {
 }
 
 function errorText(error) {
-  const code = error?.payload?.error?.code;
+  const code = error?.code || error?.payload?.error?.code;
   const jevPlanRequired = T(
     "Jev assistance requires the ledger Owner's Pro or Max plan.",
     "Jev 辅助需要账本所有者的 Pro 或 Max 套餐。"
@@ -1390,7 +1390,11 @@ function ScopedLedgerScreen({
       .repositories({}, { signal: controller.signal })
       .then((repositories) => {
         if (!controller.signal.aborted && request === requestId.current)
-          setData((old) => old && { ...old, repositories, repositoryError: null });
+          setData((old) => old && {
+            ...old,
+            repositories: repositories.githubRefreshError ? null : repositories,
+            repositoryError: repositories.githubRefreshError || null,
+          });
       })
       .catch((failure) => {
         if (controller.signal.aborted || request !== requestId.current) return;
@@ -1445,6 +1449,14 @@ function ScopedLedgerScreen({
             ? await api.repositories({ cursor }, { signal: controller.signal })
             : await api.expenses({ ...detailQuery, cursor }, { signal: controller.signal });
       if (controller.signal.aborted || request !== requestId.current) return;
+      if (kind === "repositories" && next.githubRefreshError) {
+        setData((old) => old && {
+          ...old,
+          repositories: null,
+          repositoryError: next.githubRefreshError,
+        });
+        return;
+      }
       if (next.nextCursor === cursor || (next.items.length === 0 && next.nextCursor)) {
         setActionError(T("Pagination did not advance. Reload to retry."));
         return;
@@ -1591,7 +1603,11 @@ function ScopedLedgerScreen({
     try {
       const repositories = await api.repositories({}, { signal: controller.signal });
       if (!controller.signal.aborted && request === requestId.current)
-        setData((old) => old && { ...old, repositories, repositoryError: null });
+        setData((old) => old && {
+          ...old,
+          repositories: repositories.githubRefreshError ? null : repositories,
+          repositoryError: repositories.githubRefreshError || null,
+        });
     } catch (failure) {
       if (!controller.signal.aborted && request === requestId.current) {
         if (failure?.status === 401 || isLedgerAccessFailure(failure)) {
@@ -1973,6 +1989,7 @@ function ScopedLedgerScreen({
       ]
     : [];
   const organizations = data?.repositories?.organizations || [];
+  const githubRefreshError = data?.project?.githubRefreshError || data?.projects?.githubRefreshError;
   const needsGitHubReconnect =
     data?.repositories?.githubAccess === "reauthorization_required" ||
     data?.project?.githubAccess === "reauthorization_required";
@@ -2187,6 +2204,14 @@ function ScopedLedgerScreen({
               <p>{errorText(data.repositoryError)}</p>
               <button className="btn" disabled={blocked} onClick={retryRepositories}>
                 {T("Check repository access", "检查仓库授权")}
+              </button>
+            </div>
+          )}
+          {githubRefreshError && (
+            <div role="alert" className="notice">
+              <p>{errorText(githubRefreshError)}</p>
+              <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
+                {T("Retry")}
               </button>
             </div>
           )}
