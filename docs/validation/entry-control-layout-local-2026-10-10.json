@@ -1,0 +1,287 @@
+{
+  "checkedAt": "2026-10-10T04:50:40.642964+00:00",
+  "scope": "Final local entry-control layout and page-owned mobile display preferences; bounded GET-only fixtures, no remote business requests or writes.",
+  "baseCommit": "30e106f0fe0c17cc8249e9c586eae01f1520be86",
+  "buildIndexSha256": "484cd8d868d0df86bdb0c45c1f9c2d47acd8a317b3573560f37fc086df659612",
+  "runtimeSha256": {
+    "src/App.jsx": "2e58e5ae5ec369167d8a208686e52d8cee731e3e8cce3a470ca3a168ba243a0e",
+    "src/shell.jsx": "c6596c30e7389cea8c10124800122ef31c61719a0a3eeb84dfe3808faa2ab172",
+    "src/components/page-preferences.jsx": "bf284d4abb918f60f2526a7bab8ed74ac677e7d1e662edf8ac5d1956dc7e1d09",
+    "src/app.css": "ffba30ebbb05338476b9aa36a67f15e0e28fd3429d89dbd29c793640c0157718",
+    "src/screens/ledger.css": "ce1f1db879a2af1ef4fbcbb841bb804fde46d89345d7f6345ebd11c5153b954a",
+    "styles/base.css": "398e79339b171d299ada4ba69196315b43966fc827d872729e51dad48665240f"
+  },
+  "checks": {
+    "npm run check": {
+      "status": "passed",
+      "testFiles": 70,
+      "tests": 1422,
+      "includes": ["eslint", "vitest", "vite build"]
+    },
+    "npm run check:workers": "passed",
+    "changed-fixture eslint/prettier": "passed",
+    "git diff --check": "passed"
+  },
+  "browser": {
+    "engine": "chromium",
+    "version": "151.0.7922.173",
+    "checks": [
+      {
+        "name": "entry-controls",
+        "status": "passed",
+        "contexts": 12,
+        "states": null,
+        "perContextInterceptCap": 160,
+        "perContextApiCap": 80,
+        "requests": {
+          "intercepted": 387,
+          "loopback": 375,
+          "apiGet": 132,
+          "blockedFontAttempts": 12,
+          "businessWrites": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "name": "loading-and-transitions",
+        "status": "passed",
+        "contexts": 5,
+        "states": null,
+        "perContextInterceptCap": 160,
+        "perContextApiCap": 80,
+        "requests": {
+          "intercepted": 170,
+          "loopback": 165,
+          "apiGet": 53,
+          "blockedFontAttempts": 5,
+          "businessWrites": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "name": "mobile-layout",
+        "status": "passed",
+        "contexts": 10,
+        "states": 187,
+        "perContextInterceptCap": 160,
+        "perContextApiCap": 80,
+        "requests": {
+          "intercepted": 535,
+          "loopback": 525,
+          "apiGet": 280,
+          "blockedFontAttempts": 10,
+          "businessWrites": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "name": "billing-layout",
+        "status": "passed",
+        "contexts": 24,
+        "states": 36,
+        "perContextInterceptCap": 64,
+        "perContextApiCap": 8,
+        "requests": {
+          "intercepted": 539,
+          "loopback": 515,
+          "apiGet": 111,
+          "blockedFontAttempts": 24,
+          "businessWrites": 0,
+          "externalDelivered": 0
+        }
+      },
+      {
+        "name": "date-layout",
+        "status": "passed",
+        "contexts": 4,
+        "states": 258,
+        "perContextInterceptCap": 100,
+        "requests": {
+          "intercepted": 355,
+          "loopback": 351,
+          "apiGet": 276,
+          "blockedFontAttempts": 4,
+          "businessWrites": 0,
+          "externalDelivered": 0
+        }
+      }
+    ],
+    "contexts": 55,
+    "persistentLayoutStates": 481,
+    "requests": {
+      "intercepted": 1986,
+      "loopback": 1931,
+      "apiGet": 852,
+      "blockedFontAttempts": 55,
+      "businessWrites": 0,
+      "externalDelivered": 0
+    }
+  },
+  "entryControls": {
+    "profiles": [
+      {
+        "width": 320,
+        "height": 720,
+        "lang": "en",
+        "touch": true
+      },
+      {
+        "width": 320,
+        "height": 720,
+        "lang": "zh",
+        "touch": true
+      },
+      {
+        "width": 320,
+        "height": 720,
+        "lang": "fr",
+        "touch": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "touch": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "lang": "zh",
+        "touch": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "lang": "fr",
+        "touch": true
+      },
+      {
+        "width": 412,
+        "height": 844,
+        "lang": "en",
+        "touch": true
+      },
+      {
+        "width": 412,
+        "height": 844,
+        "lang": "zh",
+        "touch": true
+      },
+      {
+        "width": 412,
+        "height": 844,
+        "lang": "fr",
+        "touch": true
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "lang": "zh",
+        "touch": true
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "lang": "fr",
+        "touch": false,
+        "rail": 260
+      },
+      {
+        "width": 1440,
+        "height": 1000,
+        "lang": "zh",
+        "touch": true,
+        "rail": 260
+      }
+    ],
+    "phone390Zh": {
+      "controls": {
+        "ledger": {
+          "top": 8,
+          "bottom": 56,
+          "left": 72,
+          "right": 262,
+          "width": 190,
+          "height": 48
+        },
+        "inbox": {
+          "top": 8,
+          "bottom": 56,
+          "left": 326,
+          "right": 374,
+          "width": 48,
+          "height": 48
+        },
+        "preferences": {
+          "top": 8,
+          "bottom": 56,
+          "left": 270,
+          "right": 318,
+          "width": 48,
+          "height": 48
+        }
+      },
+      "menu": {
+        "top": 62,
+        "bottom": 180.78125,
+        "left": 94,
+        "right": 374,
+        "width": 280,
+        "height": 118.78125
+      },
+      "menuGap": 6,
+      "allHeaderAndMenuCentersHit": true,
+      "insideTopbarActions": true
+    },
+    "assertions": [
+      "Phone topbar 48px equal-height border boxes and square icon actions; ledger select fills remaining grid track.",
+      "Coarse tablet/desktop 44px and fine desktop 32px border boxes align.",
+      "Expense choices have 12px vertical / 16px horizontal padding, 6px title-caption gap and equal natural heights >=84px.",
+      "320px phone and 260px desktop entry rail stack choices; all text stays within inner padding.",
+      "Real light/dark theme captures and native touch evidence remain after screenshot; no navigator overrides."
+    ]
+  },
+  "loading": {
+    "cases": [
+      "initial-session",
+      "initial-workspace",
+      "route-lazy",
+      "route-data",
+      "oauth-intermediate"
+    ],
+    "heldLocalGet": 5,
+    "assertions": [
+      "Session, ledger access, lazy-screen Suspense and OAuth have no orphan phone controls.",
+      "Members data loading keeps its control inside the mounted actual header.",
+      "Header teardown removes nested menus, clears floating-controls state and does not consume Escape.",
+      "Replacement header starts collapsed; draft focus is preserved when access is unchanged."
+    ]
+  },
+  "manualImageInspection": [
+    "390-zh-choices-dark.png",
+    "1440-fr-rail260-choices-dark.png",
+    "390-zh-preferences-expanded.png",
+    "initial-session-loading.png",
+    "route-lazy-loading.png",
+    "oauth-intermediate-oauth.png"
+  ],
+  "workEvidence": [
+    "expense-entry-spacing/after-slot/report.json",
+    "preferences-loading-after-slot/report.json",
+    "entry-control-slot-final-check.log",
+    "entry-control-slot-final-workers.log",
+    "entry-control-slot-mobile-chromium.log",
+    "entry-control-slot-date-chromium.log",
+    "entry-control-slot-billing-chromium-final.log"
+  ],
+  "fixtureCorrections": [
+    "First Billing run exposed a missing already-published recurring notification GET fixture; added explicit empty account-scoped response and no-workspace assertion, preserving original 64/8 request caps. Original failure log entry-control-slot-billing-chromium.log retained.",
+    "The loading harness originally waited for a spinner hidden by phone CSS; it now waits for the visible Members loading status, with all absence, containment, hit and request-cap assertions retained.",
+    "After final npm check, only fixture correction and test/script formatting changed; runtime source and dist were not rebuilt or changed."
+  ],
+  "limits": [
+    "Chromium simulation and real engine geometry are not physical iPhone/Android acceptance.",
+    "WebKit and Firefox executables are unavailable in the local Playwright cache; no browser downloads or remote acceptance were attempted.",
+    "Screenshots and detailed local traces stay in ignored work/; no screenshots are tracked."
+  ]
+}

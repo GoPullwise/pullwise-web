@@ -6,6 +6,7 @@ import { WorkspaceContext } from "./components/workspace-context.jsx";
 import { NotificationProvider } from "./components/notifications.jsx";
 import { InvitationInboxProvider } from "./components/invitation-inbox.jsx";
 import { ConsoleLayoutProvider } from "./components/console-layout.jsx";
+import { PagePreferencesProvider, PagePreferencesReady } from "./components/page-preferences.jsx";
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
@@ -161,6 +162,7 @@ export function App() {
     () => window.matchMedia?.("(max-width: 760px)").matches ?? false
   );
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [preferencesVisible, setPreferencesVisible] = useState(!phoneLayout);
   const [workspaceState, setWorkspaceState] = useState({
     identity: "",
     status: "idle",
@@ -610,6 +612,13 @@ export function App() {
     setPreferencesOpen(false);
     if (restoreFocus) preferencesToggleRef.current?.focus({ preventScroll: true });
   }, []);
+  const reportPreferencesVisibility = useCallback(
+    (visible) => {
+      setPreferencesVisible(visible);
+      if (!visible) closePreferences(false);
+    },
+    [closePreferences]
+  );
   const openLanguageMenu = (edge) => {
     const selected = LANGUAGES.findIndex((language) => language.code === lang);
     setLanguageFocusIndex(
@@ -643,10 +652,7 @@ export function App() {
     if (!media) return;
     const updateLayout = (event) => {
       const active = document.activeElement;
-      const losingFocus = event.matches
-        ? preferencesRef.current?.contains(active)
-        : active === preferencesToggleRef.current ||
-          languageMenuRef.current?.querySelector('[role="menu"]')?.contains(active);
+      const losingFocus = preferencesRef.current?.contains(active);
       layoutFocusRestoreRef.current = losingFocus ? { active, phone: event.matches } : null;
       setPhoneLayout(event.matches);
       setLanguageMenuOpen(false);
@@ -659,12 +665,15 @@ export function App() {
   useEffect(() => {
     const restore = layoutFocusRestoreRef.current;
     if (!restore) return;
-    layoutFocusRestoreRef.current = null;
-    if (document.activeElement !== restore.active && document.activeElement !== document.body)
+    if (document.activeElement !== restore.active && document.activeElement !== document.body) {
+      layoutFocusRestoreRef.current = null;
       return;
+    }
     const opener = restore.phone ? preferencesToggleRef.current : languageToggleRef.current;
-    opener?.focus({ preventScroll: true });
-  }, [phoneLayout, languageMenuOpen, preferencesOpen]);
+    if (!opener) return;
+    layoutFocusRestoreRef.current = null;
+    opener.focus({ preventScroll: true });
+  }, [phoneLayout, languageMenuOpen, preferencesOpen, preferencesVisible]);
 
   useEffect(() => {
     if (phoneLayout && preferencesOpen) languageToggleRef.current?.focus({ preventScroll: true });
@@ -1180,12 +1189,123 @@ export function App() {
     fr: "Options d’affichage",
     es: "Opciones de visualización",
   });
+  const preferencesControls = (
+    <div className="preferences" ref={preferencesRef}>
+      {phoneLayout && (
+        <button
+          className="preferences-toggle"
+          type="button"
+          ref={preferencesToggleRef}
+          aria-label={preferencesLabel}
+          aria-expanded={preferencesOpen}
+          aria-controls="preferences-actions"
+          onClick={() => (preferencesOpen ? closePreferences() : setPreferencesOpen(true))}
+        >
+          <I.Sliders size={18} />
+          <span>{preferencesLabel}</span>
+        </button>
+      )}
+      <div
+        className="preferences-actions"
+        id="preferences-actions"
+        role="group"
+        aria-label={preferencesLabel}
+        hidden={phoneLayout && !preferencesOpen}
+      >
+        <div className="lang-picker" ref={languageMenuRef}>
+          <button
+            type="button"
+            ref={languageToggleRef}
+            className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
+            onClick={() => (languageMenuOpen ? closeLanguageMenu() : openLanguageMenu())}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                openLanguageMenu(event.key === "ArrowDown" ? "first" : "last");
+              }
+            }}
+            title={T("Select language", "选择语言")}
+            aria-label={T("Select language", "选择语言")}
+            aria-haspopup="menu"
+            aria-controls={languageMenuOpen ? "language-menu" : undefined}
+            aria-expanded={languageMenuOpen}
+          >
+            {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+            <span className="preferences-label">{T("Select language", "选择语言")}</span>
+          </button>
+          {languageMenuOpen && (
+            <div
+              className="lang-menu"
+              id="language-menu"
+              role="menu"
+              aria-label={T("Select language", "选择语言")}
+              onKeyDown={languageMenuKeyDown}
+            >
+              {LANGUAGES.map((language, index) => (
+                <button
+                  key={language.code}
+                  type="button"
+                  className={"lang-menu-i" + (lang === language.code ? " active" : "")}
+                  role="menuitemradio"
+                  aria-checked={lang === language.code}
+                  tabIndex={languageFocusIndex === index ? 0 : -1}
+                  onFocus={() => setLanguageFocusIndex(index)}
+                  onClick={() => {
+                    setLang(language.code);
+                    closeLanguageMenu();
+                  }}
+                >
+                  <span className="lang-menu-code">{language.shortLabel}</span>
+                  <span>{language.nativeLabel}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          ref={themeToggleRef}
+          className="theme-toggle"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          title={
+            theme === "light"
+              ? T("Switch to dark", "切换到暗色")
+              : T("Switch to light", "切换到亮色")
+          }
+          aria-label={T("Toggle theme", "切换主题")}
+        >
+          {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
+          <span className="preferences-label">
+            {theme === "light"
+              ? T("Switch to dark", "切换到暗色")
+              : T("Switch to light", "切换到亮色")}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={"back-to-top" + (showBackToTop ? " visible" : "")}
+          onClick={() => {
+            scrollToTop();
+            if (phoneLayout) closePreferences();
+          }}
+          title={T("Back to top", "回到顶部")}
+          aria-label={T("Back to top", "回到顶部")}
+          tabIndex={showBackToTop ? 0 : -1}
+        >
+          <I.ArrowUp size={16} />
+          <span className="preferences-label">{T("Back to top", "回到顶部")}</span>
+        </button>
+      </div>
+    </div>
+  );
   return (
     <div className="app-frame" data-console={consoleScreen ? "true" : "false"}>
       <NotificationProvider
         scope={identity}
         navigationDisabled={navigationDisabled}
-        floatingControlsOpen={languageMenuOpen || (phoneLayout && preferencesOpen)}
+        floatingControlsOpen={
+          preferencesVisible && (languageMenuOpen || (phoneLayout && preferencesOpen))
+        }
       >
         <InvitationInboxProvider
           identity={identity}
@@ -1235,125 +1355,30 @@ export function App() {
                   : null
               }
             >
-              <div
-                className="screen-root"
-                ref={screenRootRef}
-                tabIndex={-1}
-                data-screen-label={screen}
-                key={screenKey}
+              <PagePreferencesProvider
+                owner={screenKey}
+                phone={phoneLayout}
+                consolePage={consoleScreen}
+                publicPage={
+                  PUBLIC_SCREENS.has(screen) &&
+                  !(auth.status === "checking" && shouldShowSessionCheck(screen))
+                }
+                controls={preferencesControls}
+                onVisibilityChange={reportPreferencesVisibility}
               >
-                <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
-              </div>
-
-              <div className="preferences" ref={preferencesRef}>
-                {phoneLayout && (
-                  <button
-                    className="preferences-toggle"
-                    type="button"
-                    ref={preferencesToggleRef}
-                    aria-label={preferencesLabel}
-                    aria-expanded={preferencesOpen}
-                    aria-controls="preferences-actions"
-                    onClick={() =>
-                      preferencesOpen ? closePreferences() : setPreferencesOpen(true)
-                    }
-                  >
-                    <I.Sliders size={18} />
-                    <span>{preferencesLabel}</span>
-                  </button>
-                )}
                 <div
-                  className="preferences-actions"
-                  id="preferences-actions"
-                  role="group"
-                  aria-label={preferencesLabel}
-                  hidden={phoneLayout && !preferencesOpen}
+                  className="screen-root"
+                  ref={screenRootRef}
+                  tabIndex={-1}
+                  data-screen-label={screen}
+                  key={screenKey}
                 >
-                  <div className="lang-picker" ref={languageMenuRef}>
-                    <button
-                      type="button"
-                      ref={languageToggleRef}
-                      className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
-                      onClick={() => (languageMenuOpen ? closeLanguageMenu() : openLanguageMenu())}
-                      onKeyDown={(event) => {
-                        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-                          event.preventDefault();
-                          openLanguageMenu(event.key === "ArrowDown" ? "first" : "last");
-                        }
-                      }}
-                      title={T("Select language", "选择语言")}
-                      aria-label={T("Select language", "选择语言")}
-                      aria-haspopup="menu"
-                      aria-controls={languageMenuOpen ? "language-menu" : undefined}
-                      aria-expanded={languageMenuOpen}
-                    >
-                      {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
-                      <span className="preferences-label">{T("Select language", "选择语言")}</span>
-                    </button>
-                    {languageMenuOpen && (
-                      <div
-                        className="lang-menu"
-                        id="language-menu"
-                        role="menu"
-                        aria-label={T("Select language", "选择语言")}
-                        onKeyDown={languageMenuKeyDown}
-                      >
-                        {LANGUAGES.map((language, index) => (
-                          <button
-                            key={language.code}
-                            type="button"
-                            className={"lang-menu-i" + (lang === language.code ? " active" : "")}
-                            role="menuitemradio"
-                            aria-checked={lang === language.code}
-                            tabIndex={languageFocusIndex === index ? 0 : -1}
-                            onFocus={() => setLanguageFocusIndex(index)}
-                            onClick={() => {
-                              setLang(language.code);
-                              closeLanguageMenu();
-                            }}
-                          >
-                            <span className="lang-menu-code">{language.shortLabel}</span>
-                            <span>{language.nativeLabel}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    ref={themeToggleRef}
-                    className="theme-toggle"
-                    onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                    title={
-                      theme === "light"
-                        ? T("Switch to dark", "切换到暗色")
-                        : T("Switch to light", "切换到亮色")
-                    }
-                    aria-label={T("Toggle theme", "切换主题")}
-                  >
-                    {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
-                    <span className="preferences-label">
-                      {theme === "light"
-                        ? T("Switch to dark", "切换到暗色")
-                        : T("Switch to light", "切换到亮色")}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className={"back-to-top" + (showBackToTop ? " visible" : "")}
-                    onClick={() => {
-                      scrollToTop();
-                      if (phoneLayout) closePreferences();
-                    }}
-                    title={T("Back to top", "回到顶部")}
-                    aria-label={T("Back to top", "回到顶部")}
-                    tabIndex={showBackToTop ? 0 : -1}
-                  >
-                    <I.ArrowUp size={16} />
-                    <span className="preferences-label">{T("Back to top", "回到顶部")}</span>
-                  </button>
+                  <Suspense fallback={<ScreenFallback />}>
+                    {body}
+                    <PagePreferencesReady />
+                  </Suspense>
                 </div>
-              </div>
+              </PagePreferencesProvider>
             </WorkspaceContext.Provider>
           </ConsoleLayoutProvider>
         </InvitationInboxProvider>

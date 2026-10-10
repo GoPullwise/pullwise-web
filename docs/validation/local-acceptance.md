@@ -1,5 +1,52 @@
 # Current local acceptance
 
+## HTTPS sign-in entry and control spacing (2026-10-10)
+
+The preview HTTP entry previously returned 200 HTML while email login required
+the configured HTTPS Origin. The user confirmed that explicitly adding
+`https://` restored iPhone Safari email login. Known deployed Web hosts now
+upgrade HTTP GET/HEAD to HTTPS before rendering the page. The redirect preserves
+the path/query, uses a fixed deployment host, removes nonstandard ports and keeps
+preview noindex. Insecure writes are rejected locally without forwarding or
+replaying a verification-code request. Local HTTP development is unchanged.
+Server's strict trusted-Origin contract and runtime remain unchanged; its local
+HTTP403/HTTPS202 mock-mail regressions pass 74 tests.
+
+Expense entry choices use automatic equal heights, 12px vertical/16px horizontal
+padding, a 6px title/caption gap and left-aligned text. Narrow containers stack
+the choices when needed; translated captions remain fully inside their cards.
+The shared topbar control size aligns native ledger selectors and icon actions:
+32px desktop, 44px coarse tablet and 48px phone. Phone preferences and inbox
+actions have matching square border boxes and aligned top/bottom edges.
+
+Mobile console language/theme preferences are hosted by the actual page header
+rather than an independent fixed overlay. Intermediate pages do not render an
+orphan Options button. Public pages retain their corner control after content
+commits; desktop placement and the nested language menu's keyboard/focus/dismissal
+behavior remain available.
+
+The final `npm run check` passes ESLint, **70 files / 1,422 tests**, and the
+production build. The twelve new ownership regressions cover real header slots,
+old-registration cleanup, route-owner replacement, Suspense hide/recovery,
+StrictMode, session/ledger waits, collapsed recovery and preserved draft focus.
+Existing language-menu and breakpoint focus regressions also pass. The Worker
+configuration check, API-contract artifact check and preview Worker dry-run pass.
+
+[Local browser evidence](entry-control-layout-local-2026-10-10.json) passes **55
+Chromium 151 contexts**, including twelve spacing/alignment contexts, five
+session/ledger/OAuth/Suspense transitions and **481 persistent layout states**
+across mobile, date/pane and Billing checks. It verifies exact equal border
+bounds, text containment, a header-owned phone menu, removal of orphan controls,
+collapsed recovery, Escape cleanup and preserved draft focus. Dark/light and
+320/390/412px phones, touch tablets and a 260px desktop rail are covered.
+All 1,986 requests are intercepted: 1,931 loopback deliveries and 55 blocked font
+attempts, with 852 synthetic API GETs, zero business writes or external delivery.
+The Billing fixture adds the previously published account notification read;
+the loading fixture uses the actual visible waiting state instead of a spinner
+that the existing phone layout hides. Original request limits and assertions
+are retained. This is browser-engine/emulated geometry evidence; independent
+physical-device/WebKit UI acceptance is not claimed.
+
 [Pagination preview publication](expense-pagination-preview-release-2026-10-10.json)
 records the final main source and Web version, one noindex homepage and three
 exact matching assets: entry JavaScript, expense-page JavaScript and expense-page

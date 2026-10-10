@@ -1,5 +1,25 @@
 # Pullwise Web
 
+## HTTPS sign-in entry and aligned controls (2026-10-10)
+
+The user confirms iPhone Safari email sign-in works after explicitly adding
+https://. Known deployed Web hosts must upgrade HTTP GET/HEAD navigation to HTTPS
+before serving a sign-in page. Preserve path/query, fixed deployment hosts,
+preview noindex, local HTTP development and strict Server Origin validation.
+Do not redirect or replay insecure writes or verification-code requests.
+Expense entry choices need deliberate title/caption spacing and equal natural
+heights, including narrow editor rails and all six locales. Keep their concise
+existing wording and flat theme. Align every mobile topbar border box, using
+one shared height and square icon actions; retain native selects and touch sizes.
+Mobile console display preferences belong to the actual page header, without a
+global fixed overlay. Public pages may keep the corner control after content
+commits. Do not show orphan controls on session, ledger-access, OAuth or lazy-screen
+transitions. Keep language/theme and nested-menu keyboard, focus and dismissal
+behavior, including breakpoint changes.
+Verify settled text containment, equal border bounds, responsive widths and the
+expanded display menu locally, then publish the Web preview. Server has only
+transport regression/evidence changes and needs no runtime redeployment.
+
 ## Expense record pagination (2026-10-10)
 
 After publishing the recurring release to both main repositories and preview,

@@ -4,6 +4,7 @@ import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
 import { useWorkspace } from "./components/workspace-context.jsx";
 import { InvitationInboxButton } from "./components/invitation-inbox.jsx";
+import { PagePreferencesSlot } from "./components/page-preferences.jsx";
 
 function ledgerLabel(workspace) {
   const ownership =
@@ -82,6 +83,7 @@ export function Topbar({ go, breadcrumbs, loading = false, navigationDisabled = 
       </div>
       <div className="topbar-actions">
         <InvitationInboxButton disabled={navigationDisabled} />
+        <PagePreferencesSlot />
         {ledgers?.workspace && (
           <div className="workspace-picker">
             <select

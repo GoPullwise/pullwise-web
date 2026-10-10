@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { preview } from "vite";
 import { createMobileLayoutFixture } from "./mobile-layout-fixtures.mjs";
+import { checkEntryControlLayout } from "./entry-control-layout.mjs";
 
 // Build dist first. Finite loopback fixtures establish engine/layout evidence;
 // they do not establish physical iOS/Android or native virtual-keyboard acceptance.
@@ -60,6 +61,7 @@ assert(
 );
 const engines = args.length ? [args[0].split("=")[1]] : ["chromium", "webkit"];
 assert(engines.length * profiles.length <= 20, "Context cap exceeded (20)");
+const screenshotTouchSessions = new WeakMap();
 
 async function exists(path) {
   try {
@@ -279,6 +281,7 @@ async function measure(page, report, name) {
     bottomNavigation: phone && measured.nav.position === "fixed",
     coarse: measured.coarse,
     touchPoints: measured.touchPoints,
+    entryControls: await checkEntryControlLayout(page, prefix),
   });
   return measured;
 }
@@ -307,6 +310,19 @@ async function capture(page, report, name) {
     await settle(page);
   }
   await page.screenshot({ path });
+  if (report.engine === "chromium" && report.profile.touch) {
+    // Some capture environments reset Chromium's touch device after a shot.
+    // Restore its real emulation before subsequent geometry and interactions.
+    let session = screenshotTouchSessions.get(page);
+    if (!session) {
+      session = await page.context().newCDPSession(page);
+      screenshotTouchSessions.set(page, session);
+    }
+    await session.send("Emulation.setTouchEmulationEnabled", {
+      enabled: true,
+      maxTouchPoints: 1,
+    });
+  }
   const pointer = await page.evaluate(() => ({
     coarse: matchMedia("(pointer: coarse)").matches,
     touchPoints: navigator.maxTouchPoints,

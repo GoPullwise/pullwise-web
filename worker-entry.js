@@ -3,14 +3,31 @@ import { renderSeoHead, seoMetadataForPath } from "./src/lib/seo.js";
 
 const CANONICAL_HOST = "pull-wise.com";
 const WWW_HOST = "www.pull-wise.com";
+const PREVIEW_HOST = "preview.pull-wise.com";
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.hostname.toLowerCase() === WWW_HOST) {
+    const hostname = url.hostname.toLowerCase();
+    const deployedHost = [CANONICAL_HOST, WWW_HOST, PREVIEW_HOST].includes(hostname);
+    if (deployedHost && url.protocol === "http:") {
+      // A navigation must reach HTTPS before it renders an email sign-in form.
+      // Never replay an insecure write, including a verification-code request.
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return new Response(JSON.stringify({ error: { code: "HTTPS_REQUIRED" } }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+        });
+      }
+      url.protocol = "https:";
+      url.port = "";
+      if (hostname === WWW_HOST) url.hostname = CANONICAL_HOST;
+      return canonicalRedirect(url, env);
+    }
+    if (hostname === WWW_HOST) {
       url.hostname = CANONICAL_HOST;
       url.protocol = "https:";
-      return Response.redirect(url, 308);
+      return canonicalRedirect(url, env);
     }
 
     let response = await baseWorker.fetch(request, env);
@@ -28,6 +45,12 @@ export default {
     return injectSeoMetadata(response, metadata);
   },
 };
+
+function canonicalRedirect(url, env) {
+  const headers = new Headers({ Location: url.href });
+  if (env.PULLWISE_MODE === "preview") headers.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(null, { status: 308, headers });
+}
 
 function isHtmlResponse(response) {
   return (response.headers.get("content-type") || "").toLowerCase().includes("text/html");

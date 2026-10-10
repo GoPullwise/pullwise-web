@@ -75,6 +75,7 @@ input[type="checkbox"] {
   --z-raised: 1;
   --z-side: 9;
   --z-topbar: 10;
+  --topbar-control-size: 32px;
   --z-float: 60;
   --z-modal: 100;
   --z-toast: 120;
@@ -393,6 +394,12 @@ a[aria-disabled="true"] {
   gap: 12px;
   min-width: 0;
 }
+.topbar-actions > .btn {
+  min-width: var(--topbar-control-size);
+  min-height: var(--topbar-control-size);
+  height: var(--topbar-control-size);
+  padding: 0 8px;
+}
 .workspace-picker {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -407,7 +414,8 @@ a[aria-disabled="true"] {
   width: 100%;
   min-inline-size: 0;
   max-inline-size: 100%;
-  min-height: 32px;
+  height: var(--topbar-control-size);
+  min-height: var(--topbar-control-size);
   padding: 6px 10px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -1229,6 +1237,7 @@ details.panel[open] > summary.panel-h::after,
 
 @media (max-width: 760px) {
   :root {
+    --topbar-control-size: 48px;
     --font-sans:
       -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC",
       "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
@@ -1254,19 +1263,28 @@ details.panel[open] > summary.panel-h::after,
     min-height: 60px;
     height: auto;
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) 96px;
+    grid-template-columns:
+      var(--topbar-control-size) minmax(0, 1fr)
+      calc(var(--topbar-control-size) * 2 + 8px);
     column-gap: 8px;
     padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
   }
   .topbar-actions {
     display: contents;
   }
-  .topbar-actions > button {
+  .topbar-preferences-slot {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    width: var(--topbar-control-size);
+    height: var(--topbar-control-size);
+  }
+  .topbar-actions > button.btn {
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
-    min-height: 44px;
-    width: 44px;
+    min-height: var(--topbar-control-size);
+    width: var(--topbar-control-size);
     padding: 0;
   }
   .topbar-actions > a,
@@ -1281,7 +1299,7 @@ details.panel[open] > summary.panel-h::after,
     font-size: var(--fs-2xl);
   }
   .workspace-picker select {
-    min-height: 44px;
+    min-height: var(--topbar-control-size);
     padding-inline: 8px;
   }
   .topbar-location {
@@ -1293,6 +1311,11 @@ details.panel[open] > summary.panel-h::after,
 
   .topbar .brand span {
     display: none;
+  }
+  .topbar .brand {
+    width: var(--topbar-control-size);
+    height: var(--topbar-control-size);
+    justify-content: center;
   }
 
   .topbar .btn.ghost.sm span:not(.ic),
@@ -1520,8 +1543,13 @@ details.panel[open] > summary.panel-h::after,
     min-width: 44px;
   }
   .workspace-picker select {
-    min-height: 44px;
+    min-height: var(--topbar-control-size);
     font-size: var(--fs-2xl);
+  }
+}
+@media (min-width: 761px) and (any-pointer: coarse) {
+  :root {
+    --topbar-control-size: 44px;
   }
 }
 #root {

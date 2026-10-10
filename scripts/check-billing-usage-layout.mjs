@@ -108,6 +108,7 @@ function createFixture() {
     if (path === "/auth/session")
       return { authenticated: true, user: { id: ownerId, name: "Local billing fixture owner" } };
     if (path === "/api/v1/workspace-invitation-requests") return { items: [], hasMore: false };
+    if (path === "/api/v1/recurring-expense-notifications") return { items: [], hasMore: false };
     if (path === "/api/v1/workspaces") return { items: [personal, shared] };
     if (path === "/api/v1/projects") return { items: [], nextCursor: null };
     if (path === "/api/v1/me")
@@ -193,6 +194,8 @@ function createFixture() {
           assert(allowedQuery.includes(key), `Unexpected query field: ${record.path}/${key}`);
         if (record.path === "/billing/plan")
           assert.equal(record.workspace, null, "Billing read inherited the selected workspace");
+        else if (record.path === "/api/v1/recurring-expense-notifications")
+          assert.equal(record.workspace, null, "Account inbox inherited the selected workspace");
         else if (record.workspace)
           assert([ownerId, sharedId].includes(record.workspace), "Unexpected selected workspace");
         const payload = payloadFor(record.path);

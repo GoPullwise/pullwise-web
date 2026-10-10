@@ -363,13 +363,18 @@
   }
 
   .app-frame[data-console="true"] .preferences {
-    top: calc(8px + env(safe-area-inset-top));
-    right: calc(68px + env(safe-area-inset-right));
+    position: relative;
+    top: auto;
+    right: auto;
     bottom: auto;
+    width: var(--topbar-control-size);
+    height: var(--topbar-control-size);
   }
 
   .app-frame[data-console="true"] .preferences-toggle {
-    width: 44px;
+    width: var(--topbar-control-size);
+    height: var(--topbar-control-size);
+    min-height: var(--topbar-control-size);
     padding: 8px;
   }
 
@@ -399,7 +404,7 @@
 
   .app-frame[data-console="true"] .preferences-actions {
     top: 54px;
-    right: -52px;
+    right: calc(-8px - var(--topbar-control-size));
     bottom: auto;
     max-height: calc(100vh - var(--mobile-nav-height) - 86px - env(safe-area-inset-top));
     max-height: calc(100dvh - var(--mobile-nav-height) - 86px - env(safe-area-inset-top));

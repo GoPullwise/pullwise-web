@@ -934,6 +934,86 @@ it("collapses phone display controls and keeps nested menu dismissal separate", 
   expect(disclosure).toHaveAttribute("aria-expanded", "false");
 });
 
+it("owns phone display controls in the real header and closes them across session and ledger interim views", async () => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query) => ({
+      matches: query === "(max-width: 760px)",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  );
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers([personal]);
+  harness.enabled = true;
+  harness.apis.alice = {
+    projects: vi.fn().mockResolvedValue({ items: [{ name: "Current ledger data" }] }),
+  };
+  const session = pending();
+  const initialLedger = pending();
+  const replacementLedger = pending();
+  const unchangedLedger = pending();
+  pullwiseApi.auth.getSession.mockReturnValueOnce(session.promise);
+  ledgerApi.workspaces
+    .mockReturnValueOnce(initialLedger.promise)
+    .mockReturnValueOnce(replacementLedger.promise)
+    .mockReturnValueOnce(unchangedLedger.promise);
+  const user = userEvent.setup();
+  render(<App />);
+  expect(screen.getByRole("heading", { name: "Checking session" })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Display options", hidden: true })
+  ).not.toBeInTheDocument();
+  await act(async () => session.resolve({ authenticated: true, user: { id: "alice" } }));
+  expect(screen.getByRole("heading", { name: "Loading ledger" })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Display options", hidden: true })
+  ).not.toBeInTheDocument();
+  await act(async () => initialLedger.resolve({ items: [personal] }));
+  await screen.findByText("Current ledger data");
+  const disclosure = await screen.findByRole("button", { name: "Display options" });
+  expect(disclosure.closest(".topbar-actions")).not.toBeNull();
+  expect(screen.getAllByRole("button", { name: "Display options" })).toHaveLength(1);
+  await user.click(disclosure);
+  await user.click(screen.getByRole("button", { name: "Select language" }));
+  expect(screen.getByRole("menu")).toBeVisible();
+
+  const notify = harness.captures.find((item) => item.id === "alice").notify;
+  await act(async () =>
+    notify(
+      Object.assign(new Error("Refresh current membership"), {
+        status: 403,
+        code: "WORKSPACE_MEMBERSHIP_CHANGED",
+      })
+    )
+  );
+  expect(screen.getByRole("heading", { name: "Loading ledger" })).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Display options", hidden: true })
+  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("menu", { hidden: true })).not.toBeInTheDocument();
+  await act(async () => replacementLedger.resolve({ items: [personal] }));
+  await screen.findByText("Current ledger data");
+  const replacementDisclosure = await screen.findByRole("button", { name: "Display options" });
+  expect(replacementDisclosure).toHaveAttribute("aria-expanded", "false");
+  expect(replacementDisclosure.closest(".topbar-actions")).not.toBeNull();
+  expect(screen.queryByRole("button", { name: "Select language" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("menu", { hidden: true })).not.toBeInTheDocument();
+
+  const draft = screen.getByLabelText("Unsaved scope draft");
+  fireEvent.change(draft, { target: { value: "Keep the current draft and focus" } });
+  draft.focus();
+  act(() => window.dispatchEvent(new Event("focus")));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(3));
+  expect(draft).toHaveFocus();
+  await act(async () => unchangedLedger.resolve({ items: [{ ...personal }] }));
+  expect(screen.getByLabelText("Unsaved scope draft")).toBe(draft);
+  expect(draft).toHaveValue("Keep the current draft and focus");
+  expect(draft).toHaveFocus();
+  expect(replacementDisclosure).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getAllByRole("button", { name: "Display options" })).toHaveLength(1);
+});
+
 it("rechecks a BFCache return through the guarded session and membership lifecycle", async () => {
   window.history.replaceState({}, "", "/members");
   authenticatedLedgers([team], "bob");
