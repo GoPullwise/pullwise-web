@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "Expense pagination Web preview publication only",
+  "homepage": {
+    "url": "https://preview.pull-wise.com/",
+    "status": 200,
+    "bytes": 4732,
+    "robots": "noindex, nofollow",
+    "sha256": "79380340c0de1af9a8e96fc308d874f9b4d8c7ccceb934ad57ea1ea15a3f048b"
+  },
+  "assets": [
+    {
+      "url": "https://preview.pull-wise.com/assets/index-DmPLscTg.js",
+      "status": 200,
+      "bytes": 99870,
+      "robots": null,
+      "sha256": "bf9b0fdfbc86434f166b5f49973e6097e7ef0a545443bff356d3cc3cdb7bb383",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/ledger-DzEK0RnU.js",
+      "status": 200,
+      "bytes": 126671,
+      "robots": null,
+      "sha256": "7ac6e41020dc7fd49be6664ff998310c9a385fb73d1df214484919e8c15d65f5",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/ledger-ZEgsFEJ6.css",
+      "status": 200,
+      "bytes": 17144,
+      "robots": null,
+      "sha256": "2a633780ed3c74a2084f6e479734dad02bfc8e38dbd147a3290ab639bcda6c19",
+      "matchesBuiltBytes": true
+    }
+  ],
+  "homepageRequests": 1,
+  "hashedAssetRequests": 3,
+  "serverDeployments": 0,
+  "remoteD1Operations": 0,
+  "businessAPIRequests": 0,
+  "javascriptExecuted": false,
+  "clientRetries": 0,
+  "realProviderCalls": 0,
+  "webSourceCommit": "c9547ae249dad0c9ea461994fd6fc8ffcc7aa845",
+  "webVersion": "0a0f2107-fd1b-4616-b98a-20f04aeac4e3",
+  "checks": {
+    "webTests": 1396,
+    "webTestFiles": 69,
+    "newPaginationTests": 38,
+    "chromiumContexts": 8,
+    "chromiumStates": 56,
+    "lint": true,
+    "build": true,
+    "workerConfig": true,
+    "workerDryRun": true,
+    "finalReadOnlyReview": true
+  },
+  "localEvidenceSha256": "363d06c23d857d12c317715de41857c9df5dc527b0d419dc66d74430301e0ca9",
+  "previousRecurringPublicationCompletedFirst": true,
+  "recurringServerVersion": "90489949-62c5-4de8-84ea-92916bbad18b",
+  "serverSchemaVersionFromPriorRelease": 12,
+  "serverDatabaseAndScheduleUnchanged": true,
+  "productionD1PausePreserved": true
+}

@@ -1,5 +1,13 @@
 # Current local acceptance
 
+[Pagination preview publication](expense-pagination-preview-release-2026-10-10.json)
+records the final main source and Web version, one noindex homepage and three
+exact matching assets: entry JavaScript, expense-page JavaScript and expense-page
+CSS. No page JavaScript, business API, provider request or D1 operation is executed
+remotely. The follow-up changes only Web; the previously published recurring
+Server/database/schema/coordinator/hourly schedule and production pause remain.
+The final publication-record commit is documentation-only.
+
 ## Project and Shared Pool expense pagination (2026-10-10)
 
 The recurring release was committed, pushed to both main repositories and
