@@ -1,0 +1,642 @@
+{
+  "date": "2026-10-10",
+  "scope": "Selected-ledger spending overview, precise all-project plus Shared Pool totals per currency, month/custom ranges, compact Shared Pool Reports total and five-control phone navigation.",
+  "result": "Chromium layout suites passed before a formatter-only currency exponent correction; three final-build overview captures passed after correction and full final check/build.",
+  "sourceRevision": "3eb4a9f31f302c2cf1b4ec954cc91c9cd1a6c3b3",
+  "sourceSha256": {
+    "src/screens/ledger-overview.jsx": "a57765c182462a3a8f296c99961d10a67135ce21adfb5cbfe225cf893962842d",
+    "src/screens/ledger-overview.test.jsx": "b50ca0864a1625513cf0f2003fe6c9d012d00ceb794a34ad9743d2be3f4a893c",
+    "src/components/ledger-summary.jsx": "f3950db2dbe0402ddcf871ca589ad64579c8c3940e03bf464daf157c1f06ddb8",
+    "src/lib/ledger-summary.js": "fccfaa0872b4991a269dab4095b47d310b2f7c23db1878b94b64a84d952922bb",
+    "src/lib/ledger-summary.test.js": "9b5e22237dfdd2f31fdae0a940e67a7b2727761055b8346e8ac59d3c5445b0f2",
+    "src/locales/ledger-summary.js": "8b444460afd68425c2f6560567e288969288dbac83e412ea5c2b61761609a50e",
+    "src/components/financial-value.jsx": "86ef72bb701c8c7eb9f798ace4a2c202712cac79e50c315e2f9a6d50c5f48275",
+    "src/screens/ledger.jsx": "f42b55a7ca3da1727eae2666922b348956dddc7fd9a745614239f1b104003a31",
+    "src/screens/ledger-recurring-links.test.jsx": "a9b32bbc94887c5630338cbbbd310efbbe6e3297180b30a2983fc75ea06072eb",
+    "src/screens/ledger.css": "517b07d4c0c4b5efaa1be808a3d9e373e92994d35af2066e64b8eb153b2dba2e",
+    "src/shell.jsx": "5e17328fd66b7bcf16ea423bb15bdf8609e87d5b5ae31bee714813aa4b32535a",
+    "src/App.jsx": "d02df78d0ab69d30f44282e7c25b1f59f53ee763b8137cd18e2b5cd36b360131",
+    "src/lib/navigation.js": "330288dd2b2930ef9cb1630a58b575a43058bebbbd1591e72d487996b52f4eb7",
+    "src/i18n.jsx": "c9e4190d62b93fdb56a6abfbcda9a40bc44e2806e3a6367ec633766a3c22edfc",
+    "styles/base.css": "ba01c9d06087620a505f9f969c8d101d69c87090fbb998599defdb731d73552b",
+    "scripts/check-mobile-layout.mjs": "8f8360bb1137c1fce99d2bb8501563c64f73edfd72af456968bacddeb999cd98",
+    "scripts/check-date-layout.mjs": "912367220bdae4b7b7bedbc116b18cdb9f2beaf4fa89f7a9274ee3c0e3e7d670",
+    "scripts/date-layout-fixtures.mjs": "8199fd2ad8aae4cefcbc0f654e29972081354b0159124682fc70733197a08612"
+  },
+  "builtArtifactSha256": {
+    "dist/index.html": "b79801da3d2b5dee4500b51072c1b77b890cfdf33598265cdf47f15fb39ffcfb",
+    "dist/assets/ledger-overview-BujJU6T8.js": "5057e9fb25355132776315c23dc6e51460f7ad95a48a364d959a1a76c8f8781a",
+    "dist/assets/index-BkKGSkXm.css": "866cfee37c12841d72f2b5546657dfbf978a406456d4a9482bc8ae46f3d22702"
+  },
+  "checks": {
+    "finalFullWebCheck": {
+      "reportedBy": "root",
+      "testFilesPassed": 72,
+      "testsPassed": 1493,
+      "lintPassed": true,
+      "buildPassed": true,
+      "workersConfigurationPassed": true
+    },
+    "exponentCorrectionTargeted": {
+      "testsPassed": 33,
+      "files": [
+        "src/lib/ledger-summary.test.js",
+        "src/screens/ledger-overview.test.jsx"
+      ],
+      "eslintPassed": true,
+      "serverContract": "pullwise_server/cloudflare_ledger_expenses.py EXPONENTS",
+      "zeroDecimals": "BIF CLP DJF GNF ISK JPY KMF KRW PYG RWF UGX UYI VND VUV",
+      "threeDecimals": "BHD IQD JOD KWD LYD OMR TND",
+      "fourDecimals": "CLF UYW",
+      "defaultDecimals": 2,
+      "regressions": [
+        "MGA 12.34",
+        "AFN 12.34",
+        "ALL 12.34",
+        "IRR 12.34",
+        "IQD 1.234",
+        "CLF 0.1234",
+        "UYW 0.1234",
+        "JPY 1,234",
+        "IQD 18,014,398,509,481.983"
+      ]
+    },
+    "chromiumGeometry": {
+      "status": "passed_before_formatter_only_correction",
+      "contexts": 14,
+      "states": 465,
+      "requests": {
+        "total": 1006,
+        "api": 642,
+        "static": 350,
+        "blockedFonts": 14,
+        "writes": 0,
+        "violations": 0,
+        "externalDelivered": 0
+      },
+      "profileResults": [
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-320-en-light",
+            "width": 320,
+            "height": 720,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 59,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 23,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-320-fr-dark",
+            "width": 320,
+            "height": 720,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 67,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 31,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-zh-dark",
+            "width": 390,
+            "height": 844,
+            "lang": "zh",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 67,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 31,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-en-light",
+            "width": 390,
+            "height": 844,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 59,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 23,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-412-en-light",
+            "width": 412,
+            "height": 915,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 59,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 23,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-412-fr-dark",
+            "width": 412,
+            "height": 915,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 67,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 31,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-768-zh-light",
+            "width": 768,
+            "height": 1024,
+            "lang": "zh",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 20,
+          "requests": {
+            "total": 67,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 31,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-1024-fr-dark",
+            "width": 1024,
+            "height": 768,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 20,
+          "requests": {
+            "total": 67,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 31,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "desktop-1440-en-light",
+            "width": 1440,
+            "height": 1000,
+            "lang": "en",
+            "theme": "light",
+            "touch": false
+          },
+          "states": 20,
+          "requests": {
+            "total": 59,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 23,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "mobile-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "short-landscape-640-en-light",
+            "width": 640,
+            "height": 320,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 21,
+          "requests": {
+            "total": 59,
+            "api": 35,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0,
+            "static": 23,
+            "violations": 0
+          },
+          "requestMethods": [
+            "GET (enforced by fixture guard)"
+          ]
+        },
+        {
+          "suite": "date-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "desktop-1440",
+            "width": 1440,
+            "height": 1000,
+            "lang": "en",
+            "touch": false
+          },
+          "states": 81,
+          "requests": {
+            "total": 92,
+            "api": 73,
+            "static": 18,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "requestMethods": [
+            "GET"
+          ]
+        },
+        {
+          "suite": "date-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-1280-zh",
+            "width": 1280,
+            "height": 900,
+            "lang": "zh",
+            "touch": true
+          },
+          "states": 81,
+          "requests": {
+            "total": 100,
+            "api": 73,
+            "static": 26,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "requestMethods": [
+            "GET"
+          ]
+        },
+        {
+          "suite": "date-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-to-320",
+            "width": 390,
+            "narrow": 320,
+            "height": 844,
+            "lang": "en",
+            "touch": true
+          },
+          "states": 48,
+          "requests": {
+            "total": 92,
+            "api": 73,
+            "static": 18,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "requestMethods": [
+            "GET"
+          ]
+        },
+        {
+          "suite": "date-layout",
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-size-412-to-360",
+            "width": 412,
+            "narrow": 360,
+            "height": 844,
+            "lang": "en",
+            "touch": true
+          },
+          "states": 48,
+          "requests": {
+            "total": 92,
+            "api": 73,
+            "static": 18,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "requestMethods": [
+            "GET"
+          ]
+        }
+      ],
+      "buildIndexSha256AtRun": "e02d8ce67f1201cec4dd56bdb9c5b6b3464d51eb0b64908f16cc90b61d29efc4",
+      "helperSha256AtRun": "af674d5a3fcd0fb2adffee6e60466265719ee9203fd0ef0d38d759045cbbb150",
+      "correctionScope": "Only the minor-unit exponent lookup changed from browser Intl metadata to Server contract; validated USD/JPY amounts and layout source remained unchanged. The full geometry suites were not claimed as a post-correction run.",
+      "mobileSuiteLimits": {
+        "maxContexts": 20,
+        "perContextRequestCap": 160,
+        "perContextAPIReadCap": 80
+      },
+      "dateSuitePerContextRequestCap": 100
+    },
+    "finalBuildOverviewCaptures": {
+      "status": "passed",
+      "contexts": 3,
+      "screenshots": 3,
+      "perContextRequestCapIncludingOverrides": 60,
+      "perContextSummaryOverrideCap": 8,
+      "requests": {
+        "total": 82,
+        "api": 24,
+        "static": 55,
+        "blockedFonts": 3,
+        "writes": 0,
+        "violations": 0,
+        "externalDelivered": 0
+      },
+      "profileResults": [
+        {
+          "profile": {
+            "name": "phone-zh-month",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "lang": "zh",
+            "theme": "light",
+            "touch": true,
+            "custom": false
+          },
+          "requests": {
+            "total": 28,
+            "api": 6,
+            "static": 21,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "syntheticSummaryOverrideReads": 0,
+          "beforeScreenshot": {
+            "coarse": true,
+            "touchPoints": 1
+          },
+          "afterScreenshot": {
+            "coarse": true,
+            "touchPoints": 1
+          },
+          "screenshot": "/workspace/work/overview-phone-zh-month.png",
+          "sha256": "24ecc903cdeba855c7f758748b9ef8de8f4877e142bb51a1a332274c1927eb8d"
+        },
+        {
+          "profile": {
+            "name": "desktop-en-custom-mixed",
+            "viewport": {
+              "width": 1440,
+              "height": 1000
+            },
+            "lang": "en",
+            "theme": "dark",
+            "touch": false,
+            "custom": true,
+            "mixed": true
+          },
+          "requests": {
+            "total": 23,
+            "api": 9,
+            "static": 13,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "syntheticSummaryOverrideReads": 5,
+          "beforeScreenshot": {
+            "coarse": false,
+            "touchPoints": 0
+          },
+          "afterScreenshot": {
+            "coarse": false,
+            "touchPoints": 0
+          },
+          "screenshot": "/workspace/work/overview-desktop-en-custom-mixed.png",
+          "sha256": "0a8206b95d52c7f1abcc94c469cc0ea070e3e8a62c9c818f8f7eb2b2611483d4"
+        },
+        {
+          "profile": {
+            "name": "phone-fr-custom-mixed",
+            "viewport": {
+              "width": 320,
+              "height": 844
+            },
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true,
+            "custom": true,
+            "mixed": true
+          },
+          "requests": {
+            "total": 31,
+            "api": 9,
+            "static": 21,
+            "blockedFonts": 1,
+            "violations": 0,
+            "externalDelivered": 0,
+            "writes": 0
+          },
+          "syntheticSummaryOverrideReads": 5,
+          "beforeScreenshot": {
+            "coarse": true,
+            "touchPoints": 1
+          },
+          "afterScreenshot": {
+            "coarse": true,
+            "touchPoints": 1
+          },
+          "screenshot": "/workspace/work/overview-phone-fr-custom-mixed.png",
+          "sha256": "08c9b754dee9be677fab985428965250b131449f41d49e3fbb68b3a12e38f212"
+        }
+      ],
+      "validated": [
+        "September month selection",
+        "September 1 through September 30 inclusive custom period",
+        "Document has no horizontal overflow",
+        "Native coarse-pointer and positive maxTouchPoints before and after both phone captures",
+        "MGA 12.34, IQD 1.234 and CLF 0.1234 rendered by final build",
+        "Large USD amount remains exact above Number safe-integer range"
+      ],
+      "fixtureNote": "Six-currency mixed data and very large USD total are synthetic visual-only local summary responses. Overrides enforce loopback origin, GET, selected ledger header and from/to-only parameters. Every other request uses the bounded core fixture."
+    },
+    "firefox": {
+      "status": "host_launch_stopped",
+      "completedContexts": 0,
+      "completedStates": 0,
+      "exitCode": 143,
+      "reason": "Known host uid_map EROFS and SWGL framebuffer startup failure; pending own launch was terminated without retrying the full acceptance suite."
+    },
+    "webkit": {
+      "status": "not_run_for_this_artifact",
+      "reason": "Initial dependency smoke failed; native_validation restored scratch dependencies and Billing desktop passed separately. WebKit phone reports maxTouchPoints 0 and cannot establish touch acceptance; no assertions were skipped."
+    }
+  },
+  "combinedAcceptedRuns": {
+    "contexts": 17,
+    "geometryStates": 465,
+    "finalBuildScreenshots": 3,
+    "requests": {
+      "total": 1088,
+      "api": 666,
+      "static": 405,
+      "blockedFonts": 17,
+      "writes": 0,
+      "violations": 0,
+      "externalDelivered": 0
+    }
+  },
+  "validatedBehavior": [
+    "Overview uses current browser-local calendar month by default and an explicit chosen-month or inclusive custom-period control.",
+    "Overall totals consume only account, aggregate project and shared rows, count each expense once and keep currencies separate.",
+    "Shared Pool Reports total follows the existing report filters, with its existing Before exclusive end semantics.",
+    "Ordinary expense pages still request ten records; recurring recovery refreshes both records and spending total before releasing its guard.",
+    "Four primary phone tabs plus More occupy one bottom-navigation row with Overview marked current.",
+    "Loading, failed summaries and empty summaries remain distinct; summary errors do not replace valid chart data."
+  ],
+  "limitations": {
+    "syntheticLocalGetFixturesOnly": true,
+    "physicalDevices": false,
+    "physicalKeyboardOrBrowserChromeAcceptance": false,
+    "realProviderCalls": 0,
+    "remoteBusinessRequests": 0,
+    "databaseWrites": 0,
+    "externalDelivered": 0,
+    "firefoxAcceptance": false,
+    "webkitOverviewAcceptance": false
+  },
+  "logs": {
+    "jev-overview-mobile-chromium.log": {
+      "path": "/workspace/work/jev-overview-mobile-chromium.log",
+      "sha256": "d4f783a2672d8aca2b2e2156fae525b0367f02755c2f40a4acdabac9d621fc6b"
+    },
+    "jev-overview-layout-chromium.log": {
+      "path": "/workspace/work/jev-overview-layout-chromium.log",
+      "sha256": "15166254a150daff5f99003fa4db3fb27a28a04b03a5558508177d3cecba8c21"
+    },
+    "jev-overview-screenshots.log": {
+      "path": "/workspace/work/jev-overview-screenshots.log",
+      "sha256": "bc2cf2e1b8933c4ff6eafdc77e3f046d501c09560c6df2e90303e2a5a29267e4"
+    },
+    "jev-overview-layout-firefox.log": {
+      "path": "/workspace/work/jev-overview-layout-firefox.log",
+      "sha256": "8bc9d31cb970c8d73c354ed1af8dac60738cc3f857bc4e5c226fd87a97fd4ae9"
+    }
+  }
+}
