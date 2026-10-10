@@ -1,5 +1,12 @@
 # Current local acceptance
 
+[Recurring preview publication](recurring-expenses-preview-release-2026-10-10.json)
+records both main source commits and deployed versions, matching final built
+homepage/three hashed assets, healthy Server schema v12, unchanged original
+database/coordinator/hourly schedule and production pause. No JavaScript or
+business/provider acceptance is executed remotely. This publication completes
+the recurring release before the pagination follow-up begins.
+
 ## Recorded expenses, recurring categorization and recovery (2026-10-10)
 
 Project and Shared Pool now distinguish Recorded expenses from Recurring plans.
