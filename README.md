@@ -43,13 +43,24 @@ contract changes to detect stale copies.
 
 Default limits are Free **3 projects / 100 expense records**, Pro **20 / 20,000**,
 and Max **100 / 100,000**. Billing renders the Server's configured limits and
-personal-ledger used/remaining counts as accessible charts for every plan.
+personal-ledger Used / Total allowance as exact figures with accessible native
+meters for every plan.
 Project/shared-pool expenses and generated recurring occurrences use the owner's
 record allowance. Expense capacity counts current undeleted entries in shared
 pool and projects that have not been removed, including archived projects.
 Removing an expense or its project frees expense slots. Project capacity still
 counts archived and removed projects.
 Billing does not switch to a joined team's allowance with the ledger picker.
+
+Spending overview displays each currency's total beside its project / Shared
+Pool composition for a selected month or inclusive date range. Money stays
+exact, currencies stay separate, and the chart's readable legend shows both
+amounts and shares. Billing uses the same flat visual hierarchy for Projects,
+Expense records and paid Jev, with larger Used values and quieter allowances.
+The presentation references Vercel Usage, Linear Insights and shadcn / Tremor
+chart patterns while retaining Pullwise's theme and existing data contracts.
+Run `npm run test:overview-layout -- --browser=chromium` after building for
+bounded multi-currency, long-value, zero/error and six-language layout checks.
 
 Global Settings has an **automatically remove oldest expense at capacity** switch
 for every plan, default Off, without additional charges. Off blocks full-capacity

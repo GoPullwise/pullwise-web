@@ -1,5 +1,21 @@
 # Pullwise Web
 
+## Spending overview and Billing presentation (2026-10-10)
+
+The user requests modern, clear visual hierarchy in these two Web views and
+asks to reference comparable products and frontend components. Keep the flat
+Pullwise theme. Overview pairs each currency's exact total with a horizontal
+project/Shared Pool composition and a readable, linked legend. Calculate shares
+only within that currency with BigInt before a bounded visual ratio. Never add
+minimum fill, cross-currency conversion, or a percentage for a zero total.
+Keep tiny nonzero shares honest and invalid reports unavailable.
+Billing groups Projects, Expense records and paid Jev in aligned, responsive
+flat modules, with Used dominant, Total allowance secondary and native meters.
+Preserve existing micro-USD precision, personal scope, manual refresh and payment
+logic. Run the bounded overview, Billing and existing mobile/date layout checks.
+The user authorizes main push and Cloudflare deployment through the existing
+Web preview workflow; Server and production remain outside this visual change.
+
 ## GitHub popup close recovery (2026-10-10)
 
 After publishing the Jev/overview batch, the user requests fixing Connect GitHub

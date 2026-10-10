@@ -1,5 +1,45 @@
 # Current local acceptance
 
+## Spending overview and Billing redesign (2026-10-10)
+
+The Web-only redesign uses per-currency totals beside a horizontal project /
+Shared Pool composition, with exact amounts and a visible, accessible legend.
+BigInt owns all monetary arithmetic; only bounded ratios reach CSS. True zero
+totals have an empty track and no invented percentage. Tiny nonzero shares use
+honest bounds. Invalid reports remain unavailable. The period toolbar is compact
+and responds to the available container, with existing inclusive-date semantics.
+Shared Pool Reports retains its compact total treatment.
+
+Billing aligns Projects, Expense records and paid Jev in flat modules. Used is
+dominant, Total allowance is secondary, and native meters retain their existing
+ratio and exact accessible values. Personal-ledger scope, paid/free rules,
+micro-USD precision, UTC month, refresh, payment and API behavior are unchanged.
+
+The implementation references the actual public documentation and component
+examples for [Vercel Usage](https://vercel.com/docs/pricing/manage-and-optimize-usage),
+[Linear Insights](https://linear.app/docs/insights),
+[shadcn Chart](https://ui.shadcn.com/docs/components/chart),
+[Tremor BarList](https://www.tremor.so/docs/visualizations/bar-list) and
+[CategoryBar](https://www.tremor.so/docs/visualizations/category-bar).
+It uses Pullwise's existing flat theme and no additional chart dependencies.
+
+ESLint, the existing 72-file / 1,536-test suite, build and offline Worker config
+pass. Three new composition tests pass; final targeted Billing / Overview /
+composition tests pass 119 tests. Chromium layout checks cover Overview's six
+locales, multi-currency/long-value/zero/error states, Billing exact/stress values,
+phone/tablet flows and native date fields. An independent review found a filter
+selector specificity issue, which was fixed before the Overview/mobile/date
+checks. The new Overview checker is included in CI. Browser evidence uses
+bounded, intercepted, GET-only synthetic fixtures; it does not establish real
+OAuth, payment, remote data or physical iOS/Android acceptance. WebKit and Firefox
+binaries are unavailable in this environment; none were installed.
+
+[Local evidence](overview-billing-design-local-2026-10-10.json) records 48 Chromium
+contexts / 586 settled states, including the final focused compact Shared Pool
+readback. It distinguishes the build used by each suite. Server, production and
+existing database state remain unchanged. The preview publication receipt will
+record the matching runtime source and exact static asset verification.
+
 [Final console preview publication](github-console-ui-preview-release-2026-10-10.json)
 records runtime main commit `1e395e90a311997ebdbd98719239d4405c735dcf`
 and Web version `f8e173e9-c8ba-4676-b15c-0b66fe68934a`, confirmed 100% active.

@@ -441,14 +441,17 @@ function BillingUsageMeter({ used, limit, titleId, usedLabel, totalLabel }) {
 function BillingJevUsage({ usage, lang }) {
   const metric = jevUsageMetric(usage);
   return (
-    <section className="panel" aria-labelledby="billing-jev-usage-title">
-      <div className="panel-h">
+    <section className="panel billing-jev-section" aria-labelledby="billing-jev-usage-title">
+      <div className="panel-h billing-usage-heading">
         <h2 id="billing-jev-usage-title">{usageText("jevTitle")}</h2>
       </div>
-      {metric && <p className="muted">{usageText("jevMonth")}: {metric.month}</p>}
+      {metric && <p className="muted billing-usage-meta">{usageText("jevMonth")}: <time>{metric.month}</time></p>}
       <div className="billing-usage-grid">
         <article className="billing-usage-row" aria-labelledby="billing-jev-allowance-title">
-          <h3 id="billing-jev-allowance-title">{usageText("jevAllowance")}</h3>
+          <div className="billing-usage-label">
+            <I.Activity size={18} aria-hidden="true" />
+            <h3 id="billing-jev-allowance-title">{usageText("jevAllowance")}</h3>
+          </div>
           {metric ? (
             <>
               <dl className="billing-usage-values">
@@ -472,7 +475,7 @@ function BillingJevUsage({ usage, lang }) {
           ) : <p className="muted">{usageText("unavailable")}</p>}
         </article>
       </div>
-      <p className="muted">{usageText("jevPolicy")}</p>
+      <p className="muted billing-usage-policy">{usageText("jevPolicy")}</p>
     </section>
   );
 }
@@ -480,14 +483,14 @@ function BillingJevUsage({ usage, lang }) {
 function BillingUsage({ usage, lang, busy, onRefresh }) {
   const number = (value) => new Intl.NumberFormat(lang).format(value);
   return (
-    <section className="panel" aria-labelledby="billing-usage-title">
+    <section className="panel billing-ledger-section" aria-labelledby="billing-usage-title">
       <div className="panel-h billing-usage-heading">
         <h2 id="billing-usage-title">{usageText("title")}</h2>
         <button className="btn sm" type="button" disabled={busy} onClick={onRefresh}>
           <I.Refresh size={14} /> {usageText("refresh")}
         </button>
       </div>
-      <p className="muted">{usageText("scope")}</p>
+      <p className="muted billing-usage-meta">{usageText("scope")}</p>
       <div className="billing-usage-grid">
         {["projects", "expenseRecords"].map((key) => {
           const metric = usageMetric(usage, key);
@@ -495,7 +498,10 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
           const titleId = `billing-usage-${key}`;
           return (
             <article className="billing-usage-row" key={key} aria-labelledby={titleId}>
-              <h3 id={titleId}>{label}</h3>
+              <div className="billing-usage-label">
+                {key === "projects" ? <I.Folder size={18} aria-hidden="true" /> : <I.FileCode size={18} aria-hidden="true" />}
+                <h3 id={titleId}>{label}</h3>
+              </div>
               {metric ? (
                 <>
                   <dl className="billing-usage-values">
@@ -521,14 +527,14 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
           );
         })}
       </div>
-      <p className="muted">{usageText("retention")}</p>
+      <p className="muted billing-usage-policy">{usageText("retention")}</p>
     </section>
   );
 }
 
 function BillingSkeleton() {
   return (
-    <div className="set-body billing-skeleton" aria-busy="true">
+    <div className="set-body billing-body billing-skeleton" aria-busy="true">
       <div className="panel">
         <div className="billing-summary-main">
           <SkeletonLine className="sk-square sk-size-32" />
@@ -544,7 +550,7 @@ function BillingSkeleton() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel billing-ledger-section">
         <SkeletonLine className="sk-line sk-w-32 sk-h-16" />
         <div className="billing-usage-grid">
           {["projects", "expenses"].map((key) => (
@@ -952,7 +958,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
               ) : error && !plan ? (
                 <BillingLoadError error={error} onRetry={loadBillingPlan} />
               ) : (
-                <div className="set-body">
+                <div className="set-body billing-body">
                   <section className="panel">
                     <div className="panel-h">
                       <I.Package size={20} />
@@ -1053,15 +1059,17 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                     </div>
                   </section>
 
-                  <BillingUsage
-                    usage={plan?.ledgerUsage}
-                    lang={lang}
-                    busy={loading || writing}
-                    onRefresh={loadBillingPlan}
-                  />
-                  {["pro", "max"].includes(account.plan) && (
-                    <BillingJevUsage usage={plan?.ledgerUsage} lang={lang} />
-                  )}
+                  <div className="billing-usage-layout">
+                    <BillingUsage
+                      usage={plan?.ledgerUsage}
+                      lang={lang}
+                      busy={loading || writing}
+                      onRefresh={loadBillingPlan}
+                    />
+                    {["pro", "max"].includes(account.plan) && (
+                      <BillingJevUsage usage={plan?.ledgerUsage} lang={lang} />
+                    )}
+                  </div>
 
                   {(paymentPending ||
                     new URLSearchParams(window.location.search).get("billing") === "success") && (

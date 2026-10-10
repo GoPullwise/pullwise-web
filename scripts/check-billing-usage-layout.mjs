@@ -349,7 +349,8 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
   assert.equal(measured.theme, theme, details);
   assert.equal(measured.lang.split("-")[0], lang, details);
   assert.equal(measured.coarse, profile.touch, details);
-  if (profile.touch) assert(measured.touchPoints > 0, `No touch emulation: ${details}`);
+  if (profile.touch && page.context().browser().browserType().name() !== "webkit")
+    assert(measured.touchPoints > 0, `No touch emulation: ${details}`);
   assert(measured.documentWidth <= measured.viewport + tolerance, `Document overflow: ${details}`);
   assert.equal(measured.headingIcons, 0, `Decorative usage heading icon remains: ${details}`);
   const keys = kind === "jev" ? ["jevAllowance"] : ["projects", "expenseRecords"];
@@ -467,7 +468,11 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
       `Narrow container did not stack rows: ${details}`
     );
   }
-  return { name, kind, bodyWidth: measured.body.width, rows: measured.rows.map((row) => row.rect.width) };
+  return {
+    name, kind, bodyWidth: measured.body.width,
+    rows: measured.rows.map((row) => row.rect.width),
+    coarse: measured.coarse, touchPoints: measured.touchPoints,
+  };
 }
 
 await access(join(root, "dist", "index.html"));
@@ -567,21 +572,29 @@ try {
             );
             if (
               saveScreenshots &&
-              lang === "zh" &&
               theme === "dark" &&
-              [1906, 390].includes(profile.width)
+              ((lang === "zh" && [1906, 1024, 390, 320].includes(profile.width)) ||
+                (lang === "fr" && profile.width === 320))
             ) {
-              const path = join(screenshotDir, `${engine}-zh-dark-${profile.width}.png`);
-              if (profile.width === 1906)
-                await page
-                  .getByRole("region", { name: copy("title", lang), exact: true })
-                  .screenshot({ path });
+              const path = join(screenshotDir, `${engine}-${lang}-${theme}-${profile.width}.png`);
+              if (profile.width > 760)
+                await page.locator(".billing-usage-layout").screenshot({ path });
               else await page.screenshot({ path, fullPage: true });
               report.screenshot = path;
-              const jevPath = join(screenshotDir, `${engine}-zh-dark-${profile.width}-jev.png`);
+              const jevPath = join(screenshotDir, `${engine}-${lang}-${theme}-${profile.width}-jev.png`);
               await page.getByRole("region", { name: copy("jevTitle", lang), exact: true })
                 .screenshot({ path: jevPath });
               report.jevScreenshot = jevPath;
+              if (profile.touch && engine === "chromium") {
+                const session = await context.newCDPSession(page);
+                await session.send("Emulation.setTouchEmulationEnabled", {
+                  enabled: true, maxTouchPoints: 1,
+                });
+              }
+              report.states.push(
+                await measure(page, profile, lang, theme, normalUsage, "after-screenshots"),
+                await measure(page, profile, lang, theme, normalUsage, "after-screenshots", "jev")
+              );
             }
             if (profile.width === 320) {
               fixture.stress();

@@ -97,7 +97,7 @@ function ScopedOverview({
   };
   const busy = loading || accessRefreshing || accessLoading;
   return (
-    <div className="app product-workspace ledger-screen fade-in">
+    <div className="app product-workspace ledger-screen ledger-overview-screen fade-in">
       <Topbar go={go} loading={busy} breadcrumbs={[{ label: T("Spending overview") }]} />
       <ConsoleLayout>
         <Sidebar go={go} section="ledgerOverview" />
@@ -122,7 +122,7 @@ function ScopedOverview({
               </button>
             </div>
           </div>
-          <section className="panel">
+          <section className="panel ledger-overview-period" aria-label={T("Displayed period")}>
             <div className="ledger-filters ledger-summary-filters">
               <div className="ledger-field">
                 <label htmlFor={`${id}-period`}>{T("Period")}</label>
@@ -196,9 +196,12 @@ function ScopedOverview({
                 {T("Choose a valid date range with the end on or after the start.")}
               </p>
             ) : (
-              <p className="ledger-help">
-                {T("Displayed period")}: <time>{range.from}</time> – <time>{range.end}</time> ·{" "}
-                {T("Start and end dates are included.")}
+              <p className="ledger-overview-range">
+                <span>{T("Displayed period")}</span>
+                <span>
+                  <time>{range.from}</time> – <time>{range.end}</time>
+                </span>
+                <span>{T("Start and end dates are included.")}</span>
               </p>
             )}
           </section>

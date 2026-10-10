@@ -1,5 +1,21 @@
 const ROWS = [
   [
+    "Expense composition",
+    "支出构成",
+    "支出の内訳",
+    "지출 구성",
+    "Répartition des dépenses",
+    "Distribución de gastos",
+  ],
+  [
+    "Share of this currency's total",
+    "占该币种支出比例",
+    "この通貨の合計に占める割合",
+    "해당 통화의 총지출 대비 비율",
+    "Part du total dans cette devise",
+    "Proporción del total en esta moneda",
+  ],
+  [
     "Spending overview",
     "支出总览",
     "支出の概要",

@@ -1,4 +1,5 @@
-import { T } from "../i18n.jsx";
+import { useId } from "react";
+import { T, useLang } from "../i18n.jsx";
 import { formatLedgerTotal, summaryCurrencies } from "../lib/ledger-summary.js";
 import { FinancialValue } from "./financial-value.jsx";
 
@@ -11,11 +12,90 @@ function SummaryValue({ currency, amount }) {
   );
 }
 
+function CurrencySummary({ row, sharedOnly, lang }) {
+  const id = useId();
+  // Amounts stay exact. Only a bounded visual share leaves BigInt, and zero
+  // expenses have no defined composition (rather than an invented 100%).
+  const ratio = (amount) =>
+    row.account === 0n ? 0 : Number((amount * 10000n) / row.account) / 10000;
+  const percent = new Intl.NumberFormat(lang, { style: "percent", maximumFractionDigits: 1 });
+  const share = (amount) => {
+    if (row.account === 0n) return "—";
+    if (amount > 0n && amount * 1000n < row.account) return `<${percent.format(0.001)}`;
+    if (amount < row.account && amount * 1000n > row.account * 999n)
+      return `>${percent.format(0.999)}`;
+    return percent.format(ratio(amount));
+  };
+  return (
+    <article
+      className="ledger-summary-currency"
+      data-currency={row.currency}
+      aria-label={row.currency}
+    >
+      <dl className="ledger-summary-primary">
+        <div>
+          <dt>{T(sharedOnly ? "Shared pool" : "All expenses")}</dt>
+          <dd>
+            <SummaryValue currency={row.currency} amount={sharedOnly ? row.shared : row.account} />
+          </dd>
+        </div>
+      </dl>
+      {!sharedOnly && (
+        <div className="ledger-summary-composition">
+          <div className="ledger-summary-composition-h">
+            <h3>{T("Expense composition")}</h3>
+            <span>{T("Share of this currency's total")}</span>
+          </div>
+          <div
+            className="ledger-summary-track"
+            role="img"
+            aria-label={`${T("Expense composition")} · ${row.currency}`}
+            aria-describedby={`${id}-breakdown`}
+            data-empty={row.account === 0n}
+            data-mixed={row.project > 0n && row.shared > 0n}
+          >
+            <span
+              className="ledger-summary-segment"
+              data-target="project"
+              aria-hidden="true"
+              style={{ width: `${ratio(row.project) * 100}%` }}
+            />
+            <span
+              className="ledger-summary-segment"
+              data-target="shared"
+              aria-hidden="true"
+              style={{ width: `${row.account === 0n ? 0 : (1 - ratio(row.project)) * 100}%` }}
+            />
+          </div>
+          <dl className="ledger-summary-breakdown" id={`${id}-breakdown`}>
+            {[
+              ["project", "All projects"],
+              ["shared", "Shared pool"],
+            ].map(([target, label]) => (
+              <div key={target} data-target={target}>
+                <dt>
+                  <span className="ledger-summary-key" aria-hidden="true" />
+                  {T(label)}
+                </dt>
+                <dd>
+                  <SummaryValue currency={row.currency} amount={row[target]} />
+                  <span className="ledger-summary-share">{share(row[target])}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </article>
+  );
+}
+
 export function LedgerSummary({ report, error = false, sharedOnly = false }) {
+  const lang = useLang();
   const rows = error ? null : summaryCurrencies(report);
   return (
     <section
-      className="panel ledger-summary"
+      className={`panel ledger-summary${sharedOnly ? " ledger-summary-shared" : ""}`}
       aria-label={T(sharedOnly ? "Shared pool total" : "Expense totals")}
     >
       <div className="panel-h">
@@ -30,37 +110,7 @@ export function LedgerSummary({ report, error = false, sharedOnly = false }) {
       ) : (
         <div className="ledger-summary-currencies">
           {rows.map((row) => (
-            <dl className="ledger-summary-currency" key={row.currency} data-currency={row.currency}>
-              {sharedOnly ? (
-                <div>
-                  <dt>{T("Shared pool", "公共支出池")}</dt>
-                  <dd>
-                    <SummaryValue currency={row.currency} amount={row.shared} />
-                  </dd>
-                </div>
-              ) : (
-                <>
-                  <div className="ledger-summary-primary">
-                    <dt>{T("All expenses")}</dt>
-                    <dd>
-                      <SummaryValue currency={row.currency} amount={row.account} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{T("All projects")}</dt>
-                    <dd>
-                      <SummaryValue currency={row.currency} amount={row.project} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{T("Shared pool", "公共支出池")}</dt>
-                    <dd>
-                      <SummaryValue currency={row.currency} amount={row.shared} />
-                    </dd>
-                  </div>
-                </>
-              )}
-            </dl>
+            <CurrencySummary key={row.currency} row={row} sharedOnly={sharedOnly} lang={lang} />
           ))}
         </div>
       )}

@@ -1,0 +1,196 @@
+{
+  "status": "passed",
+  "engine": "Chromium 151.0.7922.173",
+  "preCommitBase": "f56cdc02b6754ad2586c043d4ea51d4ff7ce3e16",
+  "scope": "Loopback-only, bounded synthetic GET fixtures; no Server API delivery, business writes, polling or browser installation.",
+  "buildBoundaries": {
+    "billing": "Run on first completed local build before Overview filter specificity/Billing loading-skeleton changes. Loaded Billing CSS/component were unchanged by the later preview-env build; do not report Billing suite as executed after those changes.",
+    "overviewMobileDate": "Executed after Overview filter specificity/Billing loading-skeleton changes, using final preview-env build. Latest SharedOnly compact financial-size restoration had not been rebuilt during these suites.",
+    "compactSharedOnly": "One focused 390px zh/dark Shared Reports readback executed after final preview build with ledger-C41rp_Pv.css. Exact USD 12.00, computed 18px inline value, no composition graphic, no document/value overflow, coarse pointer and maxTouchPoints=1 all passed. Full suites were not repeated after this scope-only restoration."
+  },
+  "artifactBeforeCompactFix": {
+    "indexSha256": "19d1c19b442ee4241102ca9ab34cefb0987810b14c6cb22e3edecd4e16ff6c95"
+  },
+  "touchLimitations": [
+    "Chromium contexts use genuine Playwright hasTouch/touchscreen support: pointer coarse and maxTouchPoints=1 are recorded; desktop reports fine pointer and maxTouchPoints=0.",
+    "Overview and Billing screenshot cases restore Chromium touch events and re-check pointer/maxTouchPoints after capture.",
+    "No physical iOS/Android acceptance, native OS keyboard, OAuth/provider or remote financial-data acceptance is claimed.",
+    "WebKit/Firefox binaries are unavailable; no additional browser installation was performed. Only Chromium engine was executed."
+  ],
+  "suites": {
+    "overview": {
+      "status": "passed",
+      "command": "npm run test:overview-layout -- --browser=chromium --screenshots",
+      "contexts": 9,
+      "states": 38,
+      "GETRequests": 246,
+      "APIReads": 72,
+      "perContextRequests": {
+        "min": 22,
+        "max": 30
+      },
+      "perContextAPIReads": {
+        "min": 8,
+        "max": 8
+      },
+      "writes": 0,
+      "externalDelivered": 0,
+      "blockedFontRequests": 9,
+      "summaryReads": 36,
+      "requestCap": 100,
+      "APIReadCap": 16,
+      "cases": [
+        "CNY/USD independent 25/75 and 70/30 composition; exact aggregate totals ignore per-project detail",
+        "72-digit minor-unit BigInt values retained exactly, selectable and contained at 320px",
+        "Zero totals show empty segments and undefined-percentage dash",
+        "Synthetic 503 renders honest error without amounts or chart",
+        "Currency-labelled image role links visible breakdown, proportions match geometry, visible segments fill track including measured divider gap",
+        "Six locales at 320px; desktop/tablet/390px; dark/light"
+      ]
+    },
+    "billing": {
+      "status": "passed",
+      "command": "npm run test:billing-layout -- --browser=chromium --screenshots",
+      "contexts": 24,
+      "states": 82,
+      "GETRequests": 556,
+      "APIReads": 111,
+      "perContextRequests": {
+        "min": 17,
+        "max": 26
+      },
+      "perContextAPIReads": {
+        "min": 4,
+        "max": 7
+      },
+      "writes": 0,
+      "externalDelivered": 0,
+      "requestCap": 64,
+      "APIReadCap": 8,
+      "cases": [
+        "Projects/Expense records/Jev exact Used and Total, native meter semantics",
+        "320px all six locales, light/dark and MAX_SAFE_INTEGER plus exact 6-digit microUSD",
+        "Another selected workspace does not alter personal Billing usage",
+        "Refresh only on explicit intent; no automatic reads",
+        "Wide three-module alignment and narrow stacked layouts inspected"
+      ]
+    },
+    "mobile": {
+      "status": "passed",
+      "command": "npm run test:mobile-layout -- --browser=chromium",
+      "contexts": 10,
+      "states": 207,
+      "GETRequests": 630,
+      "APIReads": 350,
+      "perContextRequests": {
+        "min": 59,
+        "max": 67
+      },
+      "perContextAPIReads": {
+        "min": 35,
+        "max": 35
+      },
+      "writes": 0,
+      "externalDelivered": 0,
+      "blockedFontRequests": 10,
+      "requestCap": 160,
+      "APIReadCap": 80
+    },
+    "date": {
+      "status": "passed",
+      "command": "npm run test:layout -- --browser=chromium",
+      "contexts": 4,
+      "states": 258,
+      "GETRequests": 376,
+      "APIReads": 292,
+      "perContextRequests": {
+        "min": 92,
+        "max": 100
+      },
+      "perContextAPIReads": {
+        "min": 73,
+        "max": 73
+      },
+      "writes": 0,
+      "externalDelivered": 0,
+      "blockedFontRequests": 4,
+      "requestCap": 100
+    },
+    "sharedCompactFinal": {
+      "status": "passed",
+      "engine": "chromium",
+      "version": "151.0.7922.173",
+      "contexts": 1,
+      "states": 1,
+      "scope": "One local GET-only Shared Reports readback after compact-only CSS restoration; no remote API or business writes.",
+      "requestCap": 40,
+      "APIReadCap": 20,
+      "GETRequests": 36,
+      "APIReads": 11,
+      "guards": {
+        "total": 36,
+        "api": 11,
+        "blockedFonts": 1,
+        "writes": 0,
+        "externalDelivered": 0
+      },
+      "measured": {
+        "text": "USD 12.00",
+        "valueFont": 18,
+        "display": "inline",
+        "valueLeft": 20,
+        "valueRight": 102.25,
+        "sectionLeft": 20,
+        "sectionRight": 370,
+        "viewport": 390,
+        "documentWidth": 390,
+        "compositionCount": 0,
+        "coarse": true,
+        "touchPoints": 1
+      }
+    }
+  },
+  "requestAccounting": "GETRequests counts intercepted requests, including explicitly blocked external font GETs. APIReads were fulfilled by synthetic local fixtures; business API delivery and writes were zero.",
+  "finalArtifact": {
+    "indexSha256": "b0348c6b147885ea42885e4e760a54e89a3ee7508642bab7338408d16ba82d89"
+  },
+  "totals": {
+    "contexts": 48,
+    "states": 586,
+    "GETRequests": 1844,
+    "APIReads": 836,
+    "writes": 0,
+    "externalDelivered": 0
+  },
+  "references": [
+    "https://vercel.com/docs/pricing/manage-and-optimize-usage",
+    "https://linear.app/docs/insights",
+    "https://ui.shadcn.com/docs/components/chart",
+    "https://www.tremor.so/docs/visualizations/bar-list",
+    "https://www.tremor.so/docs/visualizations/category-bar"
+  ],
+  "localChecks": {
+    "npmRunCheck": {
+      "passed": true,
+      "existingTestFiles": 72,
+      "existingTests": 1536,
+      "lint": "passed",
+      "build": "passed"
+    },
+    "newCompositionTests": {
+      "passed": true,
+      "testFiles": 1,
+      "tests": 3
+    },
+    "finalTargetedBillingOverviewComposition": {
+      "passed": true,
+      "testFiles": 3,
+      "tests": 119
+    },
+    "offlineWorkerConfiguration": "passed",
+    "finalPreviewBuild": "passed",
+    "previewDryRun": "passed",
+    "independentReview": "passed after correcting filter selector specificity",
+    "gitDiffCheck": "passed"
+  }
+}

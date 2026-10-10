@@ -1127,7 +1127,8 @@
 }
 
 .billing-summary-main b {
-  font-size: var(--fs-md);
+  font-size: var(--fs-4xl);
+  font-weight: 600;
 }
 
 .billing-summary-main .muted {
@@ -1145,16 +1146,52 @@
   flex: 0 0 auto;
   justify-content: center;
 }
+.billing-body {
+  container: billing-body / inline-size;
+}
+.billing-usage-layout {
+  display: grid;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
+.billing-usage-layout:not(:has(~ :not([hidden], [role="separator"], .muted))) {
+  border-bottom: 0;
+}
+.billing-ledger-section {
+  container: billing-ledger / inline-size;
+}
 .billing-usage-heading {
   flex-wrap: wrap;
+  min-height: 44px;
+  gap: 12px 16px;
 }
 .billing-usage-heading .btn {
   margin-left: auto;
+  min-height: 36px;
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+}
+.billing-usage-meta,
+.billing-usage-policy {
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.billing-usage-meta {
+  max-width: 66ch;
+}
+.billing-usage-meta time {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.billing-usage-policy {
+  max-width: 76ch;
 }
 .billing-usage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px 32px;
   margin-block: 24px;
 }
 .billing-usage-row {
@@ -1162,22 +1199,34 @@
   flex-direction: column;
   gap: 20px;
   min-width: 0;
-  padding: 20px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+}
+.billing-usage-row + .billing-usage-row {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.billing-usage-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.billing-usage-label > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent);
 }
 .billing-usage-row h3 {
   font-size: var(--fs-lg);
   font-weight: 600;
+  line-height: 1.6;
   overflow-wrap: anywhere;
 }
 .billing-usage-values {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
 }
 .billing-usage-values > div {
-  flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
 }
@@ -1189,16 +1238,26 @@
 .billing-usage-values dd {
   display: flex;
   align-items: flex-end;
-  min-block-size: calc(var(--fs-value-primary) * 1.25);
   margin-top: 8px;
   color: var(--text);
   --financial-size: var(--fs-value-primary);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
+.billing-usage-used dd {
+  min-block-size: calc(var(--fs-value-primary) * 1.25);
+}
+.billing-usage-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
 .billing-usage-total dd {
+  margin-top: 0;
   color: var(--text-2);
-  --financial-size: var(--fs-value-row);
+  --financial-size: var(--fs-value-secondary);
 }
 .billing-usage-meter {
   appearance: none;
@@ -1230,7 +1289,45 @@
   background: var(--accent);
 }
 .billing-skeleton .billing-usage-values > div {
-  flex: 1;
+  width: 100%;
+}
+.billing-skeleton .billing-usage-total {
+  display: block;
+}
+@container billing-ledger (min-width: 592px) {
+  .billing-ledger-section .billing-usage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .billing-ledger-section .billing-usage-row + .billing-usage-row {
+    padding-top: 0;
+    padding-left: 32px;
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+}
+@container billing-body (min-width: 1020px) {
+  .billing-usage-layout:has(.billing-jev-section) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 32px;
+  }
+  .billing-usage-layout:has(.billing-jev-section) > .panel {
+    border-bottom: 0;
+  }
+  .billing-usage-layout .billing-jev-section {
+    border-left: 1px solid var(--border);
+    padding-left: 32px;
+  }
+  .billing-usage-layout .billing-usage-meta {
+    min-block-size: 3.4em;
+  }
+  .billing-usage-layout .billing-usage-label {
+    min-block-size: 2.8em;
+  }
+}
+@media (any-pointer: coarse) {
+  .billing-usage-heading .btn {
+    min-height: 44px;
+  }
 }
 .billing-change-modal {
   width: 100%;
