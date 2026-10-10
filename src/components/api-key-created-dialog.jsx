@@ -26,7 +26,14 @@ export function ApiKeyCreatedDialog({
   const close = () => {
     if (!busy) onClose();
   };
-  useModalFocus({ open: true, dialogRef, initialFocusRef: copyRef, onClose: close });
+  useModalFocus({
+    open: true,
+    dialogRef,
+    initialFocusRef: copyRef,
+    backgroundRef,
+    onClose: close,
+    busy,
+  });
 
   useEffect(() => {
     mountedRef.current = true;
@@ -55,16 +62,12 @@ export function ApiKeyCreatedDialog({
   }, [copyState, credential]);
 
   useEffect(() => {
-    const background = backgroundRef?.current;
-    if (!background) return undefined;
-    background.inert = true;
     return () => {
-      background.inert = false;
       queueMicrotask(() => {
         onRestoreFocus?.();
       });
     };
-  }, [backgroundRef, onRestoreFocus]);
+  }, [onRestoreFocus]);
 
   const copy = async () => {
     if (!mountedRef.current || !credential?.token || copyRequestRef.current) return;
@@ -105,6 +108,7 @@ export function ApiKeyCreatedDialog({
         ref={dialogRef}
         className="modal api-key-created-dialog"
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={dialogId + "-title"}
         aria-describedby={dialogId + "-description"}

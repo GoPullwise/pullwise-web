@@ -1,18 +1,19 @@
 .settings-jev-control,
 .settings-retention-control {
-  display: flex;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  min-height: 44px;
+  min-height: 48px;
   min-width: 0;
   width: fit-content;
   max-width: 100%;
+  padding-block: 8px;
   cursor: pointer;
 }
 
 .settings-jev-control input,
 .settings-retention-control input {
-  flex: 0 0 auto;
   width: 20px;
   height: 20px;
   margin: 0;
@@ -26,8 +27,33 @@
   overflow-wrap: anywhere;
 }
 
+.settings-jev-control span,
+.settings-retention-control span {
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 .settings-jev-control-disabled,
 .settings-retention-control-disabled {
   cursor: default;
   opacity: 0.4;
+}
+
+@media (max-width: 760px) {
+  .settings-jev-control,
+  .settings-retention-control {
+    width: 100%;
+    padding-block: 12px;
+  }
+
+  .settings-screen .main > .panel > .panel-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .settings-screen .main > .panel > .btn,
+  .settings-screen .main > .panel > .panel-actions > .btn {
+    width: 100%;
+  }
 }

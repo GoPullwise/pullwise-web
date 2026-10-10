@@ -59,7 +59,7 @@ export function useGitHubRepositoryAccessAutoRefresh(onRefresh) {
         await refreshRef.current();
         clearGitHubRepositoryAccessRefreshNeeded();
       } catch {
-        // Keep the pending flag so the next focus/visibility return can retry.
+        // Keep the pending flag so the next visible return can retry.
       } finally {
         runningRef.current = false;
       }
@@ -71,14 +71,19 @@ export function useGitHubRepositoryAccessAutoRefresh(onRefresh) {
     const handleVisibility = () => {
       if (document.visibilityState !== "hidden") void runRefresh();
     };
+    const handlePageShow = (event) => {
+      if (event.persisted) void runRefresh();
+    };
 
     window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handlePageShow);
     document.addEventListener("visibilitychange", handleVisibility);
     void runRefresh();
 
     return () => {
       disposed = true;
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handlePageShow);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);

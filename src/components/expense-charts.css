@@ -52,7 +52,7 @@
   width: 100%;
   height: 200px;
   overflow: visible;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
 }
 .expense-chart-grid {
   stroke: var(--border);
@@ -88,9 +88,13 @@
 .expense-chart-bar {
   opacity: 0.55;
 }
-.expense-chart-point.selected :is(.expense-chart-marker, .expense-chart-bar),
-.expense-chart-point:hover :is(.expense-chart-marker, .expense-chart-bar) {
+.expense-chart-point.selected :is(.expense-chart-marker, .expense-chart-bar) {
   opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .expense-chart-point:hover :is(.expense-chart-marker, .expense-chart-bar) {
+    opacity: 1;
+  }
 }
 .expense-chart-point:focus-visible .expense-chart-hit {
   stroke: var(--accent);
@@ -135,8 +139,43 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+.expense-chart-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+.expense-chart-stepper > .btn {
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  max-width: 100%;
+  padding: 8px 12px;
+  white-space: normal;
+}
+.expense-chart-stepper > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-3);
+  font: var(--fs-sm)/1.5 var(--font-mono);
+  text-align: center;
+}
 @container (max-width: 440px) {
   .expense-chart-value {
     --financial-size: var(--fs-value-primary-compact);
+  }
+}
+@media (max-width: 760px) {
+  .expense-charts {
+    gap: 32px;
+  }
+  .expense-chart-readout {
+    gap: 8px;
+  }
+  .expense-chart-stepper {
+    margin-bottom: 24px;
   }
 }

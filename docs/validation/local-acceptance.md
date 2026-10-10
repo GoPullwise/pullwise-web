@@ -20,9 +20,10 @@ open the authorized ledger and exact plan, including when the ledger picker need
 an explicit access refresh. Server email/capacity/schema behavior is validated in
 the companion Server record.
 
-The final merged Web `npm run check` passes ESLint, **65 test files / 1,283
+The final merged Web `npm run check` passes ESLint, **68 test files / 1,358
 tests** and the production build. `npm run check:workers` passes its offline
-configuration guard. The complete suite includes concurrent automatic GitHub
+configuration guard. The complete suite includes concurrent phone/Safari/Android
+compatibility and automatic GitHub
 credential renewal, scoped access boundaries, recurring classification/recovery
 and inbox regressions. No git push or deployment is part of this local check.
 
@@ -38,12 +39,67 @@ The 390px case verifies coarse-pointer media, one touch point and a 44px action.
 Browser evidence uses Playwright 1.57.0, local intercepted GET fixtures and a
 100-request cap per context. The separate inbox captures use 40 guarded requests
 plus two locally fulfilled notification reads per context, with no external
-delivery or writes. The evidence was collected before merging the concurrent
-GitHub-renewal main changes; the merged source receives the complete local check
-below. These checks establish browser-engine/emulated layout behavior, not real
+delivery or writes. The original evidence was collected before merging the concurrent
+GitHub-renewal and phone-layout main changes; the merged source receives the complete
+local check above and a separate final Chromium rerun. These checks establish
+browser-engine/emulated layout behavior, not real
 physical-device, provider delivery or live-account acceptance. Logs and screenshots
 remain in ignored workspace scratch files; no screenshots are tracked.
 
+## Mobile Safari, Android Chrome and phone layout (2026-10-10)
+
+The approved phone layout uses a compact topbar with a Display options icon,
+three primary bottom tabs plus a native More selector, larger titles and
+single-column forms and records. iPad and desktop retain the shared sidebar and
+component system. The merged source retains automatic GitHub credential renewal
+and rejects old-account or aborted popup completions before repository sync.
+The original flat theme, six locales, exact financial text,
+workspace isolation, drafts and pending-operation guards remain. Navigation
+reserves its measured height, including the safe area; phone controls are 48px
+and touch-capable tablet controls at least 44px, with 16px text inputs.
+
+Shared modals lock background scrolling and focus, use the visible viewport,
+scroll their body and keep footer actions available. Inert notifications render
+behind modal backdrops. Phone forms no longer have floating display controls
+over their fields. Other fixes cover decimal-comma input without numeric
+rounding, visible chart value navigation, failed clipboard fallback, startup
+loading, language-menu keyboard/focus behavior and BFCache session,
+workspace-permission and inbox return handling. Build targets explicitly retain
+Safari/iOS 16.4+ and Chrome/Edge 111+ syntax support. CI separates unit-test and browser-build
+environment settings and includes the new mobile layout check.
+
+[Local validation](mobile-compatibility-local-2026-10-10.json) records the checks,
+engine versions, fixture bounds and source hashes. The complete unit pipeline
+passes 68 files / 1,343 tests, lint and build, plus the offline Worker guard.
+The new Chromium/WebKit runner passes 20 contexts / 374 states, including narrow
+phones, Android widths, short screens, iPad, desktop, both themes and en/zh/fr.
+It produces 22 captures; representative phone, tablet and desktop captures were
+visually reviewed. Billing passes 24 Chromium contexts /
+36 states across six locales; public-page footer and language controls pass
+14 route/viewport cases with Chromium 151. No business requests or writes are
+delivered remotely; layout checks use bounded loopback GET fixtures. The three
+authorization-renewal cases intercept one simulated renewal POST each, with
+no real provider calls or business writes.
+
+The existing date/pane/financial-presentation suite passes four profiles /
+258 states in each of Chromium and WebKit. Compact headings allow unclipped
+font ascender/descender boxes outside their own line box while retaining inline
+and main bounds and adjacent-content/action separation. Negative controls
+verify rejection of oversized dates and actually clipped headings. One WebKit
+412px resize/cancel run timed out; an isolated 48-state diagnostic and a full
+uninstrumented 258-state rerun both passed without forced clicks or added
+delays. No application defect was reproduced; the original timeout is retained
+with the local diagnostic evidence.
+
+The local browser evidence establishes engine behavior, geometry and simulated
+interaction. Linux WebKit reports zero touch points despite coarse-pointer media;
+the runner records that value without modifying navigator. A reduced viewport
+does not simulate an operating-system keyboard. Physical iPhone/iPad Safari
+and Android Chrome keyboard, browser-chrome/safe-area, date-picker, download,
+OAuth return and background-return acceptance remains outstanding. BFCache
+session checks do not guarantee a repository-metadata reload; the reusable
+repository-access helper has isolated pageshow coverage but is not connected
+to product screens. Publication is recorded separately from local acceptance.
 
 ## Automatic GitHub credential renewal (2026-10-10)
 

@@ -267,7 +267,7 @@ export function ExpenseReviewDialog({
     editRef.current?.controller.abort();
     onClose();
   };
-  useModalFocus({ open, dialogRef, initialFocusRef: closeRef, onClose: close });
+  useModalFocus({ open, dialogRef, initialFocusRef: closeRef, backgroundRef, onClose: close });
 
   useEffect(() => {
     mountedRef.current = true;
@@ -302,15 +302,6 @@ export function ExpenseReviewDialog({
       });
     return () => controller.abort();
   }, [open, api]);
-  useEffect(() => {
-    const background = backgroundRef?.current;
-    if (!background) return undefined;
-    background.inert = open;
-    return () => {
-      background.inert = false;
-    };
-  }, [backgroundRef, open]);
-
   const start = async () => {
     if (
       !open ||
@@ -443,6 +434,7 @@ export function ExpenseReviewDialog({
         ref={dialogRef}
         className="modal expense-review-dialog"
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={`${dialogId}-title`}
         aria-describedby={`${dialogId}-description`}

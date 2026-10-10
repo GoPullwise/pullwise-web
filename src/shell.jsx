@@ -126,6 +126,41 @@ export function Topbar({ go, breadcrumbs, loading = false, navigationDisabled = 
 
 export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled = false }) {
   useLang();
+  const navigationRef = React.useRef(null);
+  const toolsId = React.useId();
+
+  React.useLayoutEffect(() => {
+    const navigation = navigationRef.current;
+    if (!navigation) return undefined;
+    const root = document.documentElement;
+    const previousHeight = root.style.getPropertyValue("--mobile-nav-height");
+    const media = window.matchMedia?.("(max-width: 760px)");
+    const measure = () => {
+      if (media ? media.matches : window.innerWidth <= 760) {
+        const height = Math.ceil(navigation.getBoundingClientRect().height);
+        if (height > 0) {
+          // The safe-area padding is already part of the measured border box.
+          root.style.setProperty("--mobile-nav-height", `${height}px`);
+        }
+      } else if (previousHeight) {
+        root.style.setProperty("--mobile-nav-height", previousHeight);
+      } else {
+        root.style.removeProperty("--mobile-nav-height");
+      }
+    };
+    measure();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(navigation);
+    media?.addEventListener?.("change", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      media?.removeEventListener?.("change", measure);
+      window.removeEventListener("resize", measure);
+      if (previousHeight) root.style.setProperty("--mobile-nav-height", previousHeight);
+      else root.style.removeProperty("--mobile-nav-height");
+    };
+  }, []);
   const ledger = [
     { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
     { k: "ledgerShared", label: T("Shared pool", "公共支出池"), icon: <I.Package size={15} /> },
@@ -138,7 +173,7 @@ export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled
     { k: "settings", label: T("Settings", "设置"), icon: <I.Settings size={15} /> },
   ];
   return (
-    <aside className="side" id={id}>
+    <aside className="side mobile-tabbar" id={id} ref={navigationRef}>
       <nav className="side-nav-landmark" aria-label={T("Navigation", "导航")}>
         <div className="side-group side-nav" role="group" aria-label={T("Ledger", "账本")}>
           <div className="side-h">{T("Ledger", "账本")}</div>
@@ -162,22 +197,29 @@ export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled
             navigationDisabled={navigationDisabled}
           />
         </div>
-        <select
-          className="side-compact"
-          aria-label={T("Account & tools", "账户与工具")}
-          value={account.some((item) => item.k === section) ? section : ""}
-          disabled={navigationDisabled}
-          onChange={(event) => {
-            if (!navigationDisabled && event.target.value) go(event.target.value);
-          }}
+        <div
+          className={"side-tools" + (account.some((item) => item.k === section) ? " active" : "")}
         >
-          <option value="">{T("More", "更多")}</option>
-          {account.map((item) => (
-            <option key={item.k} value={item.k}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+          <I.User size={22} aria-hidden="true" />
+          <span aria-hidden="true">{T("More", "更多")}</span>
+          <select
+            id={toolsId}
+            className="side-compact"
+            aria-label={`${T("More", "更多")} · ${T("Account & tools", "账户与工具")}`}
+            value={account.some((item) => item.k === section) ? section : ""}
+            disabled={navigationDisabled}
+            onChange={(event) => {
+              if (!navigationDisabled && event.target.value) go(event.target.value);
+            }}
+          >
+            <option value="">{T("More", "更多")}</option>
+            {account.map((item) => (
+              <option key={item.k} value={item.k}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </nav>
     </aside>
   );

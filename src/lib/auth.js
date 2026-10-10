@@ -1,4 +1,5 @@
 import { pullwiseApi } from "../api/pullwise.js";
+import { captureGitHubRefreshScope } from "../api/github-refresh.js";
 import {
   clearGitHubRepositoryAccessRefreshNeeded,
   markGitHubRepositoryAccessRefreshNeeded,
@@ -66,8 +67,16 @@ function normalizeGitHubPopupError(error) {
   return normalized;
 }
 
-async function verifyConnectedRepositories() {
-  const payload = await pullwiseApi.repositories.sync();
+function assertAuthorizationActive(scope, signal) {
+  if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
+  if (scope !== captureGitHubRefreshScope() || scope?.controller.signal.aborted)
+    throw new DOMException("Account changed", "AbortError");
+}
+
+async function verifyConnectedRepositories({ scope, signal }) {
+  assertAuthorizationActive(scope, signal);
+  const payload = await pullwiseApi.repositories.sync(undefined, { scope, signal });
+  assertAuthorizationActive(scope, signal);
   if (!payload?.needsAuthorization && repositoryItemsFrom(payload).length > 0) return;
   throw repositoryAuthorizationError(payload);
 }
@@ -89,8 +98,13 @@ function needsGitHubIdentity(error) {
     (error?.status === 401 && String(error?.message || "").includes("Sign in with GitHub"));
 }
 
-export async function startGitHubLogin({ redirectTo, signal, intent } = {}) {
-  if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
+export async function startGitHubLogin({
+  redirectTo,
+  signal,
+  intent,
+  scope = captureGitHubRefreshScope(),
+} = {}) {
+  assertAuthorizationActive(scope, signal);
 
   const invite = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)
     ? window.location.hash
@@ -107,6 +121,7 @@ export async function startGitHubLogin({ redirectTo, signal, intent } = {}) {
   );
 
   if (signal?.aborted) return;
+  assertAuthorizationActive(scope, signal);
 
   if (!result?.url) {
     throw new Error("GitHub authorize URL is missing from the auth response.");
@@ -121,6 +136,8 @@ export async function connectGitHubRepositories({
   add = false,
   signal,
 } = {}) {
+  const scope = captureGitHubRefreshScope();
+  assertAuthorizationActive(scope, signal);
   const repositoryRedirect = getRepositoryRedirectUrl(redirectTo);
   let result;
   try {
@@ -133,20 +150,23 @@ export async function connectGitHubRepositories({
       { signal }
     );
   } catch (error) {
+    assertAuthorizationActive(scope, signal);
     if (needsGitHubIdentity(error)) {
       await startGitHubLogin({
         intent: "link",
         redirectTo: getContinueRepositoryRedirectUrl(repositoryRedirect),
         signal,
+        scope,
       });
       return;
     }
     throw error;
   }
+  assertAuthorizationActive(scope, signal);
 
   if (!result?.url) {
     if (result?.connected) {
-      await verifyConnectedRepositories();
+      await verifyConnectedRepositories({ scope, signal });
       clearGitHubRepositoryAccessRefreshNeeded();
       return;
     }
@@ -157,21 +177,22 @@ export async function connectGitHubRepositories({
 
   const authorizeUrl = safeGitHubInstallationUrl(result.url, "GitHub repository authorization URL");
   markGitHubRepositoryAccessRefreshNeeded();
-  const completion = openGitHubInstallPopup(authorizeUrl);
+  const completion = openGitHubInstallPopup(authorizeUrl, undefined, { scope, signal });
   if (!completion) {
     window.location.assign(authorizeUrl);
     return;
   }
   try {
     await completion;
+    assertAuthorizationActive(scope, signal);
   } catch (error) {
-    clearGitHubRepositoryAccessRefreshNeeded();
+    if (scope === captureGitHubRefreshScope()) clearGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
   try {
-    await verifyConnectedRepositories();
+    await verifyConnectedRepositories({ scope, signal });
   } catch (error) {
-    markGitHubRepositoryAccessRefreshNeeded();
+    if (scope === captureGitHubRefreshScope()) markGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
   clearGitHubRepositoryAccessRefreshNeeded();
@@ -179,8 +200,10 @@ export async function connectGitHubRepositories({
 
 export async function manageGitHubInstallation(
   installationId,
-  { githubIdentityId, redirectTo } = {}
+  { githubIdentityId, redirectTo, signal } = {}
 ) {
+  const scope = captureGitHubRefreshScope();
+  assertAuthorizationActive(scope, signal);
   const cleanInstallationId = installationIdFrom(installationId);
   const cleanIdentityId = identityIdFrom(githubIdentityId);
   const result = await pullwiseApi.integrations.createGitHubInstallationManageSession(
@@ -190,6 +213,7 @@ export async function manageGitHubInstallation(
       returnUrl: getRepositoryRedirectUrl(redirectTo),
     }
   );
+  assertAuthorizationActive(scope, signal);
   const manageUrl = safeGitHubInstallationUrl(result?.url, "GitHub installation manage URL");
   const repositorySyncPayload = {
     installationId: cleanInstallationId,
@@ -199,7 +223,7 @@ export async function manageGitHubInstallation(
     ...repositorySyncPayload,
     requireCloseSyncReady: true,
   };
-  const completion = openGitHubInstallPopup(manageUrl, popupSyncPayload);
+  const completion = openGitHubInstallPopup(manageUrl, popupSyncPayload, { scope, signal });
   if (!completion) {
     markGitHubRepositoryAccessRefreshNeeded();
     window.location.assign(manageUrl);
@@ -207,13 +231,16 @@ export async function manageGitHubInstallation(
   }
   try {
     await completion;
+    assertAuthorizationActive(scope, signal);
   } catch (error) {
     throw normalizeGitHubPopupError(error);
   }
   try {
-    await pullwiseApi.repositories.sync(repositorySyncPayload);
+    assertAuthorizationActive(scope, signal);
+    await pullwiseApi.repositories.sync(repositorySyncPayload, { scope, signal });
+    assertAuthorizationActive(scope, signal);
   } catch (error) {
-    markGitHubRepositoryAccessRefreshNeeded();
+    if (scope === captureGitHubRefreshScope()) markGitHubRepositoryAccessRefreshNeeded();
     throw normalizeGitHubPopupError(error);
   }
   clearGitHubRepositoryAccessRefreshNeeded();

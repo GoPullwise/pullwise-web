@@ -1,4 +1,5 @@
 import { pullwiseApi } from "../api/pullwise.js";
+import { captureGitHubRefreshScope } from "../api/github-refresh.js";
 import { safeGitHubInstallationUrl, safeHttpUrl } from "./trusted-redirects.js";
 
 const POPUP_NAME = "pullwise-github-install";
@@ -83,7 +84,18 @@ export function notifyOpenerAndClose() {
   }
 }
 
-export function openGitHubInstallPopup(url, syncPayload) {
+function assertPopupActive(scope, signal) {
+  if (signal?.aborted) throw signal.reason ?? new DOMException("Aborted", "AbortError");
+  if (scope !== captureGitHubRefreshScope() || scope?.controller.signal.aborted)
+    throw new DOMException("Account changed", "AbortError");
+}
+
+export function openGitHubInstallPopup(
+  url,
+  syncPayload,
+  { scope = captureGitHubRefreshScope(), signal } = {}
+) {
+  assertPopupActive(scope, signal);
   const popupUrl = safePopupUrl(url);
   const popup = window.open(popupUrl, POPUP_NAME, POPUP_FEATURES);
   if (!popup) return null;
@@ -93,6 +105,7 @@ export function openGitHubInstallPopup(url, syncPayload) {
     // Focus can be blocked by browser popup policies.
   }
 
+  let removeAbortListeners = () => {};
   return new Promise((resolve, reject) => {
     let settled = false;
     const requireCloseSyncReady = Boolean(syncPayload?.requireCloseSyncReady);
@@ -109,6 +122,13 @@ export function openGitHubInstallPopup(url, syncPayload) {
       if (event.source !== popup) return;
       const data = event.data;
       if (!data || data.type !== MESSAGE_TYPE) return;
+      try {
+        assertPopupActive(scope, signal);
+      } catch (error) {
+        finish();
+        reject(error);
+        return;
+      }
       if (data.ok && data.closeSyncReady) {
         closeSyncReady = true;
         return;
@@ -123,6 +143,13 @@ export function openGitHubInstallPopup(url, syncPayload) {
     };
 
     const interval = window.setInterval(async () => {
+      try {
+        assertPopupActive(scope, signal);
+      } catch (error) {
+        finish();
+        reject(error);
+        return;
+      }
       let closed = true;
       try {
         closed = popup.closed;
@@ -136,13 +163,18 @@ export function openGitHubInstallPopup(url, syncPayload) {
         return;
       }
       try {
-        const session = await pullwiseApi.auth.getSession();
+        const session = await pullwiseApi.auth.getSession({ signal });
+        assertPopupActive(scope, signal);
         if (session?.github?.repositoriesConnected) {
           resolve();
           return;
         }
 
-        const repositories = await pullwiseApi.repositories.sync(repositorySyncPayload);
+        const repositories = await pullwiseApi.repositories.sync(repositorySyncPayload, {
+          scope,
+          signal,
+        });
+        assertPopupActive(scope, signal);
         if (repositories?.authorizationIssue) {
           const error = new Error(repositories.message || repositories.authorizationIssue);
           error.code = repositories.authorizationIssue;
@@ -156,7 +188,12 @@ export function openGitHubInstallPopup(url, syncPayload) {
 
         reject(new GitHubInstallCancelled());
       } catch (error) {
-        reject(new GitHubInstallVerificationError(error));
+        try {
+          assertPopupActive(scope, signal);
+          reject(new GitHubInstallVerificationError(error));
+        } catch (inactive) {
+          reject(inactive);
+        }
       }
     }, POLL_INTERVAL_MS);
 
@@ -173,5 +210,17 @@ export function openGitHubInstallPopup(url, syncPayload) {
     }
 
     window.addEventListener("message", onMessage);
-  });
+    const abortListeners = [signal, scope?.controller.signal].filter(Boolean).map((activeSignal) => {
+      const listener = () => {
+        finish();
+        reject(activeSignal.reason ?? new DOMException("Aborted", "AbortError"));
+      };
+      activeSignal.addEventListener("abort", listener, { once: true });
+      return [activeSignal, listener];
+    });
+    removeAbortListeners = () => {
+      for (const [activeSignal, listener] of abortListeners)
+        activeSignal.removeEventListener("abort", listener);
+    };
+  }).finally(() => removeAbortListeners());
 }

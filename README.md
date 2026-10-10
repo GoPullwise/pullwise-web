@@ -135,6 +135,22 @@ setup, run `PLAYWRIGHT_BROWSERS_PATH=node_modules/.cache/ms-playwright npx playw
 must pass these checks as well as the unit suite. Emulation is separate from
 real iOS/Android device verification.
 
+`npm run test:mobile-layout` checks the phone bottom navigation, native More
+selector, form sizing, footer hit targets, display options and scroll/focus-locked
+modals in Chromium and WebKit. It covers phone, tablet, desktop and short-screen
+profiles with bounded local GET fixtures. Add `-- --screenshots` for optional
+captures in the sibling `work/mobile-redesign-validation/captures` directory.
+Linux WebKit touch-point limitations are reported without modifying navigator;
+smaller viewport checks do not emulate a native keyboard. CI keeps unit-test
+environment defaults separate from the API-prefixed browser build.
+
+The production build explicitly targets Chrome/Edge 111+, Firefox 114+ and
+Safari/iOS/iPadOS 16.4+. Android browsers must provide a compatible current
+browser engine; old WebViews and embedded browsers are not automatically covered.
+These build targets define syntax compatibility, not physical-device acceptance.
+Keep them explicit when updating Vite, and validate Safari and Android keyboard,
+download, authorization and background-return flows on actual devices.
+
 ## Cloudflare configuration
 
 `wrangler.jsonc` currently maps `pull-wise.com` and `www.pull-wise.com` to the Web Worker and sends API traffic to `https://api.pull-wise.com`. Coordinate the Server custom domain, OAuth callback, Cookie domain/SameSite, and allowed origins before preview or production deployment. Do not put secrets in `wrangler.jsonc`.

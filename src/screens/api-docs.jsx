@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ApiIntegrationGuide, integrationMarkdown } from "./api-guide.jsx";
 import { ApiReference, referenceMarkdown } from "./api-reference.jsx";
 import { API_GUIDE_COPY } from "../locales/api-guide.js";
@@ -132,8 +132,22 @@ function markdown(base, example, createExample, projectExample, reviewExample) {
 }
 
 export function ApiDocsScreen({ go, auth }) {
-  useLang();
-  const [copied, setCopied] = useState(false);
+  const language = useLang();
+  const [copyState, setCopyState] = useState("idle");
+  const [manualMarkdown, setManualMarkdown] = useState("");
+  const copyRequestRef = useRef(null);
+  const manualCopyRef = useRef(null);
+  const manualCopyId = useId();
+  useEffect(() => {
+    setCopyState("idle");
+    setManualMarkdown("");
+    return () => { copyRequestRef.current = null; };
+  }, [language]);
+  useEffect(() => {
+    if (copyState !== "failed") return;
+    manualCopyRef.current?.focus({ preventScroll: true });
+    manualCopyRef.current?.select();
+  }, [copyState]);
   useEffect(() => {
     const anchor = window.location.hash.slice(1);
     if (!anchor) return;
@@ -183,11 +197,24 @@ export function ApiDocsScreen({ go, auth }) {
     ["troubleshooting", "Error responses and recovery"],
   ];
   async function copyPage() {
+    if (copyRequestRef.current) return;
+    const request = {};
+    copyRequestRef.current = request;
+    const content = markdown(base, example, createExample, projectExample, reviewExample);
+    setCopyState("pending");
     try {
-      await navigator.clipboard.writeText(markdown(base, example, createExample, projectExample, reviewExample));
-      setCopied(true);
+      if (typeof navigator.clipboard?.writeText !== "function")
+        throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(content);
+      if (copyRequestRef.current !== request) return;
+      setCopyState("copied");
+      setManualMarkdown("");
     } catch {
-      setCopied(false);
+      if (copyRequestRef.current !== request) return;
+      setManualMarkdown(content);
+      setCopyState("failed");
+    } finally {
+      if (copyRequestRef.current === request) copyRequestRef.current = null;
     }
   }
   return (
@@ -216,11 +243,27 @@ export function ApiDocsScreen({ go, auth }) {
             <h1 id="overview" className="docs-h1">
               {T("Pullwise ledger REST API")}
             </h1>
-            <button className="btn sm" type="button" onClick={copyPage} data-copy-exclude>
-              {copied ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
-              {copied ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
+            <button className="btn sm" type="button" onClick={copyPage} disabled={copyState === "pending"} aria-busy={copyState === "pending"} data-copy-exclude>
+              {copyState === "copied" ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
+              {copyState === "copied" ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
             </button>
           </div>
+          {manualMarkdown && (
+            <div className="notice notice-error" data-copy-exclude>
+              <p role="alert">{T("Unable to copy this page. Select and copy the Markdown below.")}</p>
+              <label htmlFor={manualCopyId}>{T("Page Markdown")}</label>
+              <div className="auth-input">
+                <textarea
+                  ref={manualCopyRef}
+                  id={manualCopyId}
+                  readOnly
+                  rows={8}
+                  value={manualMarkdown}
+                  onFocus={(event) => event.target.select()}
+                />
+              </div>
+            </div>
+          )}
           <p className="docs-lede">
             {T(
               "Record project and shared expenses, then read totals by currency. Platform billing is a separate account service.",

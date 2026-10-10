@@ -721,14 +721,10 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
     open: Boolean(changeDetails),
     dialogRef: changeDialogRef,
     initialFocusRef: changeCloseRef,
+    backgroundRef: billingBackgroundRef,
     onClose: closeChangeConfirmation,
+    busy: Boolean(pendingAction),
   });
-
-  useEffect(() => {
-    if (billingBackgroundRef.current) {
-      billingBackgroundRef.current.inert = Boolean(changeDetails || cancelConfirmationOpen);
-    }
-  }, [cancelConfirmationOpen, changeDetails]);
 
   const confirmSubscriptionChange = () => {
     if (!changeDetails) return;
@@ -1046,6 +1042,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
           <div
             className="modal billing-change-modal"
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-labelledby="billing-change-title"
             ref={changeDialogRef}

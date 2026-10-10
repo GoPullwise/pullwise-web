@@ -274,7 +274,7 @@ describe("Design token discipline", () => {
     // Toasts use the full small-screen width above the floating pickers
     // instead of squeezing beside them at 206px.
     const smallBlocks = [
-      ...app.matchAll(/@media\s*\(max-width:\s*520px\)\s*\{(?<body>[\s\S]*?)\n\}/g),
+      ...app.matchAll(/@media\s*\(max-width:\s*760px\)\s*\{(?<body>[\s\S]*?)\n\}/g),
     ].map((match) => match.groups?.body || "");
     const toastBlock = smallBlocks
       .map((body) => body.match(/\.notification-stack\s*\{(?<body>[^}]*)\}/s)?.groups?.body)
@@ -286,8 +286,8 @@ describe("Design token discipline", () => {
 
     // Coarse pointers get the same 44px target on the collapsed topbar
     // icon buttons that the rest of the shell already guarantees.
-    const coarse = base.match(/@media\s*\(pointer:\s*coarse\)\s*\{(?<body>[\s\S]*?)\n\}/s)?.groups
-      ?.body;
+    const coarse = base.match(/@media\s*\(any-pointer:\s*coarse\)\s*\{(?<body>[\s\S]*?)\n\}/s)
+      ?.groups?.body;
     expect(coarse).toBeTruthy();
     expect(coarse).toMatch(/\.topbar \.btn\.ghost\.sm\s*\{[^}]*min-width:\s*44px/s);
   });
@@ -308,7 +308,7 @@ describe("Sidebar navigation", () => {
       "aria-current",
       "page"
     );
-    const compact = screen.getByRole("combobox", { name: "Account & tools" });
+    const compact = screen.getByRole("combobox", { name: "More · Account & tools" });
     expect(compact).toHaveValue("billing");
     fireEvent.change(compact, { target: { value: "settings" } });
     expect(go).toHaveBeenCalledWith("settings");
@@ -388,7 +388,7 @@ describe("Sidebar navigation", () => {
         fireEvent(link, new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 }))
       ).toBe(false);
     }
-    const compact = screen.getByRole("combobox", { name: "Account & tools" });
+    const compact = screen.getByRole("combobox", { name: "More · Account & tools" });
     expect(compact).toBeDisabled();
     await user.selectOptions(compact, "billing");
     fireEvent.change(compact, { target: { value: "settings" } });

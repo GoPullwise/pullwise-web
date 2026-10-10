@@ -300,13 +300,18 @@ export function InvitationInboxProvider({
     const onReturn = () => {
       if (document.visibilityState !== "hidden") refresh({ automatic: true });
     };
+    const onPageShow = (event) => {
+      if (event.persisted) onReturn();
+    };
     const onChanged = () => refresh();
     window.addEventListener("focus", onReturn);
+    window.addEventListener("pageshow", onPageShow);
     document.addEventListener("visibilitychange", onReturn);
     window.addEventListener("pw-invitationrequestschange", onChanged);
     window.addEventListener("pw-recurring-expenses-changed", onChanged);
     return () => {
       window.removeEventListener("focus", onReturn);
+      window.removeEventListener("pageshow", onPageShow);
       document.removeEventListener("visibilitychange", onReturn);
       window.removeEventListener("pw-invitationrequestschange", onChanged);
       window.removeEventListener("pw-recurring-expenses-changed", onChanged);
@@ -316,24 +321,6 @@ export function InvitationInboxProvider({
   }, [refresh]);
 
   useModalFocus({ open, dialogRef, initialFocusRef: closeRef, onClose: () => setOpen(false) });
-  useEffect(() => {
-    if (!open) return;
-    const background = Array.from(document.body.children).filter(
-      (node) => !node.contains(dialogRef.current)
-    );
-    // The application root contains the dialog. Inert its sibling app content
-    // inside the provider while preserving the dialog's own focusable controls.
-    const modal = dialogRef.current?.closest(".modal-back");
-    const siblings = Array.from(modal?.parentElement?.children || []).filter(
-      (node) => node !== modal && !node.contains(modal)
-    );
-    const nodes = [...background, ...siblings];
-    const previous = nodes.map((node) => [node, node.inert]);
-    for (const [node] of previous) node.inert = true;
-    return () => {
-      for (const [node, inert] of previous) node.inert = inert;
-    };
-  }, [open]);
 
   return (
     <InboxContext.Provider
@@ -361,6 +348,7 @@ export function InvitationInboxProvider({
           <div
             className="modal"
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-labelledby="inbox-title"
             ref={dialogRef}

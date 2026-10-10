@@ -177,7 +177,8 @@ describe("NotificationProvider", () => {
     expect(baseStyles.match(/(?:^|\n):root\s*\{/g)).toHaveLength(1);
     expect(appStyles).not.toMatch(/(?:^|\n):root\s*\{/);
     expect(modalWidthRules).toHaveLength(1);
-    expect(modalWidthRules[0]).toMatch(/max-width:\s*min\(560px,\s*calc\(100vw - 24px\)\);/);
+    expect(modalWidthRules[0]).toMatch(/max-width:\s*var\(--modal-max-width\);/);
+    expect(baseStyles).toMatch(/--modal-max-width:\s*min\(560px,\s*calc\(100vw - 24px\)\);/);
     expect(pageStyles).not.toMatch(/var\(--[a-z0-9-]+\s*,/i);
     expect(pageStyles).not.toMatch(/#(?:16a34a|b91c1c|dc2626|15803d|4ade80|f59e0b|b45309)\b/i);
   });

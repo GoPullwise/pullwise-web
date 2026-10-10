@@ -1,3 +1,36 @@
+.app-frame {
+  --mobile-controls-offset: 0px;
+  --mobile-controls-safe-area: env(safe-area-inset-bottom);
+}
+
+.app-startup {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-startup strong {
+  font-size: var(--fs-4xl);
+}
+
+.app-startup p {
+  color: var(--text-2);
+}
+
+.preferences-actions {
+  display: contents;
+}
+
+.preferences-label {
+  display: none;
+}
+
 .lang-picker {
   position: fixed;
   right: 70px;
@@ -47,8 +80,10 @@
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
+  max-height: calc(100vh - 96px - env(safe-area-inset-bottom));
   max-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .lang-menu-i {
@@ -152,6 +187,7 @@
 }
 
 .notification-stack {
+  --notification-close-size: 28px;
   position: fixed;
   right: 180px;
   bottom: calc(18px + env(safe-area-inset-bottom));
@@ -168,11 +204,17 @@
   z-index: var(--z-float);
 }
 
+/* A modal makes these notifications inert; keep them behind its backdrop. */
+.notification-stack[inert],
+[inert] .notification-stack {
+  z-index: var(--z-float);
+}
+
 .notification-toast {
   pointer-events: auto;
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  grid-template-columns: 28px minmax(0, 1fr) var(--notification-close-size);
   gap: 10px;
   align-items: start;
   padding: 12px;
@@ -232,8 +274,8 @@
 }
 
 .notification-close {
-  width: 28px;
-  height: 28px;
+  width: var(--notification-close-size);
+  height: var(--notification-close-size);
   display: grid;
   place-items: center;
   padding: 0;
@@ -266,7 +308,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 760px) {
   .notification-stack {
     right: 16px;
     bottom: calc(78px + env(safe-area-inset-bottom));
@@ -274,7 +316,7 @@
   }
 
   .notification-toast {
-    grid-template-columns: 24px minmax(0, 1fr) 28px;
+    grid-template-columns: 24px minmax(0, 1fr) var(--notification-close-size);
     gap: 8px;
     padding: 10px;
   }
@@ -283,11 +325,129 @@
     width: 24px;
     height: 24px;
   }
-}
 
-@media (max-width: 420px) {
+  .app-frame[data-console="true"] {
+    --mobile-controls-offset: var(--mobile-nav-height);
+    --mobile-controls-safe-area: 0px;
+  }
+
+  .app-frame[data-console="true"] .notification-stack {
+    bottom: calc(var(--mobile-nav-height) + 16px);
+  }
+
+  .preferences {
+    position: fixed;
+    right: calc(16px + env(safe-area-inset-right));
+    bottom: calc(var(--mobile-controls-offset) + 16px + var(--mobile-controls-safe-area));
+    z-index: calc(var(--z-float) + 1);
+  }
+
+  .preferences-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    min-width: 44px;
+    max-width: calc(100vw - 32px);
+    padding: 8px 12px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-elev);
+    color: var(--text-2);
+    font: 500 var(--fs-lg)/1.4 var(--font-sans);
+  }
+
+  .preferences-toggle[aria-expanded="true"] {
+    background: var(--bg-soft);
+    color: var(--text);
+  }
+
+  .app-frame[data-console="true"] .preferences {
+    top: calc(8px + env(safe-area-inset-top));
+    right: calc(68px + env(safe-area-inset-right));
+    bottom: auto;
+  }
+
+  .app-frame[data-console="true"] .preferences-toggle {
+    width: 44px;
+    padding: 8px;
+  }
+
+  .app-frame[data-console="true"] .preferences-toggle > span {
+    display: none;
+  }
+
+  .preferences-actions {
+    position: absolute;
+    right: 0;
+    bottom: 54px;
+    display: grid;
+    gap: 8px;
+    width: min(280px, calc(100vw - 32px));
+    max-height: calc(
+      100vh - var(--mobile-controls-offset) - 112px - var(--mobile-controls-safe-area)
+    );
+    max-height: calc(
+      100dvh - var(--mobile-controls-offset) - 112px - var(--mobile-controls-safe-area)
+    );
+    padding: 10px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-elev);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .app-frame[data-console="true"] .preferences-actions {
+    top: 54px;
+    right: -52px;
+    bottom: auto;
+    max-height: calc(100vh - var(--mobile-nav-height) - 86px - env(safe-area-inset-top));
+    max-height: calc(100dvh - var(--mobile-nav-height) - 86px - env(safe-area-inset-top));
+  }
+
+  .preferences .lang-picker,
+  .preferences .lang-toggle,
+  .preferences .theme-toggle,
+  .preferences .back-to-top {
+    position: static;
+    width: 100%;
+    z-index: auto;
+  }
+
+  .preferences .lang-toggle,
+  .preferences .theme-toggle,
+  .preferences .back-to-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 44px;
+    height: auto;
+    padding: 10px 12px;
+    transform: none;
+  }
+
+  .preferences-label {
+    display: inline;
+    font: 500 var(--fs-lg)/1.4 var(--font-sans);
+  }
+
+  .preferences .back-to-top:not(.visible) {
+    display: none;
+  }
+
   .lang-menu {
-    width: min(168px, calc(100vw - 88px));
+    position: static;
+    width: 100%;
+    max-height: max(
+      44px,
+      calc(100vh - var(--mobile-controls-offset) - 180px - var(--mobile-controls-safe-area))
+    );
+    max-height: max(
+      44px,
+      calc(100dvh - var(--mobile-controls-offset) - 180px - var(--mobile-controls-safe-area))
+    );
+    margin-top: 8px;
   }
 }
 
@@ -298,7 +458,10 @@
   flex: 0 0 auto;
 }
 
-@media (pointer: coarse) {
+@media (any-pointer: coarse) {
+  .notification-stack {
+    --notification-close-size: 44px;
+  }
   .lang-toggle,
   .theme-toggle,
   .back-to-top {
@@ -829,7 +992,7 @@
 .lp-foot {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 28px 40px;
+  padding: 28px 40px calc(88px + env(safe-area-inset-bottom));
   display: flex;
   justify-content: space-between;
   border-top: 1px solid var(--border);
@@ -1368,7 +1531,7 @@
 
 @media (max-width: 760px) {
   .lp-foot {
-    padding: 24px 20px;
+    padding: 24px 20px calc(88px + env(safe-area-inset-bottom));
   }
 
   .pricing-hero,
@@ -1384,6 +1547,7 @@
 }
 
 @media (max-width: 420px) {
+  .lp-foot,
   .pricing-hero,
   .pricing-tiers,
   .pricing-faq,

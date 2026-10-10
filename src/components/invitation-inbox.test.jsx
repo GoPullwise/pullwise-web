@@ -28,6 +28,77 @@ const expense = {
 };
 
 describe("InvitationInbox", () => {
+  it("refreshes after BFCache restoration without duplicate or overlapping automatic reads", async () => {
+    let now = 100000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    let finishReturn;
+    const restored = new Promise((resolve) => {
+      finishReturn = resolve;
+    });
+    const api = {
+      invitationRequests: vi
+        .fn()
+        .mockResolvedValueOnce({ items: [] })
+        .mockReturnValueOnce(restored)
+        .mockReturnValueOnce(new Promise(() => {})),
+    };
+    const pageshow = (persisted) => {
+      const event = new Event("pageshow");
+      Object.defineProperty(event, "persisted", { value: persisted });
+      fireEvent(window, event);
+    };
+    const view = render(
+      <NotificationProvider>
+        <InvitationInboxProvider
+          identity="inviter"
+          enabled
+          navigationKey="settings"
+          onReview={vi.fn()}
+          api={api}
+        >
+          <InvitationInboxButton />
+        </InvitationInboxProvider>
+      </NotificationProvider>
+    );
+    try {
+      await act(async () => {});
+      expect(api.invitationRequests).toHaveBeenCalledOnce();
+      now += 10001;
+      pageshow(false);
+      expect(api.invitationRequests).toHaveBeenCalledOnce();
+      pageshow(true);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(2);
+      const returnedSignal = api.invitationRequests.mock.calls[1][0].signal;
+      now += 4;
+      fireEvent.focus(window);
+      fireEvent(document, new Event("visibilitychange"));
+      pageshow(true);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(2);
+      expect(returnedSignal.aborted).toBe(false);
+      await act(async () => finishReturn({ items: [request] }));
+      expect(screen.getByRole("button", { name: "Review request" })).toBeInTheDocument();
+      pageshow(true);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(2);
+      now += 10001;
+      pageshow(true);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(3);
+      const pendingSignal = api.invitationRequests.mock.calls[2][0].signal;
+      now += 10001;
+      pageshow(true);
+      fireEvent.focus(window);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(3);
+      expect(pendingSignal.aborted).toBe(false);
+      view.unmount();
+      expect(pendingSignal.aborted).toBe(true);
+      now += 10001;
+      pageshow(true);
+      expect(api.invitationRequests).toHaveBeenCalledTimes(3);
+    } finally {
+      view.unmount();
+      clock.mockRestore();
+    }
+  });
+
   it("locks review in an open inbox while allowing explicit reads and dismissal", async () => {
     const api = {
       invitationRequests: vi.fn().mockResolvedValue({ items: [request] }),

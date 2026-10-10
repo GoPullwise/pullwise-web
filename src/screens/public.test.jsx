@@ -141,7 +141,9 @@ describe("public navigation links", () => {
     expect(styles).toMatch(/\.lp-top\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(/\.lp-hero\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(/\.lp-preview\s*{[^}]*max-width:\s*1240px;/s);
-    expect(styles).toMatch(/\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px 40px;/s);
+    expect(styles).toMatch(
+      /\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px 40px calc\(88px \+ env\(safe-area-inset-bottom\)\);/s
+    );
     expect(styles).toMatch(
       /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
     );

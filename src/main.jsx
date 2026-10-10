@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../styles/base.css";
 import "../styles/screens.css";
@@ -9,19 +9,47 @@ import { localStorageGet } from "./lib/browser-storage.js";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
 
 const root = createRoot(document.getElementById("root"));
+document.documentElement.setAttribute("data-theme", localStorageGet("pw-theme", "light"));
 
 if (isInstallPopupReturn()) {
   notifyOpenerAndClose();
-  document.documentElement.setAttribute("data-theme", localStorageGet("pw-theme", "light"));
   root.render(<InstallPopupReturn />);
 } else {
-  // Resolves immediately for English; for other locales this avoids a first
-  // paint of English copy before the catalog lands.
-  await preloadActiveLocale();
   root.render(
     <StrictMode>
-      <App />
+      <ApplicationStartup />
     </StrictMode>
+  );
+}
+
+function ApplicationStartup() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let current = true;
+    const finish = () => {
+      if (current) setReady(true);
+    };
+    // The catalog loader retains its English fallback on a failed download.
+    // Show a localized status while it resolves, including on a cold mobile connection.
+    preloadActiveLocale().then(finish, finish);
+    return () => {
+      current = false;
+    };
+  }, []);
+  if (ready) return <App />;
+  return (
+    <div className="app-startup" role="status" aria-live="polite">
+      <strong>Pullwise</strong>
+      <p>
+        {T("Loading Pullwise…", {
+          zh: "正在加载 Pullwise…",
+          ja: "Pullwise を読み込み中…",
+          ko: "Pullwise 로딩 중…",
+          fr: "Chargement de Pullwise…",
+          es: "Cargando Pullwise…",
+        })}
+      </p>
+    </div>
   );
 }
 
