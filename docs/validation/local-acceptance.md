@@ -54,6 +54,15 @@ four Chromium contexts / 258 states, including 390-to-320 and 412-to-360 phone
 widths. Together, the final currency/date suites pass 13 contexts / 307 states
 with 693 intercepted GETs / 400 synthetic API reads and zero business writes
 or external delivery.
+[Preview publication](currency-picker-preview-release-2026-10-10.json) records
+runtime main commit `208ae96` and Web version
+`7bb657aa-7524-47db-ad20-5792bc1fe764`. One homepage and three exact hashed
+entry/picker-CSS/picker-JavaScript GETs all return 200; the homepage is noindex
+and references the built entry, while assets match the final local bytes.
+No redirects, retries, JavaScript execution or remote business/provider/D1
+operation runs. GitHub CLI reports no workflow runs at publication time.
+This publication includes the prior Spending overview and Billing redesign.
+The receipt commit is documentation-only and requires no runtime redeployment.
 
 ## Spending overview and Billing redesign (2026-10-10)
 

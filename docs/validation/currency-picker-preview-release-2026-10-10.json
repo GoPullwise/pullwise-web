@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-10",
+  "origin": "https://preview.pull-wise.com",
+  "homepageRequests": 1,
+  "hashedAssetRequests": 3,
+  "clientRetries": 0,
+  "javascriptExecuted": false,
+  "businessAPIRequests": 0,
+  "remoteD1Operations": 0,
+  "responses": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 4732,
+      "sha256": "ce68d2831125d3b38c0182e12c807c063473def6b4586182e048fb62f93c2c3f",
+      "robots": "noindex, nofollow",
+      "referencesBuiltEntry": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/index-BV2vK7Oz.js",
+      "status": 200,
+      "bytes": 104793,
+      "sha256": "f5f1d2ae74ff0bf4e10dedf7fe5426fa1d5a8abc4c1d47b534527b277e3340b1",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/ledger-D0qJsRgA.css",
+      "status": 200,
+      "bytes": 10368,
+      "sha256": "49c60e8a42b95d0eac3657251499287cb403aab2017a23209db11c4553d56ba7",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    },
+    {
+      "path": "/assets/ledger-CDk7Vtu4.js",
+      "status": 200,
+      "bytes": 136837,
+      "sha256": "7797ae332cf322016ac297b2237ad084541a7f3236c744165960e1b4da2d4d8f",
+      "robots": null,
+      "matchesBuiltBytes": true,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "scope": "Localized expense currency dropdown and custom code selection, including the prior Spending overview and Billing redesign",
+  "runtimeCommit": "208ae96baf675cb0fa0566db2d19d96ed50b0a4b",
+  "worker": "pullwise-web-preview",
+  "workerVersion": "7bb657aa-7524-47db-ad20-5792bc1fe764",
+  "deploymentURL": "https://preview.pull-wise.com",
+  "githubWorkflowRunsAtPublication": [],
+  "serverDeployed": false,
+  "productionDeployed": false
+}
