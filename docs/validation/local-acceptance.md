@@ -1,5 +1,17 @@
 # Current local acceptance
 
+[Final console preview publication](github-console-ui-preview-release-2026-10-10.json)
+records runtime main commit `1e395e90a311997ebdbd98719239d4405c735dcf`
+and Web version `f8e173e9-c8ba-4676-b15c-0b66fe68934a`, confirmed 100% active.
+The final finite check succeeds: one homepage GET is 200/noindex and references
+the built entry; three exact entry-JavaScript/global-CSS/Billing-JavaScript GETs
+are 200 and match the built bytes. No JavaScript, redirect, retry or remote
+business/provider/D1 action runs. The prior release's default-client 403 record
+is retained; the final new-version check uses the installed Chromium user agent
+without changing a security rule. Original Server preview version, database,
+coordinator and production pause remain unchanged. This receipt commit is
+documentation-only and needs no runtime redeployment.
+
 ## Final console presentation verification (2026-10-10)
 
 [Final local evidence](final-console-ui-local-2026-10-10.json) records ESLint,

@@ -1,0 +1,174 @@
+{
+  "date": "2026-10-10",
+  "scope": "Final Web UI preview publication",
+  "homepageRequests": 1,
+  "hashedAssetRequests": 3,
+  "clientRetries": 0,
+  "javascriptExecuted": false,
+  "businessAPIRequests": 0,
+  "realProviderCalls": 0,
+  "remoteD1Operations": 0,
+  "staticClient": "HTTP GET with installed Chromium user agent",
+  "homepage": {
+    "url": "https://preview.pull-wise.com/",
+    "status": 200,
+    "bytes": 4732,
+    "robots": "noindex, nofollow",
+    "sha256": "a2914f90ad1fee9bf7d2c2d5a79db02ab9117c4a2f5508cac0ddb2e1700fd8cb",
+    "referencesBuiltEntry": true
+  },
+  "assets": [
+    {
+      "url": "https://preview.pull-wise.com/assets/index-K9y-4CwJ.js",
+      "status": 200,
+      "bytes": 104784,
+      "robots": null,
+      "sha256": "9aeacfb314d042cd7afcc8be587497d968119f3e41d915711cbdaca16dde1b78",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/index-DNhFcwSk.css",
+      "status": 200,
+      "bytes": 94661,
+      "robots": null,
+      "sha256": "4174b3a0c32d2360a31f4a69c926db900476d54cc98bf910dfde254331f77f89",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/billing-96PqV0R7.js",
+      "status": 200,
+      "bytes": 45421,
+      "robots": null,
+      "sha256": "95f1ea2b17d70f944be11f671f19bbb6f4822dc47893a6c4980a5ec94c36d9b1",
+      "matchesBuiltBytes": true
+    }
+  ],
+  "passed": true,
+  "publicationPassed": true,
+  "staticReadbackPassed": true,
+  "webSourceCommit": "1e395e90a311997ebdbd98719239d4405c735dcf",
+  "webVersion": "f8e173e9-c8ba-4676-b15c-0b66fe68934a",
+  "serverSourceCommit": "b8b43e97d579838259659ef8d023a0bbf41bb404",
+  "serverVersionUnchanged": "05058325-1c4c-44da-9312-0a9ec16de6c0",
+  "managementReadback": [
+    {
+      "name": "pullwise-web-preview",
+      "settingsStatus": 200,
+      "bindings": [
+        {
+          "name": "ASSETS",
+          "type": "assets"
+        },
+        {
+          "name": "PULLWISE_API_ORIGIN",
+          "text": "https://preview-api.pull-wise.com",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "environment": "production",
+          "name": "PULLWISE_SERVER",
+          "service": "pullwise-server-preview",
+          "type": "service"
+        }
+      ],
+      "deploymentStatus": 200,
+      "versions": [
+        {
+          "version_id": "f8e173e9-c8ba-4676-b15c-0b66fe68934a",
+          "percentage": 100
+        }
+      ],
+      "createdOn": "2026-10-10T06:39:28.626334Z"
+    },
+    {
+      "name": "pullwise-server-preview",
+      "settingsStatus": 200,
+      "bindings": [
+        {
+          "database_id": "e9dc3b89-f81f-4fce-87ef-d8797d879fb4",
+          "id": "e9dc3b89-f81f-4fce-87ef-d8797d879fb4",
+          "name": "DB",
+          "type": "d1"
+        },
+        {
+          "name": "PULLWISE_D1_ACCESS_ENABLED",
+          "text": "1",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "preview",
+          "type": "plain_text"
+        },
+        {
+          "class_name": "ValidationBudget",
+          "name": "VALIDATION_BUDGET",
+          "namespace_id": "0e0ce4946c5e4d5f81c606273ba94b5d",
+          "type": "durable_object_namespace"
+        }
+      ],
+      "deploymentStatus": 200,
+      "versions": [
+        {
+          "version_id": "05058325-1c4c-44da-9312-0a9ec16de6c0",
+          "percentage": 100
+        }
+      ],
+      "createdOn": "2026-10-10T05:48:47.030093Z"
+    },
+    {
+      "name": "pullwise-server-production",
+      "settingsStatus": 200,
+      "bindings": [
+        {
+          "database_id": "80a29a0d-5699-449f-9541-a01dc461ca9d",
+          "id": "80a29a0d-5699-449f-9541-a01dc461ca9d",
+          "name": "DB",
+          "type": "d1"
+        },
+        {
+          "name": "PULLWISE_D1_ACCESS_ENABLED",
+          "text": "0",
+          "type": "plain_text"
+        },
+        {
+          "name": "PULLWISE_MODE",
+          "text": "production",
+          "type": "plain_text"
+        }
+      ],
+      "deploymentStatus": 200,
+      "versions": [
+        {
+          "version_id": "6bec8d06-1ed1-47f3-89eb-d2ec8954745c",
+          "percentage": 100
+        }
+      ],
+      "createdOn": "2026-10-10T05:50:42.946811Z"
+    }
+  ],
+  "localEvidence": "final-console-ui-local-2026-10-10.json",
+  "webTests": 1536,
+  "webTestFiles": 72,
+  "mainPushConfirmed": true,
+  "serverMainUnchanged": "fb18c1adc407543ddcecc81381d9418388186081",
+  "productionDeploymentUnchanged": true,
+  "productionD1Paused": true,
+  "noDatabaseOrJournalReset": true,
+  "noServerRedeploymentThisBatch": true,
+  "noSchemaMigration": true,
+  "previous403RecordRetained": "jev-overview-preview-release-2026-10-10.json",
+  "previous403Explanation": "The earlier release default Python HTTP client was blocked by Cloudflare 1010. The final new-version check uses the installed Chromium user agent and succeeds with exactly one homepage and three asset GETs. No security rule changed and the earlier requests were not retried.",
+  "postReleaseReceiptCommit": "Documentation only; does not change deployed runtime.",
+  "githubActionsRunReadback": {
+    "queriedRuntimeCommit": "1e395e90a311997ebdbd98719239d4405c735dcf",
+    "runsReturned": 0,
+    "ciPassedClaimed": false,
+    "note": "No run was returned for this commit; local checks are recorded separately."
+  }
+}
