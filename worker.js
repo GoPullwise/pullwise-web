@@ -2,6 +2,9 @@ import { htmlContentSecurityPolicy } from "./security-headers.js";
 
 const API_PREFIX = "/api";
 const DEFAULT_PROXY_MAX_BODY_BYTES = 1024 * 1024;
+const MAX_OAUTH_ERROR_BYTES = 4096;
+const GITHUB_CALLBACK_ERRORS = new Set(["GITHUB_IDENTITY_CONFLICT", "ACCOUNT_CHANGED"]);
+const GITHUB_CALLBACK_PATHS = new Set(["/api/auth/github/callback", "/api/integrations/github/callback"]);
 const HTML_SHELL_CACHE_CONTROL = "no-cache";
 const STATIC_SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -65,7 +68,9 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
     const edgeClientIp = request.headers.get("CF-Connecting-IP");
     if (edgeClientIp) headers.set("CF-Connecting-IP", edgeClientIp);
     try {
-      return proxyResponse(await env.PULLWISE_SERVER.fetch(new Request(targetUrl, init)));
+      return proxyResponse(
+        await env.PULLWISE_SERVER.fetch(new Request(targetUrl, init)), request, incomingUrl
+      );
     } catch {
       return json({ message: "Unable to reach Pullwise API service." }, 502);
     }
@@ -76,7 +81,7 @@ export async function proxyApiRequest(request, env, incomingUrl = new URL(reques
   if (await shouldRetryCloudflare1003(response, upstreamOrigin, fallbackOrigin, request)) {
     response = await fetchUpstream(new URL(backendPathWithSearch, fallbackOrigin), init);
   }
-  return proxyResponse(response);
+  return proxyResponse(response, request, incomingUrl);
 }
 
 async function fetchUpstream(targetUrl, init) {
@@ -87,12 +92,59 @@ async function fetchUpstream(targetUrl, init) {
   }
 }
 
-function proxyResponse(response) {
+async function proxyResponse(response, request, incomingUrl) {
+  // The API retains its JSON contract. Only a browser navigating to the exact
+  // callbacks receives a fixed app destination for authorization failures.
+  if (request.method === "GET" && GITHUB_CALLBACK_PATHS.has(incomingUrl.pathname) &&
+      request.headers.get("Accept")?.split(",").some((value) =>
+        /^text\/html(?:\s*;|\s*$)/i.test(value.trim()) && !/;\s*q=0(?:\.0*)?(?:\s*;|\s*$)/i.test(value)
+      ) && response.status >= 400 && response.status < 600 &&
+      response.headers.get("Content-Type")?.toLowerCase().includes("application/json")) {
+    const code = await githubCallbackErrorCode(response);
+    if (code) {
+      const destination = new URL("/oauth", incomingUrl.origin);
+      destination.searchParams.set("github_error", code);
+      const headers = withoutHopByHopHeaders(response.headers);
+      for (const name of ["content-length", "content-type", "content-encoding", "etag"]) headers.delete(name);
+      headers.set("Location", destination.href);
+      headers.set("Cache-Control", "no-store");
+      headers.set("Referrer-Policy", "no-referrer");
+      return new Response(null, { status: 303, headers });
+    }
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers: withoutHopByHopHeaders(response.headers),
   });
+}
+
+async function githubCallbackErrorCode(response) {
+  const length = response.headers.get("Content-Length");
+  if (length && Number(length) > MAX_OAUTH_ERROR_BYTES) return null;
+  const reader = response.clone().body?.getReader();
+  if (!reader) return null;
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_OAUTH_ERROR_BYTES) return null;
+      chunks.push(value);
+    }
+    const code = JSON.parse(new TextDecoder().decode(concatChunks(chunks, bytes)))?.error?.code;
+    if (typeof code !== "string" || !code.trim()) return null;
+    return GITHUB_CALLBACK_ERRORS.has(code) ? code : "AUTHORIZATION_FAILED";
+  } catch {
+    return null;
+  } finally {
+    // A cloned stream's cancellation may wait for the original stream, which
+    // must remain available to the client whenever the response stays JSON.
+    void reader.cancel().catch(() => {});
+    reader.releaseLock();
+  }
 }
 
 function withStaticAssetHeaders(response) {

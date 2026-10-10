@@ -1,5 +1,20 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  // Explicit GitHub account linking and callback recovery.
+  "Loading Pullwise…": "正在加载 Pullwise…",
+  "GitHub installation was not completed": "GitHub 安装未完成",
+  "GitHub installation complete": "GitHub 安装完成",
+  "You can close this window.": "你可以关闭此窗口。",
+  "GitHub connection was not completed": "GitHub 连接未完成",
+  "The selected GitHub account does not match the GitHub account linked to your current Pullwise account, or it is already linked to another Pullwise account.": "所选 GitHub 账号与当前 Pullwise 账号已绑定的 GitHub 账号不一致，或已绑定另一个 Pullwise 账号。",
+  "Your Pullwise session changed during GitHub authorization. Return to Pullwise, check which account is signed in, and try again.": "GitHub 授权期间，Pullwise 登录会话发生了变化。请返回 Pullwise，确认当前登录账号后重试。",
+  "GitHub authorization could not be completed. Return to Pullwise and try again from Settings. If the problem continues, contact support.": "GitHub 授权未能完成。请返回 Pullwise，从设置重新尝试。如果问题持续出现，请联系支持。",
+  "On GitHub, switch to the GitHub account associated with your current Pullwise account, then return to Settings and retry. Shared-ledger admins authorize their own GitHub accounts. If this GitHub account belongs to another Pullwise account, sign in to that Pullwise account instead.": "请在 GitHub 切换到当前 Pullwise 账号对应的 GitHub 账号，再返回设置重试。共享账本管理员应授权自己的 GitHub 账号。如果此 GitHub 账号属于另一个 Pullwise 账号，请登录对应的 Pullwise 账号。",
+  "You can close this window and return to Pullwise to try again.": "你可以关闭此窗口，返回 Pullwise 后重新尝试。",
+  "Connect GitHub account": "连接 GitHub 账户",
+  "Reconnect GitHub in Sign-in methods, then check repository access again.": "请先在「登录方式」中重新连接 GitHub，再检查仓库授权。",
+  "GitHub access unavailable.": "GitHub 授权暂不可用。",
+  "Connect your GitHub account in Sign-in methods before authorizing repositories.": "请先在「登录方式」中连接 GitHub 账户，再授权仓库。",
   "Skip to content": "跳到主要内容",
   "Restoring your account if this browser is still signed in.":
     "如果此浏览器仍保持登录，将恢复账户。",

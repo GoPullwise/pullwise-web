@@ -11,6 +11,82 @@ import { connectGitHubRepositories, signOut, startGitHubLogin } from "../lib/aut
 import { screenLinkProps } from "../lib/navigation.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
+export function GitHubOAuthFailureScreen({ code }) {
+  useLang();
+  const conflict = code === "GITHUB_IDENTITY_CONFLICT";
+  return (
+    <main id="main-content" tabIndex={-1} className="oauth-wrap fade-in">
+      <div className="oauth-card">
+        <div className="oauth-head">
+          <div className="oauth-brand">Pullwise / GitHub</div>
+          <h1>
+            {T("GitHub connection was not completed", {
+              zh: "GitHub 连接未完成",
+              ja: "GitHub の接続は完了していません",
+              ko: "GitHub 연결이 완료되지 않았습니다",
+              fr: "La connexion GitHub n’a pas abouti",
+              es: "La conexión con GitHub no se completó",
+            })}
+          </h1>
+          <p className="oauth-org" role="alert">
+            {conflict
+              ? T("The selected GitHub account does not match the GitHub account linked to your current Pullwise account, or it is already linked to another Pullwise account.", {
+                  zh: "所选 GitHub 账号与当前 Pullwise 账号已绑定的 GitHub 账号不一致，或已绑定另一个 Pullwise 账号。",
+                  ja: "選択した GitHub アカウントは現在の Pullwise アカウントに連携済みのアカウントと一致しないか、別の Pullwise アカウントに連携されています。",
+                  ko: "선택한 GitHub 계정이 현재 Pullwise 계정에 연결된 GitHub 계정과 다르거나, 다른 Pullwise 계정에 이미 연결되어 있습니다.",
+                  fr: "Le compte GitHub choisi ne correspond pas à celui lié à votre compte Pullwise actuel, ou il est déjà lié à un autre compte Pullwise.",
+                  es: "La cuenta de GitHub elegida no coincide con la vinculada a tu cuenta actual de Pullwise, o ya está vinculada a otra cuenta de Pullwise.",
+                })
+              : code === "ACCOUNT_CHANGED"
+                ? T("Your Pullwise session changed during GitHub authorization. Return to Pullwise, check which account is signed in, and try again.", {
+                  zh: "GitHub 授权期间，Pullwise 登录会话发生了变化。请返回 Pullwise，确认当前登录账号后重试。",
+                  ja: "GitHub の認証中に Pullwise のセッションが変わりました。Pullwise に戻り、ログイン中のアカウントを確認して再試行してください。",
+                  ko: "GitHub 인증 중 Pullwise 로그인 세션이 변경되었습니다. Pullwise로 돌아가 로그인된 계정을 확인하고 다시 시도하세요.",
+                  fr: "Votre session Pullwise a changé pendant l’autorisation GitHub. Revenez à Pullwise, vérifiez le compte connecté et réessayez.",
+                  es: "Tu sesión de Pullwise cambió durante la autorización de GitHub. Vuelve a Pullwise, comprueba qué cuenta está conectada e inténtalo de nuevo.",
+                })
+                : T("GitHub authorization could not be completed. Return to Pullwise and try again from Settings. If the problem continues, contact support.", {
+                    zh: "GitHub 授权未能完成。请返回 Pullwise，从设置重新尝试。如果问题持续出现，请联系支持。",
+                    ja: "GitHub の認証を完了できませんでした。Pullwise に戻り、設定から再試行してください。問題が続く場合はサポートにお問い合わせください。",
+                    ko: "GitHub 인증을 완료하지 못했습니다. Pullwise로 돌아가 설정에서 다시 시도하세요. 문제가 계속되면 지원팀에 문의하세요.",
+                    fr: "L’autorisation GitHub n’a pas abouti. Revenez à Pullwise et réessayez depuis les paramètres. Si le problème persiste, contactez l’assistance.",
+                    es: "No se pudo completar la autorización de GitHub. Vuelve a Pullwise e inténtalo de nuevo desde Configuración. Si el problema continúa, contacta con soporte.",
+                  })}
+          </p>
+        </div>
+        <div className="oauth-orgs">
+          {conflict && (
+            <p className="oauth-org-p">
+              {T("On GitHub, switch to the GitHub account associated with your current Pullwise account, then return to Settings and retry. Shared-ledger admins authorize their own GitHub accounts. If this GitHub account belongs to another Pullwise account, sign in to that Pullwise account instead.", {
+                zh: "请在 GitHub 切换到当前 Pullwise 账号对应的 GitHub 账号，再返回设置重试。共享账本管理员应授权自己的 GitHub 账号。如果此 GitHub 账号属于另一个 Pullwise 账号，请登录对应的 Pullwise 账号。",
+                ja: "GitHub で現在の Pullwise アカウントに対応するアカウントへ切り替え、設定に戻って再試行してください。共有台帳の管理者は自分の GitHub アカウントを認証します。この GitHub アカウントが別の Pullwise アカウントに属する場合は、そちらにログインしてください。",
+                ko: "GitHub에서 현재 Pullwise 계정에 해당하는 계정으로 전환한 뒤 설정으로 돌아가 다시 시도하세요. 공유 장부 관리자는 자신의 GitHub 계정을 인증해야 합니다. 이 GitHub 계정이 다른 Pullwise 계정에 속한다면 해당 Pullwise 계정으로 로그인하세요.",
+                fr: "Sur GitHub, choisissez le compte associé à votre compte Pullwise actuel, puis revenez aux paramètres pour réessayer. Les administrateurs d’un registre partagé autorisent leur propre compte GitHub. Si ce compte GitHub appartient à un autre compte Pullwise, connectez-vous à ce dernier.",
+                es: "En GitHub, cambia a la cuenta asociada a tu cuenta actual de Pullwise y vuelve a Configuración para reintentarlo. Los administradores de un registro compartido autorizan sus propias cuentas de GitHub. Si esta cuenta de GitHub pertenece a otra cuenta de Pullwise, inicia sesión en esa cuenta.",
+              })}
+            </p>
+          )}
+          <p className="oauth-org-p">
+            {T("You can close this window and return to Pullwise to try again.", {
+              zh: "你可以关闭此窗口，返回 Pullwise 后重新尝试。",
+              ja: "このウィンドウを閉じて Pullwise に戻り、再試行できます。",
+              ko: "이 창을 닫고 Pullwise로 돌아가 다시 시도할 수 있습니다.",
+              fr: "Vous pouvez fermer cette fenêtre et revenir à Pullwise pour réessayer.",
+              es: "Puedes cerrar esta ventana y volver a Pullwise para intentarlo de nuevo.",
+            })}
+          </p>
+        </div>
+        <div className="oauth-actions">
+          <a className="btn lg primary" href="/settings">
+            <I.ArrowL size={14} /> {T("Settings", "设置")}
+          </a>
+          <a className="btn lg" href="/login">{T("Sign in", "登录")}</a>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function getAuthErrorMessage(error) {
   return (
     error?.message ||

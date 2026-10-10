@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { lazy, StrictMode, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../styles/base.css";
 import "../styles/screens.css";
@@ -7,22 +7,28 @@ import { App } from "./App.jsx";
 import { preloadActiveLocale, T, useLang } from "./i18n.jsx";
 import { applyTheme, resolveTheme } from "./lib/theme.js";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
+import { githubOAuthFailureCode } from "./lib/github-oauth-result.js";
+
+const GitHubOAuthFailureScreen = lazy(() =>
+  import("./screens/public.jsx").then((module) => ({ default: module.GitHubOAuthFailureScreen }))
+);
 
 const root = createRoot(document.getElementById("root"));
 applyTheme(resolveTheme());
 
-if (isInstallPopupReturn()) {
+const oauthFailure = githubOAuthFailureCode();
+if (!oauthFailure && isInstallPopupReturn()) {
   notifyOpenerAndClose();
-  root.render(<InstallPopupReturn />);
+  root.render(<InstallPopupReturn failed={Boolean(new URLSearchParams(window.location.search).get("github_error"))} />);
 } else {
   root.render(
     <StrictMode>
-      <ApplicationStartup />
+      <ApplicationStartup oauthFailure={oauthFailure} />
     </StrictMode>
   );
 }
 
-function ApplicationStartup() {
+function ApplicationStartup({ oauthFailure }) {
   const lang = useLang();
   const [ready, setReady] = useState(lang === "en");
   useEffect(() => {
@@ -37,8 +43,7 @@ function ApplicationStartup() {
       current = false;
     };
   }, []);
-  if (ready) return <App />;
-  return (
+  const loading = (
     <div className="app-startup" role="status" aria-live="polite">
       <strong>Pullwise</strong>
       <p>
@@ -52,20 +57,36 @@ function ApplicationStartup() {
       </p>
     </div>
   );
+  if (!ready) return loading;
+  // Error redirects have no trusted popup nonce. Keep them visible for manual
+  // recovery and never notify success, check the session or synchronize access.
+  return oauthFailure ? (
+    <Suspense fallback={loading}>
+      <GitHubOAuthFailureScreen code={oauthFailure} />
+    </Suspense>
+  ) : <App />;
 }
 
-function InstallPopupReturn() {
+function InstallPopupReturn({ failed }) {
   return (
     <main className="install-return">
       <div>
         <p className="install-return-title">
-          {T("GitHub installation complete", {
-            zh: "GitHub 安装完成",
-            ja: "GitHub インストールが完了しました",
-            ko: "GitHub 설치 완료",
-            fr: "Installation GitHub terminée",
-            es: "Instalación de GitHub completada",
-          })}
+          {failed
+            ? T("GitHub installation was not completed", {
+                zh: "GitHub 安装未完成",
+                ja: "GitHub のインストールは完了していません",
+                ko: "GitHub 설치가 완료되지 않았습니다",
+                fr: "L’installation GitHub n’a pas abouti",
+                es: "La instalación de GitHub no se completó",
+              })
+            : T("GitHub installation complete", {
+                zh: "GitHub 安装完成",
+                ja: "GitHub インストールが完了しました",
+                ko: "GitHub 설치 완료",
+                fr: "Installation GitHub terminée",
+                es: "Instalación de GitHub completada",
+              })}
         </p>
         <p className="install-return-description">
           {T("You can close this window.", {

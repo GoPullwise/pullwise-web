@@ -1,5 +1,20 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  // Explicit GitHub account linking and callback recovery.
+  "Loading Pullwise…": "Pullwise 로딩 중…",
+  "GitHub installation was not completed": "GitHub 설치가 완료되지 않았습니다",
+  "GitHub installation complete": "GitHub 설치 완료",
+  "You can close this window.": "이 창을 닫아도 됩니다.",
+  "GitHub connection was not completed": "GitHub 연결이 완료되지 않았습니다",
+  "The selected GitHub account does not match the GitHub account linked to your current Pullwise account, or it is already linked to another Pullwise account.": "선택한 GitHub 계정이 현재 Pullwise 계정에 연결된 GitHub 계정과 다르거나, 다른 Pullwise 계정에 이미 연결되어 있습니다.",
+  "Your Pullwise session changed during GitHub authorization. Return to Pullwise, check which account is signed in, and try again.": "GitHub 인증 중 Pullwise 로그인 세션이 변경되었습니다. Pullwise로 돌아가 로그인된 계정을 확인하고 다시 시도하세요.",
+  "GitHub authorization could not be completed. Return to Pullwise and try again from Settings. If the problem continues, contact support.": "GitHub 인증을 완료하지 못했습니다. Pullwise로 돌아가 설정에서 다시 시도하세요. 문제가 계속되면 지원팀에 문의하세요.",
+  "On GitHub, switch to the GitHub account associated with your current Pullwise account, then return to Settings and retry. Shared-ledger admins authorize their own GitHub accounts. If this GitHub account belongs to another Pullwise account, sign in to that Pullwise account instead.": "GitHub에서 현재 Pullwise 계정에 해당하는 계정으로 전환한 뒤 설정으로 돌아가 다시 시도하세요. 공유 장부 관리자는 자신의 GitHub 계정을 인증해야 합니다. 이 GitHub 계정이 다른 Pullwise 계정에 속한다면 해당 Pullwise 계정으로 로그인하세요.",
+  "You can close this window and return to Pullwise to try again.": "이 창을 닫고 Pullwise로 돌아가 다시 시도할 수 있습니다.",
+  "Connect GitHub account": "GitHub 계정 연결",
+  "Reconnect GitHub in Sign-in methods, then check repository access again.": "로그인 방식에서 GitHub를 다시 연결한 뒤 저장소 접근 권한을 확인하세요.",
+  "GitHub access unavailable.": "GitHub 접근 정보를 불러올 수 없습니다.",
+  "Connect your GitHub account in Sign-in methods before authorizing repositories.": "저장소를 승인하기 전에 로그인 방식에서 GitHub 계정을 연결하세요.",
   "Skip to content": "본문으로 건너뛰기",
   "Restoring your account if this browser is still signed in.":
     "이 브라우저에 아직 로그인되어 있으면 계정을 복원합니다.",

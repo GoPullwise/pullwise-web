@@ -1,5 +1,42 @@
 # Current local acceptance
 
+## GitHub account and repository recovery (2026-10-10)
+
+Settings offers an explicit account Connect / Reconnect action in Sign-in
+methods from the confirmed cookie account, independently of repository status
+reads. It uses OAuth `intent=link` to preserve that account. The Server's
+compatible `/integrations` projection now retains `githubAccess`; a confirmed
+`reauthorization_required` state directs the user to account reconnection before
+repository installation. Unknown and temporary provider failures remain
+unavailable, and an unconfirmed session cannot start either authorization flow.
+
+For browser HTML navigation only, both precise GitHub callback paths translate
+a bounded JSON error into a fixed same-origin recovery page. Identity conflict
+and account-change explanations remain specific; other provider/state failures
+use a fixed generic explanation without copying provider payloads or OAuth
+code/state/return parameters. JSON API callers retain their original status,
+body and cookies. The failure page does not load the authenticated application,
+read business data, synchronize repositories, claim success or automatically
+close a popup. Existing popup failures also no longer display completion copy.
+
+Shared-ledger roles do not grant GitHub provider permissions. Each actor links
+their own GitHub identity; existing identity-conflict, session, popup source,
+origin and nonce protections stay enforced. No account merge or credential
+sharing is introduced. Final verification and preview release evidence are
+recorded with this repair's publication receipt.
+
+The final local source passes ESLint, 83 test files / 1,654 tests, the production
+build, offline Worker configuration checks and the preview Worker dry-run.
+Twenty bounded native Chromium cases cover six Settings states and both conflict
+and generic callback recovery in Chinese/English on desktop and 390px touch
+layouts. Their retained evidence totals 494 intercepted requests, with zero
+external delivery, business writes or request violations. Ten explicit account
+authorization actions verify `intent=link` before a local fixture blocks OAuth;
+failure popups perform no API calls, synchronization, opener messages or automatic
+closing. Screenshots are checked after animations settle. Reports remain in
+ignored `work/github-authorization-browser/`; these checks do not represent real
+GitHub account or repository authorization acceptance.
+
 ## Main integration and preview alignment (2026-10-10)
 
 After reviewing the initial preview, the user authorizes committing and pushing

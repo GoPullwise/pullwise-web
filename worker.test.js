@@ -162,6 +162,110 @@ describe("Cloudflare Worker API proxy", () => {
     expect(response.headers.get("Location")).toBe("https://pull-wise.com/projects");
     expect(response.headers.get("Set-Cookie")).toContain("SameSite=None");
   });
+
+  it.each(["GITHUB_IDENTITY_CONFLICT", "ACCOUNT_CHANGED"])(
+    "shows a fixed, private browser recovery destination for %s over either proxy transport",
+    async (code) => {
+      for (const bound of [false, true]) {
+        const upstream = vi.fn(async () => new Response(JSON.stringify({ error: { code } }), {
+          status: 409,
+          headers: { "Content-Type": "application/json", "Set-Cookie": "pw_session=original; HttpOnly" },
+        }));
+        globalThis.fetch = upstream;
+        const response = await worker.fetch(new Request(
+          "https://preview.pull-wise.com/api/auth/github/callback?code=fixture-code&state=fixture-state&redirectTo=https%3A%2F%2Funtrusted.example",
+          { headers: { Accept: "text/html,application/xhtml+xml", Cookie: "pw_session=original" } }
+        ), {
+          PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com",
+          ...(bound ? { PULLWISE_SERVER: { fetch: upstream } } : {}),
+        });
+        expect(upstream).toHaveBeenCalledTimes(1);
+        expect(response.status).toBe(303);
+        expect(response.headers.get("Location")).toBe(
+          `https://preview.pull-wise.com/oauth?github_error=${code}`
+        );
+        expect(response.headers.get("Cache-Control")).toBe("no-store");
+        expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
+        expect(response.headers.get("Set-Cookie")).toBe("pw_session=original; HttpOnly");
+        expect(await response.text()).toBe("");
+      }
+    }
+  );
+
+  it.each([
+    ["/api/auth/github/callback", "GET", "application/json", "GITHUB_IDENTITY_CONFLICT", 409],
+    ["/api/auth/github/callback", "GET", "text/html;q=0,application/json", "GITHUB_IDENTITY_CONFLICT", 409],
+    ["/api/auth/github/callback", "POST", "text/html", "GITHUB_IDENTITY_CONFLICT", 409],
+    ["/api/auth/github/authorize", "GET", "text/html", "GITHUB_IDENTITY_CONFLICT", 409],
+    ["/api/auth/github/callback/other", "GET", "text/html", "GITHUB_IDENTITY_CONFLICT", 409],
+    ["/api/integrations/github/callback", "GET", "application/json", "GITHUB_INSTALLATION_FORBIDDEN", 403],
+    ["/api/auth/github/callback", "GET", "application/json", "GITHUB_STATE_INVALID", 400],
+    ["/api/integrations/github/callback", "GET", "application/json", "GITHUB_UPSTREAM_ERROR", 502],
+    ["/api/auth/github/callback", "GET", "text/html", "GITHUB_IDENTITY_CONFLICT", 200],
+  ])("preserves JSON for unsupported callback context %s %s %s %s %s", async (path, method, accept, code, status) => {
+    const payload = { error: { code } };
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(payload), {
+      status, headers: { "Content-Type": "application/json", "Set-Cookie": "pw_session=original; HttpOnly" },
+    }));
+    const response = await worker.fetch(new Request(`https://pull-wise.com${path}`, {
+      method, headers: { Accept: accept },
+    }), { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" });
+    expect(response.status).toBe(status);
+    expect(response.headers.get("Location")).toBeNull();
+    expect(response.headers.get("Set-Cookie")).toBe("pw_session=original; HttpOnly");
+    expect(await response.json()).toEqual(payload);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["/api/auth/github/callback", "UNAUTHENTICATED", 401],
+    ["/api/auth/github/callback", "GITHUB_STATE_INVALID", 400],
+    ["/api/integrations/github/callback", "GITHUB_INSTALLATION_FORBIDDEN", 403],
+    ["/api/integrations/github/callback", "GITHUB_UPSTREAM_ERROR", 502],
+    ["/api/integrations/github/callback", "<script>provider payload</script>", 503],
+  ])("shows safe generic browser recovery for %s %s %s without exposing provider data", async (path, code, status) => {
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({
+      error: { code, message: "private upstream details" },
+    }), { status, headers: { "Content-Type": "application/json" } }));
+    const response = await worker.fetch(new Request(
+      `https://preview.pull-wise.com${path}?code=fixture-code&state=fixture-state`,
+      { headers: { Accept: "text/html" } }
+    ), { PULLWISE_API_ORIGIN: "https://preview-api.pull-wise.com" });
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe("https://preview.pull-wise.com/oauth?github_error=AUTHORIZATION_FAILED");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(await response.text()).toBe("");
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([{ error: { code: null } }, { error: "provider failure" }, { error: { code: "" } }])(
+    "passes through unsupported error shapes unchanged", async (payload) => {
+      globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(payload), {
+        status: 400, headers: { "Content-Type": "application/json" },
+      }));
+      const response = await worker.fetch(new Request("https://pull-wise.com/api/auth/github/callback", {
+        headers: { Accept: "text/html" },
+      }), { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" });
+      expect(response.status).toBe(400);
+      expect(response.headers.get("Location")).toBeNull();
+      expect(await response.json()).toEqual(payload);
+    }
+  );
+
+  it.each(["invalid JSON", JSON.stringify({ error: { code: "GITHUB_IDENTITY_CONFLICT" }, padding: "x".repeat(5000) })])(
+    "keeps malformed or oversized error bodies intact without a recovery redirect",
+    async (body) => {
+      globalThis.fetch = vi.fn(async () => new Response(body, {
+        status: 409, headers: { "Content-Type": "application/json" },
+      }));
+      const response = await worker.fetch(new Request("https://pull-wise.com/api/auth/github/callback", {
+        headers: { Accept: "text/html" },
+      }), { PULLWISE_API_ORIGIN: "https://api.pull-wise.com" });
+      expect(response.status).toBe(409);
+      expect(response.headers.get("Location")).toBeNull();
+      expect(await response.text()).toBe(body);
+    }
+  );
   it("streams CSV response bytes through the proxy", async () => {
     let supply;
     const body = new ReadableStream({

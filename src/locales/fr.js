@@ -1,5 +1,20 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  // Explicit GitHub account linking and callback recovery.
+  "Loading Pullwise…": "Chargement de Pullwise…",
+  "GitHub installation was not completed": "L’installation GitHub n’a pas abouti",
+  "GitHub installation complete": "Installation GitHub terminée",
+  "You can close this window.": "Vous pouvez fermer cette fenêtre.",
+  "GitHub connection was not completed": "La connexion GitHub n’a pas abouti",
+  "The selected GitHub account does not match the GitHub account linked to your current Pullwise account, or it is already linked to another Pullwise account.": "Le compte GitHub choisi ne correspond pas à celui lié à votre compte Pullwise actuel, ou il est déjà lié à un autre compte Pullwise.",
+  "Your Pullwise session changed during GitHub authorization. Return to Pullwise, check which account is signed in, and try again.": "Votre session Pullwise a changé pendant l’autorisation GitHub. Revenez à Pullwise, vérifiez le compte connecté et réessayez.",
+  "GitHub authorization could not be completed. Return to Pullwise and try again from Settings. If the problem continues, contact support.": "L’autorisation GitHub n’a pas abouti. Revenez à Pullwise et réessayez depuis les paramètres. Si le problème persiste, contactez l’assistance.",
+  "On GitHub, switch to the GitHub account associated with your current Pullwise account, then return to Settings and retry. Shared-ledger admins authorize their own GitHub accounts. If this GitHub account belongs to another Pullwise account, sign in to that Pullwise account instead.": "Sur GitHub, choisissez le compte associé à votre compte Pullwise actuel, puis revenez aux paramètres pour réessayer. Les administrateurs d’un registre partagé autorisent leur propre compte GitHub. Si ce compte GitHub appartient à un autre compte Pullwise, connectez-vous à ce dernier.",
+  "You can close this window and return to Pullwise to try again.": "Vous pouvez fermer cette fenêtre et revenir à Pullwise pour réessayer.",
+  "Connect GitHub account": "Connecter un compte GitHub",
+  "Reconnect GitHub in Sign-in methods, then check repository access again.": "Reconnectez GitHub dans les méthodes de connexion, puis vérifiez à nouveau l’accès aux dépôts.",
+  "GitHub access unavailable.": "Les accès GitHub sont indisponibles.",
+  "Connect your GitHub account in Sign-in methods before authorizing repositories.": "Connectez votre compte GitHub dans les méthodes de connexion avant d’autoriser des dépôts.",
   "Skip to content": "Aller au contenu",
   "Restoring your account if this browser is still signed in.":
     "Restauration de votre compte si ce navigateur est encore connecté.",

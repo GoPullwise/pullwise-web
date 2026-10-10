@@ -8,7 +8,12 @@ import {
 import { EmailSignIn } from "../components/email-sign-in.jsx";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
-import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
+import {
+  connectGitHubRepositories,
+  manageGitHubInstallation,
+  signOut,
+  startGitHubLogin,
+} from "../lib/auth.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { EXPENSE_RETENTION_COPY } from "../locales/expense-retention.js";
@@ -16,6 +21,15 @@ import "./settings.css";
 
 function retentionText(key) {
   return T(...EXPENSE_RETENTION_COPY[key]);
+}
+
+function githubIntegrationReady(value) {
+  return (
+    !value?.githubRefreshError &&
+    typeof value?.github?.connected === "boolean" &&
+    (value.githubAccess === undefined ||
+      ["authorized", "not_connected", "lost"].includes(value.githubAccess))
+  );
 }
 
 function validExpenseRetention(value) {
@@ -52,6 +66,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [githubClosedNotice, setGithubClosedNotice] = useState(null);
+  const [githubReconnectRequired, setGithubReconnectRequired] = useState(false);
   const [managingInstallationId, setManagingInstallationId] = useState("");
   const [jevSettings, setJevSettings] = useState(null);
   const [jevReloadRequired, setJevReloadRequired] = useState(false);
@@ -100,6 +115,11 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     if (loadControllerRef.current === controller) loadControllerRef.current = null;
     setSession(sessionResult.status === "fulfilled" ? sessionResult.value : null);
     setIntegrations(integrationsResult.status === "fulfilled" ? integrationsResult.value : null);
+    setGithubReconnectRequired(
+      integrationsResult.status === "rejected"
+        ? integrationsResult.reason?.code === "GITHUB_REAUTHORIZATION_REQUIRED"
+        : integrationsResult.value?.githubAccess === "reauthorization_required"
+    );
     const jevConfirmed =
       sessionResult.status === "fulfilled" &&
       sessionResult.value?.authenticated &&
@@ -151,8 +171,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
           : null,
       githubReady:
         integrationsResult.status === "fulfilled" &&
-        !integrationsResult.value?.githubRefreshError &&
-        typeof integrationsResult.value?.github?.connected === "boolean",
+        githubIntegrationReady(integrationsResult.value),
     };
   }, []);
 
@@ -161,6 +180,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
     load();
     return () => {
       mountedRef.current = false;
+      githubActionRef.current?.controller.abort();
       githubActionRef.current = null;
       requestRef.current += 1;
       loadControllerRef.current?.abort();
@@ -175,9 +195,20 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   }, [load]);
 
   const runGitHubAction = async (action, installationId = "") => {
-    if (!mountedRef.current || actionRef.current || loading || loadControllerRef.current) return;
+    if (
+      !mountedRef.current ||
+      actionRef.current ||
+      loading ||
+      loadControllerRef.current ||
+      !sessionRef.current?.authenticated ||
+      !sessionRef.current?.user?.id
+    )
+      return;
     if (onOperationBusyRef.current?.(true) === false) return;
-    const operation = { identity: sessionRef.current?.user?.id };
+    const operation = {
+      identity: sessionRef.current.user.id,
+      controller: new AbortController(),
+    };
     githubActionRef.current = operation;
     actionRef.current = true;
     setBusy(true);
@@ -189,7 +220,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       githubActionRef.current === operation &&
       sessionRef.current?.user?.id === operation.identity;
     try {
-      const outcome = await action();
+      const outcome = await action(operation.controller.signal);
       if (!live()) return;
       const refreshed = await load();
       if (
@@ -200,12 +231,15 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       )
         setGithubClosedNotice({ identity: operation.identity, outcome });
     } catch (failure) {
-      if (live())
+      if (live()) {
+        if (failure?.code === "GITHUB_REAUTHORIZATION_REQUIRED")
+          setGithubReconnectRequired(true);
         setError(
           failure?.code === "GITHUB_REAUTHORIZATION_REQUIRED"
             ? T("Reconnect your GitHub account before checking repository access.")
             : failure?.message || T("GitHub authorization failed.", "GitHub 授权失败。")
         );
+      }
     } finally {
       if (githubActionRef.current === operation) {
         githubActionRef.current = null;
@@ -462,8 +496,12 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
   };
 
   const github = integrations?.github;
-  const githubReady = !integrations?.githubRefreshError && typeof github?.connected === "boolean";
   const user = session?.user;
+  const canConnectGitHub = session?.authenticated && user?.id;
+  const githubReady = canConnectGitHub && githubIntegrationReady(integrations);
+  const githubProvider = Array.isArray(user?.providers) && user.providers.includes("github");
+  const needsGitHubAccount =
+    canConnectGitHub && Array.isArray(user?.providers) && !githubProvider;
   const emailProvider = Array.isArray(user?.providers) && user.providers.includes("email");
   const loginEmail = emailProvider && user?.emailVerified === true ? user.email : null;
   const canLinkEmail =
@@ -530,6 +568,30 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
           <section className="panel" aria-label={T("Sign-in methods", "登录方式")}>
             <h2>{T("Sign-in methods", "登录方式")}</h2>
             {loading && <p className="muted">{T("Loading...", "正在加载...")}</p>}
+            {canConnectGitHub && (
+              <div className="panel-actions">
+                <button
+                  className="btn sm"
+                  disabled={controlsDisabled}
+                  onClick={() =>
+                    runGitHubAction((signal) =>
+                      startGitHubLogin({ intent: "link", redirectTo: window.location.href, signal })
+                    )
+                  }
+                >
+                  <I.Github size={16} />{" "}
+                  {githubProvider || githubReconnectRequired
+                    ? T("Reconnect GitHub", "重新连接 GitHub")
+                    : T("Connect GitHub account", {
+                        zh: "连接 GitHub 账户",
+                        ja: "GitHub アカウントを接続",
+                        ko: "GitHub 계정 연결",
+                        fr: "Connecter un compte GitHub",
+                        es: "Conectar cuenta de GitHub",
+                      })}
+                </button>
+              </div>
+            )}
             {loginEmail ? (
               <>
                 <div className="set-row">
@@ -682,7 +744,17 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
           </section>
           <section className="panel" aria-label={T("GitHub access", "GitHub 授权")}>
             <h2>{T("GitHub access", "GitHub 授权")}</h2>
-            {!githubReady ? (
+            {canConnectGitHub && githubReconnectRequired ? (
+              <p className="muted">
+                {T("Reconnect GitHub in Sign-in methods, then check repository access again.", {
+                  zh: "请先在「登录方式」中重新连接 GitHub，再检查仓库授权。",
+                  ja: "ログイン方法で GitHub に再接続してから、リポジトリへのアクセスを確認してください。",
+                  ko: "로그인 방식에서 GitHub를 다시 연결한 뒤 저장소 접근 권한을 확인하세요.",
+                  fr: "Reconnectez GitHub dans les méthodes de connexion, puis vérifiez à nouveau l’accès aux dépôts.",
+                  es: "Vuelve a conectar GitHub en los métodos de inicio de sesión y comprueba de nuevo el acceso a los repositorios.",
+                })}
+              </p>
+            ) : !githubReady ? (
               <p className="muted">
                 {loading
                   ? T("Loading...", "正在加载...")
@@ -693,6 +765,16 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                       fr: "Les accès GitHub sont indisponibles.",
                       es: "El acceso a GitHub no está disponible.",
                     })}
+              </p>
+            ) : needsGitHubAccount ? (
+              <p className="muted">
+                {T("Connect your GitHub account in Sign-in methods before authorizing repositories.", {
+                  zh: "请先在「登录方式」中连接 GitHub 账户，再授权仓库。",
+                  ja: "リポジトリを認可する前に、ログイン方法で GitHub アカウントを接続してください。",
+                  ko: "저장소를 승인하기 전에 로그인 방식에서 GitHub 계정을 연결하세요.",
+                  fr: "Connectez votre compte GitHub dans les méthodes de connexion avant d’autoriser des dépôts.",
+                  es: "Conecta tu cuenta de GitHub en los métodos de inicio de sesión antes de autorizar repositorios.",
+                })}
               </p>
             ) : (
               <>

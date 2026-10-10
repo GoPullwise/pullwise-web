@@ -1,5 +1,20 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  // Explicit GitHub account linking and callback recovery.
+  "Loading Pullwise…": "Pullwise を読み込み中…",
+  "GitHub installation was not completed": "GitHub のインストールは完了していません",
+  "GitHub installation complete": "GitHub インストールが完了しました",
+  "You can close this window.": "このウィンドウを閉じてかまいません。",
+  "GitHub connection was not completed": "GitHub の接続は完了していません",
+  "The selected GitHub account does not match the GitHub account linked to your current Pullwise account, or it is already linked to another Pullwise account.": "選択した GitHub アカウントは現在の Pullwise アカウントに連携済みのアカウントと一致しないか、別の Pullwise アカウントに連携されています。",
+  "Your Pullwise session changed during GitHub authorization. Return to Pullwise, check which account is signed in, and try again.": "GitHub の認証中に Pullwise のセッションが変わりました。Pullwise に戻り、ログイン中のアカウントを確認して再試行してください。",
+  "GitHub authorization could not be completed. Return to Pullwise and try again from Settings. If the problem continues, contact support.": "GitHub の認証を完了できませんでした。Pullwise に戻り、設定から再試行してください。問題が続く場合はサポートにお問い合わせください。",
+  "On GitHub, switch to the GitHub account associated with your current Pullwise account, then return to Settings and retry. Shared-ledger admins authorize their own GitHub accounts. If this GitHub account belongs to another Pullwise account, sign in to that Pullwise account instead.": "GitHub で現在の Pullwise アカウントに対応するアカウントへ切り替え、設定に戻って再試行してください。共有台帳の管理者は自分の GitHub アカウントを認証します。この GitHub アカウントが別の Pullwise アカウントに属する場合は、そちらにログインしてください。",
+  "You can close this window and return to Pullwise to try again.": "このウィンドウを閉じて Pullwise に戻り、再試行できます。",
+  "Connect GitHub account": "GitHub アカウントを接続",
+  "Reconnect GitHub in Sign-in methods, then check repository access again.": "ログイン方法で GitHub に再接続してから、リポジトリへのアクセスを確認してください。",
+  "GitHub access unavailable.": "GitHub のアクセス情報を取得できません。",
+  "Connect your GitHub account in Sign-in methods before authorizing repositories.": "リポジトリを認可する前に、ログイン方法で GitHub アカウントを接続してください。",
   "Skip to content": "本文へスキップ",
   "Restoring your account if this browser is still signed in.":
     "このブラウザでまだサインインしている場合、アカウントを復元します。",

@@ -3,7 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../api/http.js";
 import { pullwiseApi } from "../api/pullwise.js";
-import { connectGitHubRepositories, manageGitHubInstallation, signOut } from "../lib/auth.js";
+import {
+  connectGitHubRepositories,
+  manageGitHubInstallation,
+  signOut,
+  startGitHubLogin,
+} from "../lib/auth.js";
 import { WorkspaceContext } from "../components/workspace-context.jsx";
 import { SettingsScreen } from "./settings.jsx";
 
@@ -23,6 +28,7 @@ vi.mock("../lib/auth.js", () => ({
   connectGitHubRepositories: vi.fn(),
   manageGitHubInstallation: vi.fn(),
   signOut: vi.fn(),
+  startGitHubLogin: vi.fn(),
 }));
 
 const session = {
@@ -47,6 +53,10 @@ const authorizationGuidance =
   "On GitHub, finish saving, then close the window or return to Pullwise. Repository access will be checked again.";
 const closedNotice = "GitHub window closed. Current repository access has been refreshed.";
 const noAccessNotice = "No repository access was found. Finish saving on GitHub and reconnect.";
+const reconnectGuidance =
+  "Reconnect GitHub in Sign-in methods, then check repository access again.";
+const linkAccountGuidance =
+  "Connect your GitHub account in Sign-in methods before authorizing repositories.";
 const githubAccess = () => within(screen.getByRole("region", { name: "GitHub access" }));
 const closedWithAccess = {
   status: "closed_unverified",
@@ -115,6 +125,7 @@ describe("product settings", () => {
     connectGitHubRepositories.mockResolvedValue(undefined);
     manageGitHubInstallation.mockResolvedValue(undefined);
     signOut.mockResolvedValue(undefined);
+    startGitHubLogin.mockResolvedValue(undefined);
   });
 
   it("shows account and read-only GitHub service onboarding without scan controls", async () => {
@@ -135,8 +146,142 @@ describe("product settings", () => {
     render(<SettingsScreen go={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("session unavailable");
     expect(screen.getByText("Account profile unavailable.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Connect GitHub account" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Connect repositories" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /^reload$/i }));
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
+  });
+
+  it("keeps account reconnect available when integration reads require reauthorization", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      ...session,
+      user: { ...session.user, emailVerified: true, providers: ["email"] },
+    });
+    pullwiseApi.integrations.list.mockRejectedValueOnce(
+      new ApiError("Reconnect your GitHub account before checking repository access.", {
+        status: 403,
+        payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } },
+      })
+    );
+    const authorization = deferred();
+    startGitHubLogin.mockReturnValueOnce(authorization.promise);
+    withLedgers();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Reconnect your GitHub account");
+    expect(screen.getByText("Verified email")).toBeVisible();
+    expect(githubAccess().getByText(reconnectGuidance)).toBeVisible();
+    expect(githubAccess().queryByText(/repositories authorized/i)).not.toBeInTheDocument();
+    expect(githubAccess().queryByRole("button", { name: "Connect repositories" })).not.toBeInTheDocument();
+    const signInMethods = within(screen.getByRole("region", { name: "Sign-in methods" }));
+    const reconnect = signInMethods.getByRole("button", { name: "Reconnect GitHub" });
+    expect(reconnect).toBeEnabled();
+    expect(startGitHubLogin).not.toHaveBeenCalled();
+    fireEvent.click(reconnect);
+    fireEvent.click(reconnect);
+    expect(startGitHubLogin).toHaveBeenCalledExactlyOnceWith({
+      intent: "link",
+      redirectTo: window.location.href,
+      signal: expect.any(AbortSignal),
+    });
+    expect(reconnect).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeDisabled();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
+    await act(async () => authorization.reject(new Error("GitHub authorize temporarily unavailable")));
+    expect(screen.getByRole("alert")).toHaveTextContent("GitHub authorize temporarily unavailable");
+    expect(reconnect).toBeEnabled();
+    expect(screen.getByRole("combobox", { name: "Select ledger" })).toBeEnabled();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+  });
+
+  it("offers account reauthorization for a successful integration read with no renewable credentials", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      githubAccess: "reauthorization_required",
+      github: { connected: false, repositories: [], installations: [] },
+    });
+    startGitHubLogin.mockRejectedValueOnce(new Error("authorization unavailable"));
+    render(<SettingsScreen go={vi.fn()} />);
+    const reconnect = await screen.findByRole("button", { name: "Reconnect GitHub" });
+    expect(githubAccess().getByText(reconnectGuidance)).toBeVisible();
+    expect(screen.getAllByRole("button", { name: "Reconnect GitHub" })).toHaveLength(1);
+    expect(githubAccess().queryByRole("button", { name: "Connect repositories" })).not.toBeInTheDocument();
+    expect(githubAccess().queryByText(/repositories authorized|repository links are optional/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(startGitHubLogin).not.toHaveBeenCalled();
+    fireEvent.click(reconnect);
+    expect(startGitHubLogin).toHaveBeenCalledExactlyOnceWith({
+      intent: "link",
+      redirectTo: window.location.href,
+      signal: expect.any(AbortSignal),
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent("authorization unavailable");
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+  });
+
+  it.each(["unavailable", "unknown_state"])(
+    "does not report repository success or demand account reconnect for %s refresh state",
+    async (githubAccessState) => {
+      pullwiseApi.auth.getSession.mockResolvedValue({
+        ...session,
+        user: { ...session.user, emailVerified: true, providers: ["email"] },
+      });
+      pullwiseApi.integrations.list.mockResolvedValue({
+        ...connectedGitHub,
+        githubAccess: githubAccessState,
+        githubRefreshRequired: true,
+      });
+      render(<SettingsScreen go={vi.fn()} />);
+      expect(await screen.findByRole("button", { name: "Connect GitHub account" })).toBeEnabled();
+      expect(githubAccess().getByText("GitHub access unavailable.")).toBeVisible();
+      expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
+      expect(githubAccess().queryByText(reconnectGuidance)).not.toBeInTheDocument();
+      expect(githubAccess().queryByText(/repositories authorized|repository links are optional/i)).not.toBeInTheDocument();
+      expect(githubAccess().queryByRole("button")).not.toBeInTheDocument();
+      expect(startGitHubLogin).not.toHaveBeenCalled();
+      expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    }
+  );
+
+  it("offers account linking to confirmed email accounts separately from repository installation", async () => {
+    pullwiseApi.auth.getSession.mockResolvedValue({
+      ...session,
+      user: { ...session.user, emailVerified: true, providers: ["email"] },
+    });
+    startGitHubLogin.mockRejectedValueOnce(new Error("authorization unavailable"));
+    render(<SettingsScreen go={vi.fn()} />);
+    const link = await screen.findByRole("button", { name: "Connect GitHub account" });
+    expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Connect repositories" })).not.toBeInTheDocument();
+    expect(githubAccess().getByText(linkAccountGuidance)).toBeVisible();
+    expect(startGitHubLogin).not.toHaveBeenCalled();
+    fireEvent.click(link);
+    expect(startGitHubLogin).toHaveBeenCalledExactlyOnceWith({
+      intent: "link",
+      redirectTo: window.location.href,
+      signal: expect.any(AbortSignal),
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent("authorization unavailable");
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledOnce();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
+  });
+
+  it("aborts account authorization on leaving Settings and discards its completion", async () => {
+    const authorization = deferred();
+    startGitHubLogin.mockReturnValueOnce(authorization.promise);
+    const view = render(<SettingsScreen go={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Reconnect GitHub" }));
+    const signal = startGitHubLogin.mock.calls[0][0].signal;
+    expect(signal.aborted).toBe(false);
+    view.unmount();
+    expect(signal.aborted).toBe(true);
+    await act(async () => authorization.resolve());
+    expect(pullwiseApi.auth.getSession).toHaveBeenCalledOnce();
+    expect(pullwiseApi.integrations.list).toHaveBeenCalledOnce();
   });
 
   it("shows a credential renewal outage without reporting zero authorized repositories", async () => {
@@ -521,6 +666,8 @@ describe("product settings", () => {
       "Reconnect your GitHub account before checking repository access."
     );
     expect(githubAccess().queryByRole("status")).not.toBeInTheDocument();
+    expect(githubAccess().getByText(reconnectGuidance)).toBeVisible();
+    expect(githubAccess().queryByRole("button", { name: "Connect repositories" })).not.toBeInTheDocument();
     expect(pullwiseApi.integrations.list).toHaveBeenCalledTimes(1);
   });
 

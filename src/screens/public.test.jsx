@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LandingScreen, LoginScreen, OAuthScreen } from "./public.jsx";
+import { GitHubOAuthFailureScreen, LandingScreen, LoginScreen, OAuthScreen } from "./public.jsx";
 import { pullwiseApi } from "../api/pullwise.js";
 import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
 import { NotificationProvider } from "../components/notifications.jsx";
@@ -35,6 +35,30 @@ const closedWithoutAccess = {
   repositories: { githubAccess: "not_linked", needsAuthorization: true, items: [] },
 };
 const signedIn = { authenticated: true, session: { user: { id: "account-a" } } };
+
+describe("GitHub account-link recovery", () => {
+  it.each([
+    ["en", "GitHub connection was not completed"],
+    ["zh", "GitHub 连接未完成"],
+    ["ja", "GitHub の接続は完了していません"],
+    ["ko", "GitHub 연결이 완료되지 않았습니다"],
+    ["fr", "La connexion GitHub n’a pas abouti"],
+    ["es", "La conexión con GitHub no se completó"],
+  ])("offers manual conflict recovery in %s without starting authorization", async (language, heading) => {
+    try {
+      await act(async () => setLang(language));
+      render(<GitHubOAuthFailureScreen code="GITHUB_IDENTITY_CONFLICT" />);
+      expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+      expect(screen.getByRole("alert")).not.toBeEmptyDOMElement();
+      expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(["/settings", "/login"]);
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+      expect(connectGitHubRepositories).not.toHaveBeenCalled();
+      expect(startGitHubLogin).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => setLang("en"));
+    }
+  });
+});
 
 describe("repository authorization outcomes", () => {
   beforeEach(() => {
