@@ -1,5 +1,36 @@
 # Pullwise Web
 
+## Phone layout and mobile compatibility (2026-10-10)
+
+The user approved compatibility fixes for common Safari and Android Chrome
+versions, with an independent, clean phone layout based on native app hierarchy.
+Phone widths through 760px use a compact topbar, three primary bottom tabs plus
+the native More account/tools selector, single-column forms and lists, and one
+collapsible Display options icon in the topbar. Public phone pages keep the
+collapsed floating entry with clear footer space. iPad and desktop use the same sidebar and
+component system. This supersedes older horizontal mobile-sidebar and separate
+mobile floating-control layout requirements. Preserve the original flat palette,
+six locales, exact money, scoped access, drafts and mutation/navigation guards.
+
+Respect safe areas and reserve the measured bottom-navigation border box; do not
+count its safe-area padding twice. Touch controls are at least 44px and text
+inputs 16px, including touch-capable tablets with a mouse. Phone forms use 48px
+controls. Shared modals lock background scrolling and focus, scroll their own
+body, keep footer actions visible, and use VisualViewport height/offset while
+open. Phone modals meet the bottom safe area; tablet/desktop modals retain the
+shared centered presentation. Charts provide visible 44px previous/next actions.
+
+Run `npm run test:mobile-layout` after a finished build, alongside the existing
+date and Billing layout checks. Its Chromium/WebKit cases use bounded loopback
+GET-only fixtures. Record real coarse-pointer and maxTouchPoints values without
+overriding navigator; Linux WebKit can establish engine/geometry evidence with
+zero reported touch points, not physical iOS touch acceptance. Native keyboards,
+browser chrome, OAuth returns and downloads still need physical device checks.
+
+The user subsequently requested a GitHub main push and Cloudflare publication.
+Use the established Web preview workflow at preview.pull-wise.com and record
+the merged source, local verification and finite static publication readback.
+
 ## Automatic GitHub credential renewal (2026-10-10)
 
 The user explicitly requests automatic renewal of expiring GitHub authorization.

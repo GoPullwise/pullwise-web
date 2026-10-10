@@ -37,7 +37,7 @@ function readout(currency) {
 }
 
 function points(currency) {
-  return within(chart(currency)).getAllByRole("button");
+  return within(chart(currency).querySelector(".expense-chart-svg")).getAllByRole("button");
 }
 
 function movePointer(node, clientX, pointerType = "mouse") {
@@ -52,6 +52,30 @@ afterEach(() => {
 });
 
 describe("ExpenseCharts", () => {
+  it("lets touch users inspect dense data using visible steps without moving focus into the plot", () => {
+    render(
+      fixture({
+        groups: [
+          { bucket: "2026-10-01", currency: "USD", amountMinor: "100" },
+          { bucket: "2026-10-02", currency: "USD", amountMinor: "200" },
+          { bucket: "2026-10-03", currency: "USD", amountMinor: "300" },
+        ],
+      })
+    );
+    const stepper = screen.getByRole("group", { name: "Value navigation · USD" });
+    const previous = within(stepper).getByRole("button", { name: "Previous value" });
+    const next = within(stepper).getByRole("button", { name: "Next value" });
+    expect(next).toBeDisabled();
+    previous.focus();
+    fireEvent.click(previous);
+    expect(previous).toHaveFocus();
+    expect(readout("USD")).toHaveTextContent("2026-10-02USD 2.00");
+    fireEvent.click(previous);
+    expect(previous).toBeDisabled();
+    expect(readout("USD")).toHaveTextContent("2026-10-01USD 1.00");
+    fireEvent.click(next);
+    expect(readout("USD")).toHaveTextContent("2026-10-02USD 2.00");
+  });
   it("places chronological dates at their real calendar distances without inserting dates", () => {
     render(
       fixture({
@@ -254,17 +278,12 @@ describe("ExpenseCharts", () => {
             removedAt: "2026-10-08T00:00:00Z",
           },
         ],
-        groups: [
-          { categoryId: "cat_removed", currency: "USD", amountMinor: "123" },
-        ],
-      }),
+        groups: [{ categoryId: "cat_removed", currency: "USD", amountMinor: "123" }],
+      })
     );
     expect(readout("USD")).toHaveTextContent("Past tools (Removed)");
     expect(readout("USD")).toHaveTextContent("1.23");
-    expect(points("USD")[0]).toHaveAttribute(
-      "data-label",
-      "Past tools (Removed)",
-    );
+    expect(points("USD")[0]).toHaveAttribute("data-label", "Past tools (Removed)");
   });
 
   it("uses an archived category fallback without inventing a category or amount", () => {

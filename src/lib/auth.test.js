@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pullwiseApi } from "../api/pullwise.js";
+import { captureGitHubRefreshScope, setGitHubRefreshIdentity } from "../api/github-refresh.js";
 import { connectGitHubRepositories, manageGitHubInstallation, startGitHubLogin } from "./auth.js";
 import {
   clearGitHubRepositoryAccessRefreshNeeded,
@@ -50,8 +51,11 @@ function redirectParam(call, name) {
 describe("auth redirects", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    setGitHubRefreshIdentity(null);
+    setGitHubRefreshIdentity("usr_one");
     window.history.replaceState({}, "", "/?screen=login#ignored");
   });
+  afterEach(() => setGitHubRefreshIdentity(null));
 
   it("returns from GitHub login to the dashboard so slow session checks show a neutral restore state", async () => {
     pullwiseApi.auth.getGitHubAuthorizeUrl.mockRejectedValueOnce(new Error("stop"));
@@ -265,7 +269,9 @@ describe("auth redirects", () => {
       expect.anything()
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
-      "https://api.pull-wise.com/integrations/github/manage/start?state=abc"
+      "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
+      undefined,
+      { scope: captureGitHubRefreshScope(), signal: undefined }
     );
     expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
   });
@@ -292,12 +298,13 @@ describe("auth redirects", () => {
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
       "https://api.pull-wise.com/integrations/github/manage/start?state=abc",
-      { installationId: "999", githubIdentityId: "ghi_1", requireCloseSyncReady: true }
+      { installationId: "999", githubIdentityId: "ghi_1", requireCloseSyncReady: true },
+      { scope: captureGitHubRefreshScope(), signal: undefined }
     );
-    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith({
-      installationId: "999",
-      githubIdentityId: "ghi_1",
-    });
+    expect(pullwiseApi.repositories.sync).toHaveBeenCalledWith(
+      { installationId: "999", githubIdentityId: "ghi_1" },
+      { scope: captureGitHubRefreshScope(), signal: undefined }
+    );
   });
 
   it("does not arm automatic repository refresh while a manage popup can still be cancelled", async () => {
@@ -373,7 +380,9 @@ describe("auth redirects", () => {
       expect.anything()
     );
     expect(openGitHubInstallPopup).toHaveBeenCalledWith(
-      "https://api.pull-wise.com/integrations/github/install/start?state=abc"
+      "https://api.pull-wise.com/integrations/github/install/start?state=abc",
+      undefined,
+      { scope: captureGitHubRefreshScope(), signal: undefined }
     );
   });
 
@@ -420,5 +429,96 @@ describe("auth redirects", () => {
 
     expect(markGitHubRepositoryAccessRefreshNeeded).toHaveBeenCalledTimes(1);
     expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+  });
+
+  it.each(["connect", "manage"])(
+    "does not sync or alter the new account's refresh flag after an old %s popup completes",
+    async (kind) => {
+      const url = "https://api.pull-wise.com/integrations/github/install/start?state=abc";
+      pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({ url });
+      pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({ url });
+      let completePopup;
+      openGitHubInstallPopup.mockReturnValueOnce(new Promise((resolve) => { completePopup = resolve; }));
+      const controller = new AbortController();
+      const scope = captureGitHubRefreshScope();
+      const completion = kind === "connect"
+        ? connectGitHubRepositories({ signal: controller.signal })
+        : manageGitHubInstallation("999", { signal: controller.signal });
+      const aborted = expect(completion).rejects.toMatchObject({ name: "AbortError" });
+      await vi.waitFor(() => expect(openGitHubInstallPopup).toHaveBeenCalledTimes(1));
+      expect(openGitHubInstallPopup.mock.calls[0][2]).toEqual({ scope, signal: controller.signal });
+      markGitHubRepositoryAccessRefreshNeeded.mockClear();
+      clearGitHubRepositoryAccessRefreshNeeded.mockClear();
+
+      setGitHubRefreshIdentity("usr_two");
+      const newScope = captureGitHubRefreshScope();
+      completePopup();
+      await aborted;
+
+      // Sync is the only entry to renewal here; abandoning it prevents either request.
+      expect(pullwiseApi.repositories.sync).not.toHaveBeenCalled();
+      expect(markGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+      expect(clearGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+      expect(newScope.controller.signal.aborted).toBe(false);
+    }
+  );
+
+  it.each(["connect", "manage"])(
+    "preserves the initiating account scope and caller signal for a successful %s popup",
+    async (kind) => {
+      const url = "https://api.pull-wise.com/integrations/github/install/start?state=abc";
+      pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({ url });
+      pullwiseApi.integrations.createGitHubInstallationManageSession.mockResolvedValueOnce({ url });
+      openGitHubInstallPopup.mockResolvedValueOnce(undefined);
+      pullwiseApi.repositories.sync.mockResolvedValueOnce({
+        needsAuthorization: false,
+        items: [{ id: "repo_1" }],
+      });
+      const scope = captureGitHubRefreshScope();
+      const controller = new AbortController();
+
+      if (kind === "connect") await connectGitHubRepositories({ signal: controller.signal });
+      else await manageGitHubInstallation("999", { signal: controller.signal });
+
+      expect(pullwiseApi.repositories.sync).toHaveBeenCalledTimes(1);
+      expect(pullwiseApi.repositories.sync.mock.calls[0][1]).toEqual({ scope, signal: controller.signal });
+      expect(clearGitHubRepositoryAccessRefreshNeeded).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it("discards an authorization URL that arrives after its account changed", async () => {
+    let receiveUrl;
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockReturnValueOnce(new Promise((resolve) => {
+      receiveUrl = resolve;
+    }));
+    const completion = connectGitHubRepositories();
+    const aborted = expect(completion).rejects.toMatchObject({ name: "AbortError" });
+
+    setGitHubRefreshIdentity("usr_two");
+    receiveUrl({ url: "https://github.com/apps/pullwise/installations/new" });
+    await aborted;
+
+    expect(openGitHubInstallPopup).not.toHaveBeenCalled();
+    expect(pullwiseApi.repositories.sync).not.toHaveBeenCalled();
+    expect(markGitHubRepositoryAccessRefreshNeeded).not.toHaveBeenCalled();
+  });
+
+  it("preserves caller cancellation while waiting for a repository popup", async () => {
+    pullwiseApi.integrations.getGitHubAuthorizeUrl.mockResolvedValueOnce({
+      url: "https://github.com/apps/pullwise/installations/new",
+    });
+    let completePopup;
+    openGitHubInstallPopup.mockReturnValueOnce(new Promise((resolve) => { completePopup = resolve; }));
+    const controller = new AbortController();
+    const completion = connectGitHubRepositories({ signal: controller.signal });
+    const aborted = expect(completion).rejects.toMatchObject({ name: "AbortError" });
+    await vi.waitFor(() => expect(openGitHubInstallPopup).toHaveBeenCalledTimes(1));
+
+    controller.abort();
+    completePopup();
+    await aborted;
+
+    expect(pullwiseApi.repositories.sync).not.toHaveBeenCalled();
+    expect(clearGitHubRepositoryAccessRefreshNeeded).toHaveBeenCalledTimes(1);
   });
 });

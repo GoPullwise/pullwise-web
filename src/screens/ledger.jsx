@@ -28,6 +28,7 @@ import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import { connectGitHubRepositories, startGitHubLogin } from "../lib/auth.js";
 import { screenLinkProps } from "../lib/navigation.js";
+import { normalizeDecimalInput } from "../lib/decimal-input.js";
 import { Topbar, Sidebar, ViewTabs } from "../shell.jsx";
 import "./ledger.css";
 
@@ -616,6 +617,8 @@ function ExpenseForm({
   const categoryFieldId = useId();
   const expenseTypeId = useId();
   const recurringDateHelpId = useId();
+  const decimalHelpId = useId();
+  const validationId = useId();
   const [expenseType, setExpenseType] = useState(recurrence ? "recurring" : "one-time");
   const [schedule, setSchedule] = useState(() => {
     const now = new Date();
@@ -651,9 +654,13 @@ function ExpenseForm({
       : emptyExpense()
   );
   const [validation, setValidation] = useState("");
+  const [invalidDecimal, setInvalidDecimal] = useState("");
   const [automaticCategory, setAutomaticCategory] = useState(false);
   const [requiresCategory, setRequiresCategory] = useState(false);
   const categoryRef = useRef(null);
+  const amountRef = useRef(null);
+  const quantityRef = useRef(null);
+  const detailsRef = useRef(null);
   const mounted = useRef(false);
   const createKey = useRef(requestKey());
   useEffect(() => {
@@ -689,6 +696,7 @@ function ExpenseForm({
   const update = (name, next) => {
     createKey.current = requestKey();
     setValidation("");
+    setInvalidDecimal("");
     setDraft((old) => ({ ...old, [name]: next }));
   };
   const field = (name, label, extra = {}) => (
@@ -715,7 +723,22 @@ function ExpenseForm({
       setValidation(T("Date, amount, currency, category and purpose are required."));
       return;
     }
+    const amount = normalizeDecimalInput(draft.amount);
+    const quantity = draft.quantity.trim() ? normalizeDecimalInput(draft.quantity) : null;
+    if (amount === null || (draft.quantity.trim() && quantity === null)) {
+      const field = amount === null ? "amount" : "quantity";
+      setInvalidDecimal(field);
+      setValidation(
+        field === "amount"
+          ? T("Enter an amount without thousands separators. Use 12.50 or 12,50; use a dot for three or more decimal places.")
+          : T("Enter a quantity without thousands separators. Use 12.50 or 12,50; use a dot for three or more decimal places.")
+      );
+      if (field === "quantity" && detailsRef.current) detailsRef.current.open = true;
+      (field === "amount" ? amountRef : quantityRef).current?.focus();
+      return;
+    }
     setValidation("");
+    setInvalidDecimal("");
     const recurringSchedule =
       expenseType === "recurring"
         ? {
@@ -737,12 +760,12 @@ function ExpenseForm({
       {
         target: value?.target || target,
         ...(recurringSchedule ? {} : { occurredOn: draft.occurredOn }),
-        amount: draft.amount,
+        amount,
         currency: draft.currency.toUpperCase(),
         ...(draft.categoryId ? { categoryId: draft.categoryId } : {}),
         purpose: draft.purpose.trim(),
         note: draft.note || null,
-        quantity: draft.quantity || null,
+        quantity,
         unit: draft.unit || null,
       },
       createKey.current,
@@ -791,9 +814,12 @@ function ExpenseForm({
           }
         )}
         {field("amount", T("Amount"), {
+          ref: amountRef,
           inputMode: "decimal",
           required: true,
           placeholder: "12.00",
+          "aria-describedby": `${decimalHelpId}${invalidDecimal === "amount" ? ` ${validationId}` : ""}`,
+          "aria-invalid": invalidDecimal === "amount" || undefined,
         })}
         {field("currency", T("Currency"), { maxLength: 3, required: true })}
         <div className="ledger-field">
@@ -828,6 +854,9 @@ function ExpenseForm({
           </select>
         </div>
       </div>
+      <p className="ledger-help" id={decimalHelpId}>
+        {T("Decimals: 12.50 or 12,50. No thousands separators; use a dot for three or more decimal places.")}
+      </p>
       {expenseType === "recurring" && (
         <>
           <RecurringScheduleFields
@@ -891,12 +920,18 @@ function ExpenseForm({
         placeholder: T("e.g. September hosting", "例如：九月托管费用"),
       })}
       <details
+        ref={detailsRef}
         className="disclosure"
         open={Boolean(value?.quantity || value?.unit || value?.note) || undefined}
       >
         <summary>{T("More details (optional)", "更多信息（选填）")}</summary>
         <div className="ledger-fields">
-          {field("quantity", T("Quantity (optional)", "数量（选填）"), { inputMode: "decimal" })}
+          {field("quantity", T("Quantity (optional)", "数量（选填）"), {
+            ref: quantityRef,
+            inputMode: "decimal",
+            "aria-describedby": `${decimalHelpId}${invalidDecimal === "quantity" ? ` ${validationId}` : ""}`,
+            "aria-invalid": invalidDecimal === "quantity" || undefined,
+          })}
           {field("unit", T("Unit (optional)", "单位（选填）"), {
             maxLength: 40,
             placeholder: T("e.g. hours or requests", "例如：小时、次"),
@@ -913,7 +948,7 @@ function ExpenseForm({
           />
         </div>
       </details>
-      {validation && <p role="alert">{validation}</p>}
+      {validation && <p role="alert" id={validationId}>{validation}</p>}
       <div className="ledger-actions">
         <button className="btn primary" type="submit" disabled={busy || submitDisabled}>
           {expenseType === "recurring" ? T("Save schedule", "保存周期计划") : T("Save expense")}

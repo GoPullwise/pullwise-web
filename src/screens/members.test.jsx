@@ -821,7 +821,7 @@ describe("Members screen", () => {
     expect(projects).not.toHaveAttribute("href");
     fireEvent.click(projects);
     expect(go).not.toHaveBeenCalled();
-    expect(screen.getByRole("combobox", { name: "Account & tools" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "More · Account & tools" })).toBeDisabled();
     expect(screen.getByText("Bob")).toBeVisible();
     expect(screen.getByText("Bob").closest("article")).not.toHaveAttribute("inert");
     await act(async () => pending.resolve({ ...editor, role: "viewer", revision: 4 }));

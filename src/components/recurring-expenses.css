@@ -70,3 +70,26 @@
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 760px) {
+  .ledger-screen .recurring-expenses-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .recurring-expenses-side {
+    justify-items: start;
+    width: 100%;
+  }
+  .recurring-expenses-side .panel-actions {
+    justify-content: flex-start;
+    gap: 8px 12px;
+  }
+  .recurring-expenses-side .panel-actions > .btn {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .recurring-delete-action > button {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

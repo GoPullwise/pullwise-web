@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { ConfirmDialog } from "./confirm-dialog.jsx";
@@ -45,4 +45,31 @@ it("restores the opener after the background stops being inert", async () => {
   } finally {
     focus.mockRestore();
   }
+});
+
+it("keeps a busy confirmation open and focused without blocking its readable body", async () => {
+  const cancel = vi.fn();
+  const confirm = vi.fn();
+  render(
+    <ConfirmDialog
+      open
+      busy
+      title="Cancel renewal?"
+      description="Read the complete cancellation terms."
+      confirmLabel="Confirm"
+      cancelLabel="Cancel"
+      onConfirm={confirm}
+      onCancel={cancel}
+    />
+  );
+  const dialog = screen.getByRole("dialog");
+  await waitFor(() => expect(dialog).toHaveFocus());
+  fireEvent.keyDown(dialog, { key: "Tab" });
+  expect(dialog).toHaveFocus();
+  fireEvent.keyDown(dialog, { key: "Escape" });
+  fireEvent.click(dialog.closest(".modal-back"));
+  expect(cancel).not.toHaveBeenCalled();
+  expect(confirm).not.toHaveBeenCalled();
+  expect(screen.getByText("Read the complete cancellation terms.")).toBeVisible();
+  expect(dialog.closest(".modal-back")).not.toHaveAttribute("inert");
 });

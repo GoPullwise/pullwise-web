@@ -69,4 +69,81 @@ describe("GitHub repository access refresh storage", () => {
       visibility.mockRestore();
     }
   });
+
+  it("refreshes pending access on a BFCache return without repeating normal page loads or completed work", async () => {
+    const onRefresh = vi.fn().mockResolvedValue(undefined);
+    const { unmount } = renderHook(() => useGitHubRepositoryAccessAutoRefresh(onRefresh));
+
+    try {
+      markGitHubRepositoryAccessRefreshNeeded();
+      act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: false })));
+      expect(onRefresh).not.toHaveBeenCalled();
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(true);
+
+      act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(githubRepositoryAccessRefreshNeeded()).toBe(false));
+
+      act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+    } finally {
+      unmount();
+    }
+
+    markGitHubRepositoryAccessRefreshNeeded();
+    act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(githubRepositoryAccessRefreshNeeded()).toBe(true);
+  });
+
+  it("waits for a visible BFCache return and shares one refresh across concurrent return events", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    let finishRefresh;
+    const onRefresh = vi.fn(() => new Promise((resolve) => { finishRefresh = resolve; }));
+    markGitHubRepositoryAccessRefreshNeeded();
+    const { unmount } = renderHook(() => useGitHubRepositoryAccessAutoRefresh(onRefresh));
+
+    try {
+      act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      expect(onRefresh).not.toHaveBeenCalled();
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(true);
+
+      visibility.mockReturnValue("visible");
+      act(() => {
+        window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+        window.dispatchEvent(new Event("focus"));
+        document.dispatchEvent(new Event("visibilitychange"));
+        window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+      });
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(true);
+
+      await act(async () => finishRefresh());
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(false);
+    } finally {
+      unmount();
+      visibility.mockRestore();
+    }
+  });
+
+  it("keeps a failed BFCache refresh pending and retries it on the next persisted return", async () => {
+    const onRefresh = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("sync unavailable"))
+      .mockResolvedValueOnce(undefined);
+    const { unmount } = renderHook(() => useGitHubRepositoryAccessAutoRefresh(onRefresh));
+
+    try {
+      markGitHubRepositoryAccessRefreshNeeded();
+      await act(async () => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(true);
+
+      await act(async () => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      expect(onRefresh).toHaveBeenCalledTimes(2);
+      expect(githubRepositoryAccessRefreshNeeded()).toBe(false);
+    } finally {
+      unmount();
+    }
+  });
 });

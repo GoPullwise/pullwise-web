@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { I } from "../icons.jsx";
 import { useModalFocus } from "../lib/modal-focus.js";
 
@@ -22,17 +22,10 @@ export function ConfirmDialog({
     open,
     dialogRef,
     initialFocusRef: cancelRef,
+    backgroundRef,
     onClose: onCancel,
+    busy,
   });
-
-  useEffect(() => {
-    const background = backgroundRef?.current;
-    if (!background) return undefined;
-    background.inert = Boolean(open);
-    return () => {
-      background.inert = false;
-    };
-  }, [backgroundRef, open]);
 
   if (!open) return null;
 
@@ -50,6 +43,7 @@ export function ConfirmDialog({
         ref={dialogRef}
         className={"modal confirm-dialog" + (danger ? " confirm-dialog-danger" : "")}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}

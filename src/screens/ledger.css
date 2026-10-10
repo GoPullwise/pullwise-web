@@ -670,14 +670,104 @@
     border-bottom: 0;
   }
 }
-@media (max-width: 760px) {
-  .ledger-project-identity {
-    flex-basis: auto;
+@media (any-pointer: coarse) {
+  .ledger-screen .ledger-category-title > .ledger-category-rename {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+  .ledger-project-shortcuts > a,
+  .ledger-project-shortcuts > .ledger-project-repositories > summary {
+    min-height: 44px;
+  }
+  .ledger-search > .btn {
+    flex-basis: 44px;
+    width: 44px;
+  }
+  .ledger-screen .disclosure > summary {
+    min-height: 44px;
+  }
+  .ledger-screen .main input:not([type="checkbox"]),
+  .ledger-screen .main select,
+  .ledger-screen .btn {
+    min-height: 44px;
   }
   .ledger-screen .main input:not([type="checkbox"]),
   .ledger-screen .main select,
   .ledger-screen .main textarea {
     font-size: var(--fs-2xl);
+  }
+  .ledger-screen .main .api-scope-row {
+    min-height: 44px;
+  }
+}
+@media (max-width: 760px) {
+  .ledger-project-identity {
+    flex-basis: auto;
+  }
+  .ledger-project-identity > .ledger-project-shortcuts {
+    gap: 8px 16px;
+    margin-top: 16px;
+  }
+  .ledger-project-shortcuts > .ledger-meta {
+    flex-basis: 100%;
+  }
+  .ledger-screen .page-h .actions > .btn[aria-label] {
+    flex-basis: 44px;
+  }
+  .ledger-screen .ledger-form {
+    gap: 24px;
+  }
+  .ledger-screen .ledger-fields,
+  .ledger-screen .ledger-filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .ledger-screen .main input:not([type="checkbox"]),
+  .ledger-screen .main select,
+  .ledger-screen .main textarea {
+    font-size: var(--fs-2xl);
+    min-height: 48px;
+  }
+  .ledger-screen .main textarea {
+    min-height: 112px;
+  }
+  .ledger-screen .btn {
+    min-height: 48px;
+  }
+  .ledger-screen .main .ledger-filter-strip input,
+  .ledger-screen .ledger-filter-strip select {
+    min-height: 48px;
+    padding: 10px 12px;
+  }
+  .ledger-search {
+    min-height: 48px;
+  }
+  .ledger-screen .ledger-form > .ledger-actions,
+  .ledger-screen .ledger-form > .panel-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .ledger-screen .ledger-form > :is(.ledger-actions, .panel-actions) > .btn {
+    width: 100%;
+  }
+  .ledger-view-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  .ledger-view-toolbar > .view-tabs {
+    width: 100%;
+  }
+  .ledger-view-controls {
+    margin-bottom: 0;
+  }
+  .ledger-view-controls > .btn {
+    flex: 1 1 120px;
   }
   .ledger-screen .ledger-categories .page-h {
     display: grid;
@@ -707,6 +797,17 @@
   .ledger-screen .ledger-entry {
     --ledger-split-header-gap: 24px;
   }
+  .ledger-screen .ledger-list > article {
+    padding-block: 24px;
+  }
+  .ledger-screen .ledger-list h3,
+  .ledger-screen .ledger-your-projects .ledger-list h2 {
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .ledger-screen .ledger-category-title > h3 {
+    margin-bottom: 0;
+  }
   .setup-steps {
     gap: 12px;
   }
@@ -732,43 +833,13 @@
   }
   .ledger-screen .ledger-expense-row > .ledger-row-side {
     justify-items: start;
+    width: 100%;
   }
   .ledger-screen .ledger-row-side > .ledger-actions {
     justify-content: flex-start;
   }
   .ledger-screen .ledger-amount {
     --financial-size: var(--fs-value-row-compact);
-  }
-}
-@media (pointer: coarse) {
-  .ledger-screen .ledger-category-title > .ledger-category-rename {
-    flex-basis: 44px;
-    width: 44px;
-    height: 44px;
-  }
-  .ledger-project-shortcuts > a,
-  .ledger-project-shortcuts > .ledger-project-repositories > summary {
-    min-height: 44px;
-  }
-  .ledger-search > .btn {
-    flex-basis: 44px;
-    width: 44px;
-  }
-  .ledger-screen .disclosure > summary {
-    min-height: 44px;
-  }
-  .ledger-screen .main input:not([type="checkbox"]),
-  .ledger-screen .main select,
-  .ledger-screen .btn {
-    min-height: 44px;
-  }
-  .ledger-screen .main input:not([type="checkbox"]),
-  .ledger-screen .main select,
-  .ledger-screen .main textarea {
-    font-size: var(--fs-2xl);
-  }
-  .ledger-screen .main .api-scope-row {
-    min-height: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

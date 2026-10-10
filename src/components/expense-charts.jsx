@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { CurrencyBadge, FinancialValue } from "./financial-value.jsx";
+import { I } from "../icons.jsx";
 import { categoryDisplayName } from "../lib/category-label.js";
 import "./expense-charts.css";
 
@@ -17,14 +18,7 @@ function bucketTime(bucket) {
     : null;
 }
 
-function currencySeries(
-  groups,
-  dimension,
-  categories,
-  minorAmount,
-  archivedLabel,
-  removedLabel,
-) {
+function currencySeries(groups, dimension, categories, minorAmount, archivedLabel, removedLabel) {
   const series = new Map();
   let unavailable = false;
   for (const row of Array.isArray(groups) ? groups : []) {
@@ -176,6 +170,35 @@ function CurrencyChart({ currency, points, dimension, formatTotal, title }) {
           className="expense-chart-value"
         />
       </div>
+      {points.length > 1 && (
+        <div
+          className="expense-chart-stepper"
+          role="group"
+          aria-label={`${T("Value navigation")} · ${currency}`}
+        >
+          <button
+            type="button"
+            className="btn ghost sm"
+            aria-label={T("Previous value")}
+            disabled={selectedIndex === 0}
+            onClick={() => select(selectedIndex - 1)}
+          >
+            <I.ArrowL size={18} aria-hidden="true" />
+          </button>
+          <span aria-hidden="true">
+            {selectedIndex + 1} / {points.length}
+          </span>
+          <button
+            type="button"
+            className="btn ghost sm"
+            aria-label={T("Next value")}
+            disabled={selectedIndex === points.length - 1}
+            onClick={() => select(selectedIndex + 1)}
+          >
+            <I.ArrowR size={18} aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <div className="expense-chart-plot" ref={plotRef}>
         <svg
           className="expense-chart-svg"
@@ -309,16 +332,8 @@ export function ExpenseCharts({
   const archivedLabel = T("Archived category");
   const removedLabel = T("Removed", "已移除");
   const { series, unavailable } = useMemo(
-    () =>
-      currencySeries(
-        groups,
-        dimension,
-        categories,
-        minorAmount,
-        archivedLabel,
-        removedLabel,
-      ),
-    [groups, dimension, categories, minorAmount, archivedLabel, removedLabel],
+    () => currencySeries(groups, dimension, categories, minorAmount, archivedLabel, removedLabel),
+    [groups, dimension, categories, minorAmount, archivedLabel, removedLabel]
   );
   if (!series.length) {
     return (

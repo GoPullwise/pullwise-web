@@ -580,19 +580,40 @@ async function checkPresentation(page, name) {
       [DEVELOPMENT_URL, PRODUCT_URL],
       `${name}: project shortcut destinations changed`
     );
-    for (const content of [header.title, header.description, ...header.items]) {
+    const headerContents = [header.title, header.description, ...header.items];
+    for (const content of headerContents) {
       assert(
         inside(content.rect, header.identity.rect),
         `${name}: project header item escapes identity bounds ${details}`
       );
       for (const fragment of content.fragments) {
+        // Range boxes include the font's ascender/descender space, which can
+        // exceed a compact heading's CSS line box. Keep the full inline bounds
+        // and main-page bounds, reject clipping, and retain action overlap checks.
         assert(
-          inside(fragment, header.identity.rect),
+          insideInline(fragment, header.identity.rect) && inside(fragment, header.main),
           `${name}: project header text overflows identity bounds ${details}`
         );
+        for (const part of [content, header.identity]) {
+          const clipsInline = part.overflowX !== "visible" || part.textOverflow === "ellipsis";
+          const clipsBlock = part.overflowY !== "visible";
+          assert(
+            (!clipsInline || insideInline(fragment, part.rect)) &&
+              (!clipsBlock ||
+                (fragment.top >= part.rect.top - tolerance &&
+                  fragment.bottom <= part.rect.bottom + tolerance)),
+            `${name}: project header content can be clipped ${details}`
+          );
+        }
         assert(
           header.actions.every((action) => !overlaps(fragment, action)),
           `${name}: project header text overlaps its actions ${details}`
+        );
+        assert(
+          headerContents
+            .filter((sibling) => sibling !== content)
+            .every((sibling) => !overlaps(fragment, sibling.rect)),
+          `${name}: project header text overlaps adjacent content ${details}`
         );
       }
     }
@@ -664,6 +685,30 @@ async function negativeControl(page, report) {
   }
   report.negativeControl = "24px injected overflow rejected; inline style restored";
   await measure(page, report, "negative-control-restored");
+}
+
+async function negativeHeaderControl(page, report) {
+  const heading = page.locator(".ledger-project-identity h1");
+  const oldStyle = await heading.getAttribute("style");
+  try {
+    await heading.evaluate((element) => {
+      element.style.setProperty("overflow", "hidden");
+      element.style.setProperty("width", "24px");
+      element.style.setProperty("height", "8px");
+    });
+    await assert.rejects(
+      () => checkPresentation(page, "injected clipped project title"),
+      /project header content can be clipped/,
+      "Presentation checker did not reject a clipped project title"
+    );
+  } finally {
+    await heading.evaluate((element, style) => {
+      if (style === null) element.removeAttribute("style");
+      else element.setAttribute("style", style);
+    }, oldStyle);
+  }
+  await checkPresentation(page, "project title clipping restored");
+  report.headerNegativeControl = "Injected title clipping rejected; inline style restored";
 }
 
 function paneTargets(page, panelSelector) {
@@ -865,6 +910,8 @@ async function checkScope(page, report, mode) {
   await toggle.click();
   await measure(page, report, `${mode}-filters-empty`);
   if (!report.negativeControl) await negativeControl(page, report);
+  if (mode === "project" && !report.headerNegativeControl)
+    await negativeHeaderControl(page, report);
   const filters = page.locator(".ledger-filter-strip");
   await filters.locator('input[type="date"]').nth(0).fill("2026-09-01");
   await filters.locator('input[type="date"]').nth(1).fill("2026-11-01");
@@ -1463,7 +1510,9 @@ async function checkCategories(page, report) {
   await measureCategories(page, report, `categories-long-title-pencil-live-${narrow}`);
   await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
   const archivedRemoveLabel = `${report.profile.lang === "zh" ? "移除" : "Remove"} ${ARCHIVED_CATEGORY_NAME}`;
-  const archivedRemove = rows.nth(2).getByRole("button", { name: archivedRemoveLabel, exact: true });
+  const archivedRemove = rows
+    .nth(2)
+    .getByRole("button", { name: archivedRemoveLabel, exact: true });
   await archivedRemove.click();
   const confirmRemoveLabel = `${report.profile.lang === "zh" ? "确认移除" : "Confirm remove"} ${ARCHIVED_CATEGORY_NAME}`;
   const confirmRemove = rows.nth(2).getByRole("button", { name: confirmRemoveLabel, exact: true });

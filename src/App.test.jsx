@@ -868,6 +868,121 @@ it("preserves preference focus while an authenticated workspace loads", async ()
   expect(language).toHaveFocus();
 });
 
+it("supports the language menu keyboard sequence and restores its opener", async () => {
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true });
+  const user = userEvent.setup();
+  render(<App />);
+  const opener = screen.getByRole("button", { name: "Select language" });
+  opener.focus();
+  await user.keyboard("{Enter}");
+  const options = screen.getAllByRole("menuitemradio");
+  expect(options[0]).toHaveFocus();
+  await user.keyboard("{ArrowDown}");
+  expect(options[1]).toHaveFocus();
+  await user.keyboard("{End}");
+  expect(options.at(-1)).toHaveFocus();
+  await user.keyboard("{ArrowDown}");
+  expect(options[0]).toHaveFocus();
+  await user.keyboard("{Home}{Enter}");
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  expect(opener).toHaveFocus();
+  await user.keyboard("{ArrowUp}");
+  expect(screen.getAllByRole("menuitemradio").at(-1)).toHaveFocus();
+  await user.keyboard("{Escape}");
+  expect(opener).toHaveFocus();
+  await user.keyboard("{Enter}{Tab}");
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Toggle theme" })).toHaveFocus();
+});
+
+it("collapses phone display controls and keeps nested menu dismissal separate", async () => {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query) => ({
+      matches: query === "(max-width: 760px)",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  );
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated: true });
+  const user = userEvent.setup();
+  render(<App />);
+  const disclosure = screen.getByRole("button", { name: "Display options" });
+  expect(disclosure).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("button", { name: "Select language" })).not.toBeInTheDocument();
+  await user.click(disclosure);
+  const language = screen.getByRole("button", { name: "Select language" });
+  expect(language).toHaveFocus();
+  await user.keyboard("{Enter}{Escape}");
+  expect(language).toHaveFocus();
+  expect(disclosure).toHaveAttribute("aria-expanded", "true");
+  await user.keyboard("{Escape}");
+  expect(disclosure).toHaveFocus();
+  expect(screen.queryByRole("button", { name: "Select language" })).not.toBeInTheDocument();
+  await user.click(disclosure);
+  fireEvent.pointerDown(screen.getByRole("heading", { name: /Track project and shared expenses/ }));
+  expect(disclosure).toHaveAttribute("aria-expanded", "false");
+});
+
+it("rechecks a BFCache return through the guarded session and membership lifecycle", async () => {
+  window.history.replaceState({}, "", "/members");
+  authenticatedLedgers([team], "bob");
+  harness.apis.team = membersApi();
+  render(<App />);
+  await screen.findByRole("button", { name: "Reload" });
+  const sessionReads = pullwiseApi.auth.getSession.mock.calls.length;
+  const reads = ledgerApi.workspaces.mock.calls.length;
+  act(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: false })));
+  expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(sessionReads);
+  const session = pending();
+  pullwiseApi.auth.getSession.mockReturnValueOnce(session.promise);
+  act(() => {
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    window.dispatchEvent(new Event("focus"));
+  });
+  expect(pullwiseApi.auth.getSession).toHaveBeenCalledTimes(sessionReads + 1);
+  expect(ledgerApi.workspaces).toHaveBeenCalledTimes(reads);
+  await act(async () => session.resolve({ authenticated: true, user: { id: "bob" } }));
+  await waitFor(() => expect(ledgerApi.workspaces).toHaveBeenCalledTimes(reads + 1));
+});
+
+it("restores only disappearing preference focus across the phone breakpoint", async () => {
+  let changeLayout;
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query) => ({
+      matches: false,
+      addEventListener: (_event, listener) => {
+        if (query === "(max-width: 760px)") changeLayout = listener;
+      },
+      removeEventListener: vi.fn(),
+    }))
+  );
+  window.history.replaceState({}, "", "/projects");
+  authenticatedLedgers();
+  harness.enabled = true;
+  harness.apis.alice = { projects: vi.fn().mockResolvedValue({ items: [] }) };
+  const user = userEvent.setup();
+  render(<App />);
+  const draft = await screen.findByLabelText("Unsaved scope draft");
+  screen.getByRole("button", { name: "Select language" }).focus();
+  await user.keyboard("{Enter}");
+  expect(screen.getAllByRole("menuitemradio")[0]).toHaveFocus();
+  act(() => changeLayout({ matches: true }));
+  const phoneOpener = screen.getByRole("button", { name: "Display options" });
+  expect(phoneOpener).toHaveFocus();
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  await user.keyboard("{Enter}{Enter}");
+  expect(screen.getAllByRole("menuitemradio")[0]).toHaveFocus();
+  act(() => changeLayout({ matches: false }));
+  expect(screen.getByRole("button", { name: "Select language" })).toHaveFocus();
+  draft.focus();
+  act(() => changeLayout({ matches: true }));
+  expect(draft).toHaveFocus();
+  act(() => changeLayout({ matches: false }));
+  expect(draft).toHaveFocus();
+});
+
 it("remounts protected state and aborts old reads when the actual ledger picker changes scope", async () => {
   window.history.replaceState({}, "", "/projects");
   authenticatedLedgers();

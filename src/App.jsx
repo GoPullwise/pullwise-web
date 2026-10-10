@@ -155,6 +155,11 @@ export function App() {
   const [repositoryAuthorizationRevision, setRepositoryAuthorizationRevision] = useState(0);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const [languageFocusIndex, setLanguageFocusIndex] = useState(0);
+  const [phoneLayout, setPhoneLayout] = useState(
+    () => window.matchMedia?.("(max-width: 760px)").matches ?? false
+  );
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [workspaceState, setWorkspaceState] = useState({
     identity: "",
     status: "idle",
@@ -414,6 +419,11 @@ export function App() {
   const focusedNavigation = useRef(null);
   const continuedRepositoryAuthorization = useRef(false);
   const languageMenuRef = useRef(null);
+  const languageToggleRef = useRef(null);
+  const preferencesRef = useRef(null);
+  const preferencesToggleRef = useRef(null);
+  const themeToggleRef = useRef(null);
+  const layoutFocusRestoreRef = useRef(null);
   const screenRootRef = useRef(null);
   const deferredAccessRefresh = useRef("");
   const focusAccessContext = useRef(null);
@@ -529,22 +539,103 @@ export function App() {
     applyCurrentSeoMetadata();
   }, [lang, screen]);
 
+  const closeLanguageMenu = useCallback((restoreFocus = true) => {
+    setLanguageMenuOpen(false);
+    if (restoreFocus) languageToggleRef.current?.focus({ preventScroll: true });
+  }, []);
+  const closePreferences = useCallback((restoreFocus = true) => {
+    setLanguageMenuOpen(false);
+    setPreferencesOpen(false);
+    if (restoreFocus) preferencesToggleRef.current?.focus({ preventScroll: true });
+  }, []);
+  const openLanguageMenu = (edge) => {
+    const selected = LANGUAGES.findIndex((language) => language.code === lang);
+    setLanguageFocusIndex(
+      edge === "first" ? 0 : edge === "last" ? LANGUAGES.length - 1 : Math.max(0, selected)
+    );
+    setLanguageMenuOpen(true);
+  };
+  const languageMenuKeyDown = (event) => {
+    const directions = { ArrowDown: 1, ArrowUp: -1 };
+    if (event.key in directions) {
+      event.preventDefault();
+      setLanguageFocusIndex(
+        (index) => (index + directions[event.key] + LANGUAGES.length) % LANGUAGES.length
+      );
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      setLanguageFocusIndex(event.key === "Home" ? 0 : LANGUAGES.length - 1);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeLanguageMenu();
+    } else if (event.key === "Tab") {
+      event.preventDefault();
+      closeLanguageMenu();
+      if (!event.shiftKey) themeToggleRef.current?.focus({ preventScroll: true });
+    }
+  };
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(max-width: 760px)");
+    if (!media) return;
+    const updateLayout = (event) => {
+      const active = document.activeElement;
+      const losingFocus = event.matches
+        ? preferencesRef.current?.contains(active)
+        : active === preferencesToggleRef.current ||
+          languageMenuRef.current?.querySelector('[role="menu"]')?.contains(active);
+      layoutFocusRestoreRef.current = losingFocus ? { active, phone: event.matches } : null;
+      setPhoneLayout(event.matches);
+      setLanguageMenuOpen(false);
+      setPreferencesOpen(false);
+    };
+    media.addEventListener?.("change", updateLayout);
+    return () => media.removeEventListener?.("change", updateLayout);
+  }, []);
+
+  useEffect(() => {
+    const restore = layoutFocusRestoreRef.current;
+    if (!restore) return;
+    layoutFocusRestoreRef.current = null;
+    if (document.activeElement !== restore.active && document.activeElement !== document.body)
+      return;
+    const opener = restore.phone ? preferencesToggleRef.current : languageToggleRef.current;
+    opener?.focus({ preventScroll: true });
+  }, [phoneLayout, languageMenuOpen, preferencesOpen]);
+
+  useEffect(() => {
+    if (phoneLayout && preferencesOpen) languageToggleRef.current?.focus({ preventScroll: true });
+  }, [phoneLayout, preferencesOpen]);
+
   useEffect(() => {
     if (!languageMenuOpen) return;
-    const closeLanguageMenu = (event) => {
-      if (languageMenuRef.current?.contains(event.target)) return;
-      setLanguageMenuOpen(false);
+    const option =
+      languageMenuRef.current?.querySelectorAll('[role="menuitemradio"]')[languageFocusIndex];
+    option?.focus({ preventScroll: true });
+    option?.scrollIntoView?.({ block: "nearest" });
+  }, [languageMenuOpen, languageFocusIndex]);
+
+  useEffect(() => {
+    if (!languageMenuOpen && !preferencesOpen) return;
+    const closeOutside = (event) => {
+      // Outside pointer actions keep their own focus and native behavior.
+      if (!preferencesRef.current?.contains(event.target)) closePreferences(false);
+      else if (!languageMenuRef.current?.contains(event.target)) closeLanguageMenu(false);
     };
     const closeOnEscape = (event) => {
-      if (event.key === "Escape") setLanguageMenuOpen(false);
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      if (languageMenuOpen) closeLanguageMenu();
+      else closePreferences();
     };
-    document.addEventListener("mousedown", closeLanguageMenu);
+    document.addEventListener("pointerdown", closeOutside);
     document.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.removeEventListener("mousedown", closeLanguageMenu);
+      document.removeEventListener("pointerdown", closeOutside);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [languageMenuOpen]);
+  }, [languageMenuOpen, preferencesOpen, closeLanguageMenu, closePreferences]);
 
   useEffect(() => {
     if (auth.status !== "ready") return;
@@ -770,9 +861,14 @@ export function App() {
     };
     window.addEventListener("focus", recheck);
     document.addEventListener("visibilitychange", recheck);
+    const restoreFromCache = (event) => {
+      if (event.persisted) recheck();
+    };
+    window.addEventListener("pageshow", restoreFromCache);
     return () => {
       window.removeEventListener("focus", recheck);
       document.removeEventListener("visibilitychange", recheck);
+      window.removeEventListener("pageshow", restoreFromCache);
     };
   }, [checkSession, scheduleSignedOutConfirmation]);
 
@@ -1010,110 +1106,175 @@ export function App() {
       </div>
     );
   }
+  const consoleScreen =
+    auth.status === "ready" &&
+    auth.authenticated &&
+    !PUBLIC_SCREENS.has(screen) &&
+    screen !== "oauth";
+  const preferencesLabel = T("Display options", {
+    zh: "显示选项",
+    ja: "表示設定",
+    ko: "화면 옵션",
+    fr: "Options d’affichage",
+    es: "Opciones de visualización",
+  });
   return (
-    <NotificationProvider
-      scope={identity}
-      navigationDisabled={navigationDisabled}
-      floatingControlsOpen={languageMenuOpen}
-    >
-      <InvitationInboxProvider
-        identity={identity}
-        enabled={auth.status === "ready" && auth.authenticated}
-        navigationKey={navigationKey}
+    <div className="app-frame" data-console={consoleScreen ? "true" : "false"}>
+      <NotificationProvider
+        scope={identity}
         navigationDisabled={navigationDisabled}
-        onReview={(request) => {
-          if (pageOperationRef.current === currentScreenKeyRef.current) return false;
-          if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]')) return false;
-          setReviewIntent({
-            identity,
-            workspaceId: request.workspaceId,
-            requestId: request.id,
-            nonce: ++reviewNonceRef.current,
-          });
-          selectWorkspace(request.workspaceId);
-          go("ledgerMembers");
-        }}
+        floatingControlsOpen={languageMenuOpen || (phoneLayout && preferencesOpen)}
       >
-        <ConsoleLayoutProvider scope={identity}>
-          <WorkspaceContext.Provider
-            value={
-              scopedScreen && workspace
-                ? { items: workspaceState.items, workspace, onSelect: selectWorkspace }
-                : null
-            }
-          >
-            <div
-              className="screen-root"
-              ref={screenRootRef}
-              tabIndex={-1}
-              data-screen-label={screen}
-              key={screenKey}
-            >
-              <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
-            </div>
-
-            <button
-              type="button"
-              className={"back-to-top" + (showBackToTop ? " visible" : "")}
-              onClick={scrollToTop}
-              title={T("Back to top", "回到顶部")}
-              aria-label={T("Back to top", "回到顶部")}
-              tabIndex={showBackToTop ? 0 : -1}
-            >
-              <I.ArrowUp size={16} />
-            </button>
-            <div className="lang-picker" ref={languageMenuRef}>
-              {languageMenuOpen && (
-                <div
-                  className="lang-menu"
-                  role="menu"
-                  aria-label={T("Select language", "选择语言")}
-                >
-                  {LANGUAGES.map((language) => (
-                    <button
-                      key={language.code}
-                      type="button"
-                      className={"lang-menu-i" + (lang === language.code ? " active" : "")}
-                      role="menuitemradio"
-                      aria-checked={lang === language.code}
-                      onClick={() => {
-                        setLang(language.code);
-                        setLanguageMenuOpen(false);
-                      }}
-                    >
-                      <span className="lang-menu-code">{language.shortLabel}</span>
-                      <span>{language.nativeLabel}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <button
-                type="button"
-                className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
-                onClick={() => setLanguageMenuOpen((open) => !open)}
-                title={T("Select language", "选择语言")}
-                aria-label={T("Select language", "选择语言")}
-                aria-haspopup="menu"
-                aria-expanded={languageMenuOpen}
-              >
-                {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
-              </button>
-            </div>
-            <button
-              className="theme-toggle"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              title={
-                theme === "light"
-                  ? T("Switch to dark", "切换到暗色")
-                  : T("Switch to light", "切换到亮色")
+        <InvitationInboxProvider
+          identity={identity}
+          enabled={auth.status === "ready" && auth.authenticated}
+          navigationKey={navigationKey}
+          navigationDisabled={navigationDisabled}
+          onReview={(request) => {
+            if (pageOperationRef.current === currentScreenKeyRef.current) return false;
+            if (screenRootRef.current?.querySelector('.topbar [aria-disabled="true"]'))
+              return false;
+            setReviewIntent({
+              identity,
+              workspaceId: request.workspaceId,
+              requestId: request.id,
+              nonce: ++reviewNonceRef.current,
+            });
+            selectWorkspace(request.workspaceId);
+            go("ledgerMembers");
+          }}
+        >
+          <ConsoleLayoutProvider scope={identity}>
+            <WorkspaceContext.Provider
+              value={
+                scopedScreen && workspace
+                  ? { items: workspaceState.items, workspace, onSelect: selectWorkspace }
+                  : null
               }
-              aria-label={T("Toggle theme", "切换主题")}
             >
-              {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
-            </button>
-          </WorkspaceContext.Provider>
-        </ConsoleLayoutProvider>
-      </InvitationInboxProvider>
-    </NotificationProvider>
+              <div
+                className="screen-root"
+                ref={screenRootRef}
+                tabIndex={-1}
+                data-screen-label={screen}
+                key={screenKey}
+              >
+                <Suspense fallback={<ScreenFallback />}>{body}</Suspense>
+              </div>
+
+              <div className="preferences" ref={preferencesRef}>
+                {phoneLayout && (
+                  <button
+                    className="preferences-toggle"
+                    type="button"
+                    ref={preferencesToggleRef}
+                    aria-label={preferencesLabel}
+                    aria-expanded={preferencesOpen}
+                    aria-controls="preferences-actions"
+                    onClick={() =>
+                      preferencesOpen ? closePreferences() : setPreferencesOpen(true)
+                    }
+                  >
+                    <I.Sliders size={18} />
+                    <span>{preferencesLabel}</span>
+                  </button>
+                )}
+                <div
+                  className="preferences-actions"
+                  id="preferences-actions"
+                  role="group"
+                  aria-label={preferencesLabel}
+                  hidden={phoneLayout && !preferencesOpen}
+                >
+                  <div className="lang-picker" ref={languageMenuRef}>
+                    <button
+                      type="button"
+                      ref={languageToggleRef}
+                      className={"lang-toggle" + (languageMenuOpen ? " active" : "")}
+                      onClick={() => (languageMenuOpen ? closeLanguageMenu() : openLanguageMenu())}
+                      onKeyDown={(event) => {
+                        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                          event.preventDefault();
+                          openLanguageMenu(event.key === "ArrowDown" ? "first" : "last");
+                        }
+                      }}
+                      title={T("Select language", "选择语言")}
+                      aria-label={T("Select language", "选择语言")}
+                      aria-haspopup="menu"
+                      aria-controls={languageMenuOpen ? "language-menu" : undefined}
+                      aria-expanded={languageMenuOpen}
+                    >
+                      {LANGUAGES.find((language) => language.code === lang)?.shortLabel || "EN"}
+                      <span className="preferences-label">{T("Select language", "选择语言")}</span>
+                    </button>
+                    {languageMenuOpen && (
+                      <div
+                        className="lang-menu"
+                        id="language-menu"
+                        role="menu"
+                        aria-label={T("Select language", "选择语言")}
+                        onKeyDown={languageMenuKeyDown}
+                      >
+                        {LANGUAGES.map((language, index) => (
+                          <button
+                            key={language.code}
+                            type="button"
+                            className={"lang-menu-i" + (lang === language.code ? " active" : "")}
+                            role="menuitemradio"
+                            aria-checked={lang === language.code}
+                            tabIndex={languageFocusIndex === index ? 0 : -1}
+                            onFocus={() => setLanguageFocusIndex(index)}
+                            onClick={() => {
+                              setLang(language.code);
+                              closeLanguageMenu();
+                            }}
+                          >
+                            <span className="lang-menu-code">{language.shortLabel}</span>
+                            <span>{language.nativeLabel}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    ref={themeToggleRef}
+                    className="theme-toggle"
+                    onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                    title={
+                      theme === "light"
+                        ? T("Switch to dark", "切换到暗色")
+                        : T("Switch to light", "切换到亮色")
+                    }
+                    aria-label={T("Toggle theme", "切换主题")}
+                  >
+                    {theme === "light" ? <I.Moon size={16} /> : <I.Sun size={16} />}
+                    <span className="preferences-label">
+                      {theme === "light"
+                        ? T("Switch to dark", "切换到暗色")
+                        : T("Switch to light", "切换到亮色")}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={"back-to-top" + (showBackToTop ? " visible" : "")}
+                    onClick={() => {
+                      scrollToTop();
+                      if (phoneLayout) closePreferences();
+                    }}
+                    title={T("Back to top", "回到顶部")}
+                    aria-label={T("Back to top", "回到顶部")}
+                    tabIndex={showBackToTop ? 0 : -1}
+                  >
+                    <I.ArrowUp size={16} />
+                    <span className="preferences-label">{T("Back to top", "回到顶部")}</span>
+                  </button>
+                </div>
+              </div>
+            </WorkspaceContext.Provider>
+          </ConsoleLayoutProvider>
+        </InvitationInboxProvider>
+      </NotificationProvider>
+    </div>
   );
 }

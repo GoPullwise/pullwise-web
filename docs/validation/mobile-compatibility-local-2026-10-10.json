@@ -1,0 +1,211 @@
+{
+  "date": "2026-10-10",
+  "status": "Local implementation and browser verification passed",
+  "publication": {
+    "pushed": false,
+    "previewDeployed": false,
+    "productionDeployed": false
+  },
+  "scope": "Common Safari and Android Chrome; independent phone layout, unified iPad/desktop components",
+  "buildSyntaxTargets": ["chrome111", "edge111", "firefox114", "safari16.4", "ios16.4"],
+  "checks": {
+    "pipeline": "npm run check",
+    "testFiles": 68,
+    "tests": 1343,
+    "lint": "passed",
+    "build": "passed",
+    "workerConfigGuard": "passed",
+    "changedCSSAndLayoutScriptsFormatting": "passed",
+    "diffWhitespace": "passed"
+  },
+  "mobile": {
+    "contexts": 20,
+    "states": 374,
+    "engines": {
+      "chromium": "143.0.7499.4",
+      "webkit": "26.0"
+    },
+    "perContextRequestCap": 160,
+    "perContextAPIReadCap": 80,
+    "totalRequests": 1120,
+    "APIReads": 520,
+    "maxRequestsPerContext": 63,
+    "maxAPIReadsPerContext": 26,
+    "writes": 0,
+    "externalDelivered": 0,
+    "captures": 22,
+    "touchEvidence": {
+      "chromium": [1],
+      "webkit": [0]
+    }
+  },
+  "dateLayouts": [
+    {
+      "contexts": 4,
+      "states": 258,
+      "engine": "chromium",
+      "version": "143.0.7499.4",
+      "maxRequestsPerContext": 91,
+      "maxAPIReadsPerContext": 61,
+      "writes": 0,
+      "externalDelivered": 0,
+      "negativeControls": ["Oversized date input rejected", "Actually clipped heading rejected"]
+    },
+    {
+      "contexts": 4,
+      "states": 258,
+      "engine": "webkit",
+      "version": "26.0",
+      "maxRequestsPerContext": 86,
+      "maxAPIReadsPerContext": 60,
+      "writes": 0,
+      "externalDelivered": 0,
+      "negativeControls": ["Oversized date input rejected", "Actually clipped heading rejected"]
+    }
+  ],
+  "billing": {
+    "engine": "chromium",
+    "version": "143.0.7499.4",
+    "contexts": 24,
+    "states": 36,
+    "maxAPIReadsPerContext": 6,
+    "maxRequestsPerContext": 27,
+    "scope": "Personal-ledger usage; local GET-only fixtures; six locales and both themes"
+  },
+  "publicPages": {
+    "engine": "chromium",
+    "version": "151.0.7922.173",
+    "contexts": 5,
+    "routeViewportCases": 14,
+    "APIReads": 19,
+    "footerLinksHitTestPassed": true,
+    "languageKeyboardPassed": true,
+    "writes": 0,
+    "externalDelivered": 0
+  },
+  "observations": [
+    "One WebKit 412px resize/cancel run timed out. A targeted 48-state diagnostic (eight actual cancel clicks) and the complete uninstrumented 258-state rerun passed; no forced click, inserted delay or application fix was used.",
+    "Layout checkers wait for finite entry animations and distinguish inert controls from the interactive transparent native More selector.",
+    "Font Range boxes may exceed compact CSS line boxes. Bounds, actual clipping, adjacent-content/action overlap and injected negative controls remain checked.",
+    "Representative captures were reviewed; screenshots and full logs remain outside the source repository."
+  ],
+  "limitations": [
+    "Layout, Billing and public-page fixtures intercept bounded loopback GETs; renewal fixtures intercept one simulated POST per case. These are not live-account, OAuth, payment or provider acceptance.",
+    "Linux WebKit reports zero maxTouchPoints with coarse media. No navigator value is spoofed; genuine touchscreen taps run in Chromium.",
+    "Reduced viewport height is not a native virtual keyboard. Physical iPhone/iPad Safari and Android Chrome keyboard, browser chrome/safe areas, date picking, downloads, OAuth and background-return acceptance remains pending.",
+    "BFCache session/workspace-permission/inbox checks do not guarantee repository-metadata refresh; the isolated repository-access helper is not connected to product screens."
+  ],
+  "sourceSHA256": {
+    ".github/workflows/ci.yml": "3aab77367ab8226aa685e5e2d03a373ca2eaf79ab3bb6f25d3ff83c86e9a524e",
+    "index.html": "b921b63166840f73dec32f767aed90d689cff6b0ee939ab86a5b82b8faac2012",
+    "package.json": "4747d1cbee4cf9a1f49d4d82151c277428daaefaa08c71467bc54a7448e1db09",
+    "scripts/check-date-layout.mjs": "213e8f404a14195249208267ba92e4588f5fd18586890594d9c6f61348a361b0",
+    "scripts/check-mobile-layout.mjs": "918dc01bdb1b04e51d97e796461fe823ff6c38aeebee30c81498912bea3c9019",
+    "scripts/mobile-layout-fixtures.mjs": "77cc515d76cdc867910fd162639a60a8ca03d916343a143ed04a5d15bcca076c",
+    "src/App.jsx": "66d0c0b2cdd1bf49b73c35e722a3058a53be7d69c9c35d0c797b2d83e3b29848",
+    "src/App.test.jsx": "4ec1f51a06d093e983cd6053bb363a04c89a3e59f3b0c5c5759c315086093f5f",
+    "src/app.css": "6da5d15cdf59019a2021ce2937f103b1f99e1ef2f0a441bbbd709cbc5da53950",
+    "src/components/activity-log.css": "a1c52327fad7f2de1d1e411c481b2da524aa38ca4eaafa2ac3e50b54c89cd235",
+    "src/components/api-key-created-dialog.jsx": "e4be62f0e8dad82cbd8e179484939acec297172e22684e82138dc49a6de946ac",
+    "src/components/confirm-dialog.jsx": "3757fd0c81f3c603a5ba40a0c7c8b35c478e6af740b7cbaf4aacf61bd194a60f",
+    "src/components/confirm-dialog.test.jsx": "c057533e6f7aa34de28682edeffaf0850694327d5d55b9f4700daefe32e4b386",
+    "src/components/expense-charts.css": "a1303400f8df19702bcc9964d932b22e81b26edbc1e40f77b1a01c4640ed679d",
+    "src/components/expense-charts.jsx": "f501c235b65921bb30e40ab998c04937fb5e69b56c53c7e4570767534a079d64",
+    "src/components/expense-charts.test.jsx": "74504239d361441d25e3e2f4a5b2924408171a82872dda9654b4a75d3d5987f1",
+    "src/components/expense-review-dialog.jsx": "485b486334cc5c6b4c0ad97f007d3747793838507c49060e423ef050f40803e6",
+    "src/components/invitation-inbox.jsx": "9f06ea27b7354b96acbba3d6ba08ea717ecdeafb22cb0db9475c37631b474feb",
+    "src/components/invitation-inbox.test.jsx": "cd422b3e0f03c3555f65b439d077aef483e1630d3d6f5f86dd14e08cc75d3e49",
+    "src/components/notifications.test.jsx": "c05a9a53e575857d85c004163205981976eb17ef8a9bb46ee9c9e6b1ed09f11d",
+    "src/components/recurring-expenses.css": "9ba9b7e36d5ac3b8d15be12bf4059d5ba9ea8d10b16621afbff0889b87ab6428",
+    "src/lib/auth.js": "b526e7c3d3cd2fdb893b94dc45185ddc9db98b4c2b07cdac8cf5c05aa54fb62a",
+    "src/lib/auth.test.js": "a8fc81ed917b09cde0dd6d9a6ebfe65ef3d5b62f4cca1e7de0c69743073d6d69",
+    "src/lib/decimal-input.js": "65b6c9b1ee4988f2520671d97cdaadb86ef3333abb1a26333319d572876a725a",
+    "src/lib/decimal-input.test.js": "c6e3059d36d0f38d909ec582dc72c9b41590f283b692bd66f9245a4ba31f60fe",
+    "src/lib/github-repository-access-refresh.js": "ad0335c93337cf75cb08f4c31d449a338b31a505ccaa534a78586ecf64849300",
+    "src/lib/github-repository-access-refresh.test.js": "19140e2a206403ad1e0f6a089c4cae1a0d6f0c7a9dcfcca01803c0ff0fe84cd8",
+    "src/lib/install-popup.js": "a6778ed2a86d12a42230ce1a34181afc797816a5c4f1ce779d10e7cd8c111b48",
+    "src/lib/install-popup.test.js": "20e78e0e431f708887e3ad42e056822ff31582070770c3654f739777e9bf2c0c",
+    "src/lib/modal-focus.js": "dc2daebe8d3a2ed01c151a013d78be41d5df71d3935ef13dc1e3794e1070c1f5",
+    "src/lib/modal-focus.test.jsx": "264fc2e3d054e7c037c82328a0ad226c63a9448ba00b7bd0ac1889d61bad879e",
+    "src/locales/ledger-ui.js": "b93cb437a6cf7c70389ea16bdf924f500f8e055aac23cab53e86f6e32fd5b1c9",
+    "src/main.jsx": "363120f866af9b9a5e1a2367337b36db1f903e4ec4d1e15098aafdf85d014f2b",
+    "src/screens/api-docs-clipboard.test.jsx": "50030ec1c81d55d563f9d1cd3f15540312b2f87077756f7d51244185f6260860",
+    "src/screens/api-docs.jsx": "807268775b5598f944d21d087528362dedcda366e2a59572564ab27fc164b1d5",
+    "src/screens/billing.jsx": "ea55b113e35b3a8db4c7a137a5f2e3b5679c092d68632651e68e9b8d9b903bea",
+    "src/screens/ledger-decimal-input.test.jsx": "d07aab526a4b13671694bf8e4f85e56aaf5164d3ef5ccd2566e16f918050995d",
+    "src/screens/ledger.css": "d0250250a547d5d54e713fbc2ef9b78924a4ef9754d240b7f40a426398867767",
+    "src/screens/ledger.jsx": "72b3f7ea677c2d24966cb34f5660829dc53dde4266696f4d16148599bcdd3d80",
+    "src/screens/members.test.jsx": "a283f0b6810567d081a0a0ef395feb9c9d65bce118d4592f394eed627dc138cb",
+    "src/screens/public.test.jsx": "ab12255bd78417ed97300db02e2e3f96389bcefbc4954add8f60d771327667fc",
+    "src/screens/settings.css": "8f29d36b962e9b339fc6ad9a0905ffbec6c179aa85934d1493f34b274890f24b",
+    "src/shell.jsx": "207d9d0c86c899a98c8f28f62fbcf2eac2f52eee67733a9b1c63125c185f7b29",
+    "src/shell.test.jsx": "db596fe634b997d08312afa0514704efdbb3c4057d6f22adcc8216a2cb6d3d00",
+    "styles/base.css": "d3399e798ee27ddcfda66e99b73fbeb7b9ad3139cab40f20ab91acd631c5efb1",
+    "styles/screens.css": "73179f053d3e39f86befa0d38eca91b0bd23cd2f18123c974eee906c48e7b4ad",
+    "vite.config.js": "2f18730f53f50392a9f57466ed2e8300d60c5d03e0574a5af276a9cf851c346c"
+  },
+  "initialVerification": {
+    "testFiles": 67,
+    "tests": 1282,
+    "captureCount": 22
+  },
+  "sourceBaseCommit": "9eda1965aeccec1c2cccdb48418c9ae12fd005ad",
+  "integration": {
+    "preservedGitHubAutomaticRenewal": true,
+    "popupCompletionBoundToOriginalAccountGeneration": true,
+    "staleAccountOrAbortedPopupCannotSyncOrRenew": true,
+    "browserEvidenceUsesFinalPreviewBuild": true
+  },
+  "githubRefreshFixtures": {
+    "evidenceKind": "bounded-local-browser-fixtures",
+    "cases": 3,
+    "passed": true,
+    "realProviderOrBusinessWrites": false,
+    "requestCapPerCase": 64,
+    "totalRequestCap": 192,
+    "casesResults": [
+      {
+        "kind": "success",
+        "passed": true,
+        "counts": {
+          "total": 30,
+          "refreshPosts": 1,
+          "businessWrites": 0,
+          "projectReads": 2,
+          "projectListReads": 2,
+          "externalDelivered": 0,
+          "blockedFonts": 1,
+          "violations": 0
+        }
+      },
+      {
+        "kind": "temporary",
+        "passed": true,
+        "counts": {
+          "total": 28,
+          "refreshPosts": 1,
+          "businessWrites": 0,
+          "projectReads": 1,
+          "projectListReads": 1,
+          "externalDelivered": 0,
+          "blockedFonts": 1,
+          "violations": 0
+        }
+      },
+      {
+        "kind": "revoked",
+        "passed": true,
+        "counts": {
+          "total": 28,
+          "refreshPosts": 1,
+          "businessWrites": 0,
+          "projectReads": 1,
+          "projectListReads": 1,
+          "externalDelivered": 0,
+          "blockedFonts": 1,
+          "violations": 0
+        }
+      }
+    ]
+  }
+}
