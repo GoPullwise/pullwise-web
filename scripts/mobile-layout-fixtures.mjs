@@ -29,9 +29,32 @@ export function createMobileLayoutFixture({ baseURL }) {
     },
     createdAt: "2026-10-01T00:00:00Z",
   }));
+  // Match the ten frozen occurrences on rec_date_shared in the ledger fixture.
+  // Both inbox sections need real rows when the reduced viewport is scrolled
+  // to the bottom; an empty trailing section has no row to hit-test.
+  const pendingExpenses = Array.from({ length: 10 }, (_, index) => {
+    const month = String(index + 1).padStart(2, "0");
+    const periodKey = `M2026-${month}`;
+    return {
+      id: `rec_date_shared:${periodKey}`,
+      ruleId: "rec_date_shared",
+      periodKey,
+      scheduledOn: `2026-${month}-01`,
+      workspaceId: WORKSPACE_ID,
+      workspaceName: "Pullwise preview team ledger",
+      target: { kind: "shared" },
+      amount: "24.50",
+      currency: "USD",
+      purpose: "Saved historical hosting",
+      failedCode: "RECORD_LIMIT",
+      createdAt: "2026-09-01T00:00:00Z",
+    };
+  });
   function extraPayload(path) {
     if (path === "/api/v1/workspace-invitation-requests")
       return { items: longInbox ? inbox : [], hasMore: false };
+    if (path === "/api/v1/recurring-expense-notifications")
+      return { items: longInbox ? pendingExpenses : [], hasMore: false };
     if (path === `/api/v1/workspaces/${WORKSPACE_ID}/members`)
       return {
         items: [
@@ -135,7 +158,11 @@ export function createMobileLayoutFixture({ baseURL }) {
           return;
         }
         assert.equal(url.search, "", `Unexpected extra-fixture query: ${record.path}`);
-        if (record.path === "/billing/plan" || record.path.startsWith("/api/v1/account/"))
+        if (
+          record.path === "/billing/plan" ||
+          record.path.startsWith("/api/v1/account/") ||
+          record.path === "/api/v1/recurring-expense-notifications"
+        )
           assert.equal(record.workspace, null, "Personal account read inherited workspace header");
         else if (record.workspace)
           assert.equal(record.workspace, WORKSPACE_ID, "Unexpected fixture workspace");

@@ -46,6 +46,20 @@ browser-engine/emulated layout behavior, not real
 physical-device, provider delivery or live-account acceptance. Logs and screenshots
 remain in ignored workspace scratch files; no screenshots are tracked.
 
+[Final merged browser evidence](recurring-browser-local-2026-10-10.json) passes
+**258 date/pane states and 187 phone/modal states** in Chromium against the final
+merged build. The mobile fixture includes sixteen invitation requests and ten
+frozen pending-expense notifications, asserting both sections and each saved
+date, exact amount and recovery action. All ten mobile contexts use 28 local API
+GETs and 50–57 total requests, without writes or external delivery. The original
+empty-tail diagnostic was a fixture false positive: no record row was visible
+when the trailing empty section filled the reduced viewport. Adding real pending
+records retains the unchanged element-hit obstruction check and passes even at
+640×260. No product/CSS change was needed. Fixture lint/format checks pass.
+WebKit is unavailable in this workspace, so this final rerun establishes Chromium
+engine/emulated geometry only; the concurrent mobile release retains its separate
+historical WebKit evidence.
+
 ## Mobile Safari, Android Chrome and phone layout (2026-10-10)
 
 The approved phone layout uses a compact topbar with a Display options icon,

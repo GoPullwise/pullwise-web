@@ -493,6 +493,21 @@ async function checkModal(page, fixture, report) {
     .locator('.invitation-inbox-body[aria-busy="false"] .invitation-inbox-row')
     .nth(15)
     .waitFor();
+  const joinRows = dialog.locator('[aria-labelledby="join-requests-title"] .invitation-inbox-row');
+  const pendingRows = dialog.locator(
+    '[aria-labelledby="pending-expenses-title"] .invitation-inbox-row'
+  );
+  await pendingRows.nth(9).waitFor();
+  assert.equal(await joinRows.count(), 16, "Long inbox join-request fixture is incomplete");
+  assert.equal(await pendingRows.count(), 10, "Long inbox pending-expense fixture is incomplete");
+  for (let index = 0; index < 10; index++) {
+    const row = pendingRows.nth(index);
+    const scheduledOn = `2026-${String(index + 1).padStart(2, "0")}-01`;
+    assert.equal(await row.locator("time").getAttribute("datetime"), scheduledOn);
+    assert.equal(await row.locator("time").textContent(), scheduledOn);
+    assert.equal(await row.locator(".financial-value").textContent(), "USD 24.50");
+    assert.equal(await row.locator("button").count(), 1, "Pending expense has no recovery action");
+  }
   await settle(page);
   const inspect = async (name) => {
     await settle(page);

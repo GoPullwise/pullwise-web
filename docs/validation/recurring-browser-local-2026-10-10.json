@@ -1,0 +1,3961 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "Final merged recurring and mobile layouts; loopback fixtures only",
+  "fullWebTestFiles": 68,
+  "fullWebTests": 1358,
+  "lint": true,
+  "build": true,
+  "workerConfig": true,
+  "checks": {
+    "date": {
+      "scope": "Local GET-only fixtures; browser engines and simulated viewports, not physical devices. No save, CSV download, external delivery or screenshots.",
+      "contexts": 4,
+      "states": 258,
+      "profiles": [
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "desktop-1440",
+            "width": 1440,
+            "height": 1000,
+            "lang": "en",
+            "touch": false
+          },
+          "states": 81,
+          "requests": {
+            "requests": [
+              {
+                "index": 1,
+                "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "document",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/projects/prj_date_layout"
+              },
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              },
+              {
+                "index": 3,
+                "url": "http://127.0.0.1:4248/assets/index-DuoMODX_.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-DuoMODX_.js"
+              },
+              {
+                "index": 4,
+                "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+              },
+              {
+                "index": 5,
+                "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-react-9XhioiGP.js"
+              },
+              {
+                "index": 6,
+                "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-CHwUWPSh.js"
+              },
+              {
+                "index": 7,
+                "url": "http://127.0.0.1:4248/assets/navigation-C-ZvJoSL.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/navigation-C-ZvJoSL.js"
+              },
+              {
+                "index": 8,
+                "url": "http://127.0.0.1:4248/assets/pullwise-qdQEOBUK.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/pullwise-qdQEOBUK.js"
+              },
+              {
+                "index": 9,
+                "url": "http://127.0.0.1:4248/assets/index-BxzhodQq.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-BxzhodQq.css"
+              },
+              {
+                "index": 10,
+                "url": "http://127.0.0.1:4248/brand-mark.png",
+                "method": "GET",
+                "resourceType": "image",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/brand-mark.png"
+              },
+              {
+                "index": 11,
+                "url": "http://127.0.0.1:4248/api/auth/session",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/auth/session"
+              },
+              {
+                "index": 12,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 13,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 14,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 15,
+                "url": "http://127.0.0.1:4248/assets/ledger-D9bFwRRP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-D9bFwRRP.js"
+              },
+              {
+                "index": 16,
+                "url": "http://127.0.0.1:4248/assets/skeleton-mXh_BDvD.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/skeleton-mXh_BDvD.js"
+              },
+              {
+                "index": 17,
+                "url": "http://127.0.0.1:4248/assets/ledger-CjNCp5Sk.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-CjNCp5Sk.js"
+              },
+              {
+                "index": 18,
+                "url": "http://127.0.0.1:4248/assets/ledger-BJnwcn-0.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-BJnwcn-0.css"
+              },
+              {
+                "index": 19,
+                "url": "http://127.0.0.1:4248/assets/shell-NYOVuHI2.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/shell-NYOVuHI2.js"
+              },
+              {
+                "index": 20,
+                "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-MONuzrdS.css"
+              },
+              {
+                "index": 21,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 22,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 23,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 24,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 25,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 26,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 27,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 28,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 29,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 30,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 31,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 32,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 33,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 34,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 35,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 36,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 37,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 38,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 39,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 40,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 41,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 42,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 43,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 44,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 45,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 46,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 47,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 48,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 49,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 50,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 51,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 52,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 53,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 54,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 55,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 56,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 57,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 58,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 59,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 60,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 61,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 62,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 63,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 64,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 65,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 66,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 67,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 68,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 69,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 70,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 71,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 72,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 73,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 74,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 75,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 76,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 77,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 78,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 79,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 80,
+                "url": "http://127.0.0.1:4248/assets/api-BHUuccEj.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-BHUuccEj.js"
+              },
+              {
+                "index": 81,
+                "url": "http://127.0.0.1:4248/assets/api-Cm7_cGhL.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-Cm7_cGhL.css"
+              },
+              {
+                "index": 82,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 83,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 84,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 85,
+                "url": "http://127.0.0.1:4248/api/api-keys?workspaceId=usr_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/api-keys"
+              },
+              {
+                "index": 86,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 87,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              }
+            ],
+            "counts": {
+              "total": 87,
+              "api": 69,
+              "static": 17,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "blockedFonts": [
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              }
+            ],
+            "violations": [],
+            "externalDelivered": []
+          },
+          "touchEvidence": null
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-1280-zh",
+            "width": 1280,
+            "height": 900,
+            "lang": "zh",
+            "touch": true
+          },
+          "states": 81,
+          "requests": {
+            "requests": [
+              {
+                "index": 1,
+                "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "document",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/projects/prj_date_layout"
+              },
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              },
+              {
+                "index": 3,
+                "url": "http://127.0.0.1:4248/assets/index-DuoMODX_.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-DuoMODX_.js"
+              },
+              {
+                "index": 4,
+                "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+              },
+              {
+                "index": 5,
+                "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-react-9XhioiGP.js"
+              },
+              {
+                "index": 6,
+                "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-CHwUWPSh.js"
+              },
+              {
+                "index": 7,
+                "url": "http://127.0.0.1:4248/assets/navigation-C-ZvJoSL.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/navigation-C-ZvJoSL.js"
+              },
+              {
+                "index": 8,
+                "url": "http://127.0.0.1:4248/assets/pullwise-qdQEOBUK.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/pullwise-qdQEOBUK.js"
+              },
+              {
+                "index": 9,
+                "url": "http://127.0.0.1:4248/assets/index-BxzhodQq.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-BxzhodQq.css"
+              },
+              {
+                "index": 10,
+                "url": "http://127.0.0.1:4248/assets/zh-CWLY-8WZ.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/zh-CWLY-8WZ.js"
+              },
+              {
+                "index": 11,
+                "url": "http://127.0.0.1:4248/assets/dynamic-CqKDyOhl.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/dynamic-CqKDyOhl.js"
+              },
+              {
+                "index": 12,
+                "url": "http://127.0.0.1:4248/assets/ledger-DeOm4bfo.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-DeOm4bfo.js"
+              },
+              {
+                "index": 13,
+                "url": "http://127.0.0.1:4248/assets/ledger-longform-Cg_RR5bQ.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-longform-Cg_RR5bQ.js"
+              },
+              {
+                "index": 14,
+                "url": "http://127.0.0.1:4248/assets/ledger-ui-CU6Hyjf_.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-ui-CU6Hyjf_.js"
+              },
+              {
+                "index": 15,
+                "url": "http://127.0.0.1:4248/assets/ledger-scopes-CgghSozq.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-scopes-CgghSozq.js"
+              },
+              {
+                "index": 16,
+                "url": "http://127.0.0.1:4248/assets/ledger-screen-D3Z1jFOr.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-screen-D3Z1jFOr.js"
+              },
+              {
+                "index": 17,
+                "url": "http://127.0.0.1:4248/brand-mark.png",
+                "method": "GET",
+                "resourceType": "image",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/brand-mark.png"
+              },
+              {
+                "index": 18,
+                "url": "http://127.0.0.1:4248/api/auth/session",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/auth/session"
+              },
+              {
+                "index": 19,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 20,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 21,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 22,
+                "url": "http://127.0.0.1:4248/assets/ledger-D9bFwRRP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-D9bFwRRP.js"
+              },
+              {
+                "index": 23,
+                "url": "http://127.0.0.1:4248/assets/skeleton-mXh_BDvD.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/skeleton-mXh_BDvD.js"
+              },
+              {
+                "index": 24,
+                "url": "http://127.0.0.1:4248/assets/ledger-CjNCp5Sk.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-CjNCp5Sk.js"
+              },
+              {
+                "index": 25,
+                "url": "http://127.0.0.1:4248/assets/ledger-BJnwcn-0.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-BJnwcn-0.css"
+              },
+              {
+                "index": 26,
+                "url": "http://127.0.0.1:4248/assets/shell-NYOVuHI2.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/shell-NYOVuHI2.js"
+              },
+              {
+                "index": 27,
+                "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-MONuzrdS.css"
+              },
+              {
+                "index": 28,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 29,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 30,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 31,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 32,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 33,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 34,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 35,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 36,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 37,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 38,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 39,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 40,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 41,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 42,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 43,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 44,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 45,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 46,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 47,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 48,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 49,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 50,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 51,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 52,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 53,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 54,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 55,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 56,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 57,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 58,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 59,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 60,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 61,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 62,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 63,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 64,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 65,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 66,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 67,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 68,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 69,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 70,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 71,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 72,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 73,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 74,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 75,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 76,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 77,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 78,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 79,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 80,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 81,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 82,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 83,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 84,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 85,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 86,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 87,
+                "url": "http://127.0.0.1:4248/assets/api-BHUuccEj.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-BHUuccEj.js"
+              },
+              {
+                "index": 88,
+                "url": "http://127.0.0.1:4248/assets/api-Cm7_cGhL.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-Cm7_cGhL.css"
+              },
+              {
+                "index": 89,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 90,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 91,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 92,
+                "url": "http://127.0.0.1:4248/api/api-keys?workspaceId=usr_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/api-keys"
+              },
+              {
+                "index": 93,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 94,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              }
+            ],
+            "counts": {
+              "total": 94,
+              "api": 69,
+              "static": 24,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "blockedFonts": [
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              }
+            ],
+            "violations": [],
+            "externalDelivered": []
+          },
+          "touchEvidence": null
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-to-320",
+            "width": 390,
+            "narrow": 320,
+            "height": 844,
+            "lang": "en",
+            "touch": true
+          },
+          "states": 48,
+          "requests": {
+            "requests": [
+              {
+                "index": 1,
+                "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "document",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/projects/prj_date_layout"
+              },
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              },
+              {
+                "index": 3,
+                "url": "http://127.0.0.1:4248/assets/index-DuoMODX_.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-DuoMODX_.js"
+              },
+              {
+                "index": 4,
+                "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+              },
+              {
+                "index": 5,
+                "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-react-9XhioiGP.js"
+              },
+              {
+                "index": 6,
+                "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-CHwUWPSh.js"
+              },
+              {
+                "index": 7,
+                "url": "http://127.0.0.1:4248/assets/navigation-C-ZvJoSL.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/navigation-C-ZvJoSL.js"
+              },
+              {
+                "index": 8,
+                "url": "http://127.0.0.1:4248/assets/pullwise-qdQEOBUK.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/pullwise-qdQEOBUK.js"
+              },
+              {
+                "index": 9,
+                "url": "http://127.0.0.1:4248/assets/index-BxzhodQq.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-BxzhodQq.css"
+              },
+              {
+                "index": 10,
+                "url": "http://127.0.0.1:4248/brand-mark.png",
+                "method": "GET",
+                "resourceType": "image",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/brand-mark.png"
+              },
+              {
+                "index": 11,
+                "url": "http://127.0.0.1:4248/api/auth/session",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/auth/session"
+              },
+              {
+                "index": 12,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 13,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 14,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 15,
+                "url": "http://127.0.0.1:4248/assets/ledger-D9bFwRRP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-D9bFwRRP.js"
+              },
+              {
+                "index": 16,
+                "url": "http://127.0.0.1:4248/assets/skeleton-mXh_BDvD.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/skeleton-mXh_BDvD.js"
+              },
+              {
+                "index": 17,
+                "url": "http://127.0.0.1:4248/assets/ledger-CjNCp5Sk.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-CjNCp5Sk.js"
+              },
+              {
+                "index": 18,
+                "url": "http://127.0.0.1:4248/assets/ledger-BJnwcn-0.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-BJnwcn-0.css"
+              },
+              {
+                "index": 19,
+                "url": "http://127.0.0.1:4248/assets/shell-NYOVuHI2.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/shell-NYOVuHI2.js"
+              },
+              {
+                "index": 20,
+                "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-MONuzrdS.css"
+              },
+              {
+                "index": 21,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 22,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 23,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 24,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 25,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 26,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 27,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 28,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 29,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 30,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 31,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 32,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 33,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 34,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 35,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 36,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 37,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 38,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 39,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 40,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 41,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 42,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 43,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 44,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 45,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 46,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 47,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 48,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 49,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 50,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 51,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 52,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 53,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 54,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 55,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 56,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 57,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 58,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 59,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 60,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 61,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 62,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 63,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 64,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 65,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 66,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 67,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 68,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 69,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 70,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 71,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 72,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 73,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 74,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 75,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 76,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 77,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 78,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 79,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 80,
+                "url": "http://127.0.0.1:4248/assets/api-BHUuccEj.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-BHUuccEj.js"
+              },
+              {
+                "index": 81,
+                "url": "http://127.0.0.1:4248/assets/api-Cm7_cGhL.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-Cm7_cGhL.css"
+              },
+              {
+                "index": 82,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 83,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 84,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 85,
+                "url": "http://127.0.0.1:4248/api/api-keys?workspaceId=usr_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/api-keys"
+              },
+              {
+                "index": 86,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 87,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              }
+            ],
+            "counts": {
+              "total": 87,
+              "api": 69,
+              "static": 17,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "blockedFonts": [
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              }
+            ],
+            "violations": [],
+            "externalDelivered": []
+          },
+          "touchEvidence": null
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-size-412-to-360",
+            "width": 412,
+            "narrow": 360,
+            "height": 844,
+            "lang": "en",
+            "touch": true
+          },
+          "states": 48,
+          "requests": {
+            "requests": [
+              {
+                "index": 1,
+                "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "document",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/projects/prj_date_layout"
+              },
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              },
+              {
+                "index": 3,
+                "url": "http://127.0.0.1:4248/assets/index-DuoMODX_.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-DuoMODX_.js"
+              },
+              {
+                "index": 4,
+                "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/rolldown-runtime-Bh1tDfsg.js"
+              },
+              {
+                "index": 5,
+                "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-react-9XhioiGP.js"
+              },
+              {
+                "index": 6,
+                "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/vendor-CHwUWPSh.js"
+              },
+              {
+                "index": 7,
+                "url": "http://127.0.0.1:4248/assets/navigation-C-ZvJoSL.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/navigation-C-ZvJoSL.js"
+              },
+              {
+                "index": 8,
+                "url": "http://127.0.0.1:4248/assets/pullwise-qdQEOBUK.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/pullwise-qdQEOBUK.js"
+              },
+              {
+                "index": 9,
+                "url": "http://127.0.0.1:4248/assets/index-BxzhodQq.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/index-BxzhodQq.css"
+              },
+              {
+                "index": 10,
+                "url": "http://127.0.0.1:4248/brand-mark.png",
+                "method": "GET",
+                "resourceType": "image",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/brand-mark.png"
+              },
+              {
+                "index": 11,
+                "url": "http://127.0.0.1:4248/api/auth/session",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/auth/session"
+              },
+              {
+                "index": 12,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 13,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 14,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 15,
+                "url": "http://127.0.0.1:4248/assets/ledger-D9bFwRRP.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-D9bFwRRP.js"
+              },
+              {
+                "index": 16,
+                "url": "http://127.0.0.1:4248/assets/skeleton-mXh_BDvD.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/skeleton-mXh_BDvD.js"
+              },
+              {
+                "index": 17,
+                "url": "http://127.0.0.1:4248/assets/ledger-CjNCp5Sk.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-CjNCp5Sk.js"
+              },
+              {
+                "index": 18,
+                "url": "http://127.0.0.1:4248/assets/ledger-BJnwcn-0.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-BJnwcn-0.css"
+              },
+              {
+                "index": 19,
+                "url": "http://127.0.0.1:4248/assets/shell-NYOVuHI2.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/shell-NYOVuHI2.js"
+              },
+              {
+                "index": 20,
+                "url": "http://127.0.0.1:4248/assets/ledger-MONuzrdS.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/ledger-MONuzrdS.css"
+              },
+              {
+                "index": 21,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 22,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 23,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 24,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 25,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 26,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 27,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 28,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 29,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 30,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 31,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 32,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 33,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 34,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 35,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 36,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 37,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 38,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 39,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 40,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 41,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 42,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 43,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 44,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects/prj_date_layout"
+              },
+              {
+                "index": 45,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 46,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 47,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 48,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 49,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 50,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 51,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 52,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 53,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 54,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 55,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 56,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 57,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 58,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 59,
+                "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=shared",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expense-recurring-rules"
+              },
+              {
+                "index": 60,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 61,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 62,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 63,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 64,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 65,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 66,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 67,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 68,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 69,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 70,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 71,
+                "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/expenses"
+              },
+              {
+                "index": 72,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/timeseries"
+              },
+              {
+                "index": 73,
+                "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=shared&from=2026-09-01&to=2026-11-01&categoryId=cat_date_hosting",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/reports/categories"
+              },
+              {
+                "index": 74,
+                "url": "http://127.0.0.1:4248/api/api/v1/projects",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/projects"
+              },
+              {
+                "index": 75,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 76,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 77,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 78,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 79,
+                "url": "http://127.0.0.1:4248/api/api/v1/me",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/me"
+              },
+              {
+                "index": 80,
+                "url": "http://127.0.0.1:4248/assets/api-BHUuccEj.js",
+                "method": "GET",
+                "resourceType": "script",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-BHUuccEj.js"
+              },
+              {
+                "index": 81,
+                "url": "http://127.0.0.1:4248/assets/api-Cm7_cGhL.css",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "static",
+                "outcome": "continued",
+                "path": "/assets/api-Cm7_cGhL.css"
+              },
+              {
+                "index": 82,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspace-invitation-requests"
+              },
+              {
+                "index": 83,
+                "url": "http://127.0.0.1:4248/api/api/v1/recurring-expense-notifications",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/recurring-expense-notifications"
+              },
+              {
+                "index": 84,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              },
+              {
+                "index": 85,
+                "url": "http://127.0.0.1:4248/api/api-keys?workspaceId=usr_date_layout",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/api-keys"
+              },
+              {
+                "index": 86,
+                "url": "http://127.0.0.1:4248/api/api/v1/categories",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": "usr_date_layout",
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/categories"
+              },
+              {
+                "index": 87,
+                "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+                "method": "GET",
+                "resourceType": "fetch",
+                "workspaceHeader": null,
+                "kind": "api",
+                "outcome": "fulfilled",
+                "path": "/api/v1/workspaces"
+              }
+            ],
+            "counts": {
+              "total": 87,
+              "api": 69,
+              "static": 17,
+              "blockedFonts": 1,
+              "violations": 0,
+              "externalDelivered": 0
+            },
+            "blockedFonts": [
+              {
+                "index": 2,
+                "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+                "method": "GET",
+                "resourceType": "stylesheet",
+                "workspaceHeader": null,
+                "kind": "blocked-font",
+                "outcome": "aborted",
+                "path": "/css2"
+              }
+            ],
+            "violations": [],
+            "externalDelivered": []
+          },
+          "touchEvidence": null
+        }
+      ]
+    },
+    "mobile": {
+      "scope": "Local bounded GET-only fixtures, Chromium/WebKit and simulated viewports. No remote business requests, writes, polling or physical-device acceptance. Reduced viewport checks are not a native virtual keyboard. Linux WebKit maxTouchPoints is recorded without overriding navigator; touchscreen taps run on Chromium.",
+      "contexts": 10,
+      "states": 187,
+      "profiles": [
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-320-en-light",
+            "width": 320,
+            "height": 720,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 50,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-320-fr-dark",
+            "width": 320,
+            "height": 720,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 57,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-zh-dark",
+            "width": 390,
+            "height": 844,
+            "lang": "zh",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 57,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "phone-390-en-light",
+            "width": 390,
+            "height": 844,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 50,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-412-en-light",
+            "width": 412,
+            "height": 915,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 50,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "android-412-fr-dark",
+            "width": 412,
+            "height": 915,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 57,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-768-zh-light",
+            "width": 768,
+            "height": 1024,
+            "lang": "zh",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 18,
+          "requests": {
+            "total": 57,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "tablet-1024-fr-dark",
+            "width": 1024,
+            "height": 768,
+            "lang": "fr",
+            "theme": "dark",
+            "touch": true
+          },
+          "states": 18,
+          "requests": {
+            "total": 57,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "desktop-1440-en-light",
+            "width": 1440,
+            "height": 1000,
+            "lang": "en",
+            "theme": "light",
+            "touch": false
+          },
+          "states": 18,
+          "requests": {
+            "total": 50,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Desktop fine-pointer geometry"
+        },
+        {
+          "engine": "chromium",
+          "version": "151.0.7922.173",
+          "profile": {
+            "name": "short-landscape-640-en-light",
+            "width": 640,
+            "height": 320,
+            "lang": "en",
+            "theme": "light",
+            "touch": true
+          },
+          "states": 19,
+          "requests": {
+            "total": 50,
+            "api": 28,
+            "blockedFonts": 1,
+            "writes": 0,
+            "externalDelivered": 0
+          },
+          "touchEvidence": "Coarse pointer, maxTouchPoints > 0 and genuine Playwright touchscreen taps"
+        }
+      ]
+    }
+  },
+  "webkitAvailable": false,
+  "physicalDeviceAcceptance": false,
+  "sourceHashes": {
+    "src/App.jsx": "fac47c871edfc468ada55938c4bc09452f829def83d94a424d555ab9a72898b5",
+    "src/screens/ledger.jsx": "ca95202d006e54200cb602b3b56abc8a63bf026b3c69313a72aff0a0e44d0fe7",
+    "src/components/recurring-expenses.jsx": "50deec907f50907ea521e67cdb4c8844280a84b52da95011fb54968ddb8ba6fa",
+    "src/components/invitation-inbox.jsx": "5933657491f70b3ef087156bf1f9b0b72ca5b8d8f5dddf73e3c0c7182b8549b6",
+    "scripts/check-date-layout.mjs": "ccc6ca99fcc56a706ac0f12e98c80ed5c08705768161cae8c30160d93e31be83",
+    "scripts/check-mobile-layout.mjs": "2adb359897dc801fcffd8d620aaa02be1a0e9a0b772a37debec3c9cd213a05b2",
+    "scripts/mobile-layout-fixtures.mjs": "f43a7445925741166cc01ce8ecc516e5f8a90759defa312da40617f74edce55d"
+  },
+  "builtArtifactHashes": {
+    "index.html": "39d48dd9675697ea40252dc2a2fbcd7272181bc6e5d003529ff5e3c3f3d4b024",
+    "index-DuoMODX_.js": "664212a16589bdbca61ae696cdf016cdbbba112df5a82b14f6a2b70714a4f393",
+    "ledger-screen-D3Z1jFOr.js": "c7a06e0408d172ef3416f0f10e838c2c8501c0c22a043dd4e56b3671333575d5",
+    "index-BxzhodQq.css": "75f5dcf16adf64034de96e12504c8d3210c7504c173e9556b9ed9dc9c4983b21"
+  }
+}
