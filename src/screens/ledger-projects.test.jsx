@@ -878,6 +878,35 @@ describe("Projects authorization and creation", () => {
     expect(api.repositories).toHaveBeenCalledTimes(1);
   });
 
+  it("retains project history and hides repository candidates during a renewal outage", async () => {
+    const githubRefreshError = Object.assign(new Error("GitHub unavailable"), {
+      status: 503,
+      code: "GITHUB_UNAVAILABLE",
+    });
+    api.projects.mockResolvedValue({
+      items: [{ ...blankProject, name: "Historical hosting" }],
+      nextCursor: null,
+      githubRefreshError,
+    });
+    api.repositories.mockResolvedValue({
+      items: [{ githubRepoId: 202, fullName: "alice/candidate" }],
+      nextCursor: null,
+      githubAccess: "unavailable",
+      githubRefreshError,
+    });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    expect(await screen.findByRole("link", { name: /Historical hosting/ })).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent(/GitHub is temporarily unavailable/i);
+    expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add project" }));
+    await nameProject();
+    await openGitHubLinks();
+    await waitFor(() => expect(api.repositories).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("option", { name: "alice/candidate" })).not.toBeInTheDocument();
+    expect(github.login).not.toHaveBeenCalled();
+    expect(github.connect).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["GITHUB_RATE_LIMITED", /GitHub is limiting requests/i],
     ["GITHUB_UNAVAILABLE", /GitHub is temporarily unavailable/i],

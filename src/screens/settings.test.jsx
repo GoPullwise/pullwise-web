@@ -125,6 +125,23 @@ describe("product settings", () => {
     expect(await screen.findByText("Taylor")).toBeInTheDocument();
   });
 
+  it("shows a credential renewal outage without reporting zero authorized repositories", async () => {
+    pullwiseApi.integrations.list.mockResolvedValue({
+      ...connectedGitHub,
+      githubRefreshError: new ApiError("GitHub is temporarily unavailable.", {
+        status: 503,
+        payload: { error: { code: "GITHUB_UNAVAILABLE" } },
+      }),
+    });
+    render(<SettingsScreen go={vi.fn()} />);
+    expect(await screen.findByText("Taylor")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("GitHub is temporarily unavailable.");
+    expect(screen.getByText("GitHub access unavailable.")).toBeInTheDocument();
+    expect(screen.queryByText(/0 repositories authorized/i)).not.toBeInTheDocument();
+    expect(connectGitHubRepositories).not.toHaveBeenCalled();
+    expect(manageGitHubInstallation).not.toHaveBeenCalled();
+  });
+
   it("offers explicit first email binding without treating a GitHub profile email as verified sign-in", async () => {
     const onSessionUpdated = vi.fn();
     render(<SettingsScreen go={vi.fn()} onSessionUpdated={onSessionUpdated} />);

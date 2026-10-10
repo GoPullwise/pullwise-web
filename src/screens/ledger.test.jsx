@@ -1053,7 +1053,10 @@ describe("ledger screens", () => {
       expect(api.reportSummary).not.toHaveBeenCalled();
     }
   );
-  it("keeps history editable during an unknown GitHub outage without claiming access was lost", async () => {
+  it.each([undefined, Object.assign(new Error("Renewal unavailable"), {
+    status: 503,
+    code: "GITHUB_UNAVAILABLE",
+  })])("keeps history editable during a GitHub outage without claiming access was lost (%s)", async (githubRefreshError) => {
     api.project.mockResolvedValueOnce({
       id: "prj_1",
       githubRepoId: 202,
@@ -1061,6 +1064,7 @@ describe("ledger screens", () => {
       description: "",
       status: "active",
       githubAccess: "unavailable",
+      githubRefreshError,
       revision: 1,
       totals: [],
     });
@@ -1084,6 +1088,9 @@ describe("ledger screens", () => {
     render(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
     expect(await screen.findByText(/GitHub access could not be verified/i)).toBeInTheDocument();
     expect(screen.queryByText(/GitHub access lost/i)).not.toBeInTheDocument();
+    if (githubRefreshError)
+      expect(screen.getByRole("alert")).toHaveTextContent(/GitHub is temporarily unavailable/i);
+    expect(screen.queryByRole("button", { name: "Reconnect GitHub" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Add expense" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Edit Historic hosting" }));
     expect(await screen.findByLabelText("What did you pay for?")).toHaveValue("Historic hosting");

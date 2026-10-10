@@ -16,6 +16,14 @@ Members supports invitation links, applications, original-inviter approval, role
 
 Create a standalone project with a name and optional description; no GitHub App installation or repository authorization is needed for its expense entries. Optionally link 1–30 distinct stable GitHub repository IDs and a GitHub Organization. The chooser uses the acting member's current GitHub authorization, filters by the selected organization and revalidates selections after access changes. Project settings can add, change or remove these associations while preserving the project ID and expense history. A new expense in a linked project requires at least one linked repository authorized for the acting member; unavailable protected repository metadata stays hidden while permitted financial history remains accessible. Removing all repository links requires a nonempty project name and clears the Organization association.
 
+When an expiring GitHub authorization has a saved refresh token, repository and
+project reads renew it automatically and retry the read once. Concurrent reads
+share one renewal for the signed-in account, and account changes cancel obsolete
+results. Financial history remains visible during temporary provider failures.
+Legacy accounts need one explicit **Reconnect GitHub** to store the previously
+missing refresh token; revoked or expired refresh credentials still require
+reconnection. This does not extend the separate Pullwise login session.
+
 The Cloudflare static-asset Worker in `worker-entry.js` proxies `/api/*` to the Server Worker and streams its response body. The browser API helper uses `/api/v1/*` behind the configurable base URL; on the production domain the base URL is `/api`, so the proxy receives `/api/api/v1/*` and strips the first `/api`.
 
 ## Shared REST API and capacity

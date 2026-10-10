@@ -1,11 +1,12 @@
 import { request } from "./http.js";
+import { withGitHubRefresh } from "./github-refresh.js";
 
 // The Web base is /api. The Worker removes only that proxy prefix, so the
 // Server receives /api/v1/... and OAuth continues to use /auth/....
 const resource = (kind, id) => `/${kind}/${encodeURIComponent(id)}`;
 const version = (revision) => ({ "If-Match": `"${revision}"` });
 
-export function createLedgerApi(workspaceId, onAccessChanged) {
+export function createLedgerApi(workspaceId, onAccessChanged, githubRefreshScope) {
   // Capture the ledger for this view. In-flight requests never inherit a later
   // picker selection, and account/billing requests use their own API client.
   const ledgerRequest = async (path, options = {}) => {
@@ -31,6 +32,11 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
       throw error;
     }
   };
+  const githubRead = (path, options = {}) =>
+    withGitHubRefresh(() => ledgerRequest(path, options), {
+      signal: options.signal,
+      ...(githubRefreshScope !== undefined ? { scope: githubRefreshScope } : {}),
+    });
   return {
     workspaces: (options) => ledgerRequest("/workspaces", options),
     members: (id, options) =>
@@ -98,9 +104,9 @@ export function createLedgerApi(workspaceId, onAccessChanged) {
         }
       ),
     me: (options) => ledgerRequest("/me", options),
-    repositories: (params, options) => ledgerRequest("/repositories", { ...options, params }),
-    projects: (params, options) => ledgerRequest("/projects", { ...options, params }),
-    project: (id, options) => ledgerRequest(resource("projects", id), options),
+    repositories: (params, options) => githubRead("/repositories", { ...options, params }),
+    projects: (params, options) => githubRead("/projects", { ...options, params }),
+    project: (id, options) => githubRead(resource("projects", id), options),
     activity: (params, options) => ledgerRequest("/activity", { ...options, params }),
     createProject: (fields, options) =>
       ledgerRequest("/projects", { ...options, method: "POST", body: fields }),

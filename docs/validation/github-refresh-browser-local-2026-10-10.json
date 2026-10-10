@@ -1,0 +1,824 @@
+{
+  "kind": "bounded-local-browser-fixtures",
+  "timestamp": "2026-10-10T02:48:46.577Z",
+  "baseURL": "http://127.0.0.1:4248",
+  "requestCapPerCase": 64,
+  "totalRequestCap": 192,
+  "productionOrProviderAcceptance": false,
+  "builtEntryAssets": [
+    "/assets/index-CzWR0FRW.js"
+  ],
+  "cases": [
+    {
+      "kind": "success",
+      "passed": true,
+      "financialHistoryVisible": true,
+      "historicalEditEnabled": true,
+      "repositoryRestored": true,
+      "organizationRestored": true,
+      "manualReconnectVisible": false,
+      "automaticOAuthRequests": 0,
+      "screenshot": "/workspace/work/github-refresh-browser/success.png",
+      "counts": {
+        "total": 36,
+        "refreshPosts": 1,
+        "businessWrites": 0,
+        "projectReads": 2,
+        "projectListReads": 2,
+        "externalDelivered": 0,
+        "blockedFonts": 1,
+        "violations": 0
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+          "path": "/projects/prj_date_layout",
+          "workspace": null,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "path": "/css2",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-CzWR0FRW.js",
+          "path": "/assets/index-CzWR0FRW.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+          "path": "/assets/vendor-react-9XhioiGP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/navigation-BQQsei7j.js",
+          "path": "/assets/navigation-BQQsei7j.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/notifications-BFjqtIZP.js",
+          "path": "/assets/notifications-BFjqtIZP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/console-layout-B8oeDtF2.js",
+          "path": "/assets/console-layout-B8oeDtF2.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/pullwise-CrQNcJVf.js",
+          "path": "/assets/pullwise-CrQNcJVf.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-CwAumk_x.js",
+          "path": "/assets/email-sign-in-CwAumk_x.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/auth-B_4hAFCJ.js",
+          "path": "/assets/auth-B_4hAFCJ.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/public-layout-DdXobh5f.js",
+          "path": "/assets/public-layout-DdXobh5f.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-BbjG5AHR.css",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-X9HxdBrG.css",
+          "path": "/assets/index-X9HxdBrG.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/brand-mark.png",
+          "path": "/brand-mark.png",
+          "workspace": null,
+          "resourceType": "image"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/auth/session",
+          "path": "/auth/session",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+          "path": "/api/v1/workspaces",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DDIc20r1.js",
+          "path": "/assets/ledger-DDIc20r1.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/skeleton-z4rAADvL.js",
+          "path": "/assets/skeleton-z4rAADvL.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/financial-value-fTDc9WAl.js",
+          "path": "/assets/financial-value-fTDc9WAl.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DZ6_dt0n.js",
+          "path": "/assets/ledger-DZ6_dt0n.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-Tv40ym5v.css",
+          "path": "/assets/ledger-Tv40ym5v.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/shell-Dyr6mw_i.js",
+          "path": "/assets/shell-Dyr6mw_i.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-C79H08Go.css",
+          "path": "/assets/ledger-C79H08Go.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+          "path": "/api/v1/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expenses",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/timeseries",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+          "path": "/api/v1/projects/prj_date_layout",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects",
+          "path": "/api/v1/projects",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:4248/api/integrations/github/refresh",
+          "path": "/integrations/github/refresh",
+          "workspace": null,
+          "resourceType": "fetch",
+          "fixtureStatus": 200
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+          "path": "/api/v1/projects/prj_date_layout",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "authorized"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects",
+          "path": "/api/v1/projects",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "authorized"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expense-recurring-rules",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        }
+      ]
+    },
+    {
+      "kind": "temporary",
+      "passed": true,
+      "financialHistoryVisible": true,
+      "historicalEditEnabled": true,
+      "repositoryRestored": false,
+      "organizationRestored": false,
+      "manualReconnectVisible": false,
+      "automaticOAuthRequests": 0,
+      "screenshot": "/workspace/work/github-refresh-browser/temporary.png",
+      "counts": {
+        "total": 34,
+        "refreshPosts": 1,
+        "businessWrites": 0,
+        "projectReads": 1,
+        "projectListReads": 1,
+        "externalDelivered": 0,
+        "blockedFonts": 1,
+        "violations": 0
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+          "path": "/projects/prj_date_layout",
+          "workspace": null,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "path": "/css2",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-CzWR0FRW.js",
+          "path": "/assets/index-CzWR0FRW.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+          "path": "/assets/vendor-react-9XhioiGP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/navigation-BQQsei7j.js",
+          "path": "/assets/navigation-BQQsei7j.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/notifications-BFjqtIZP.js",
+          "path": "/assets/notifications-BFjqtIZP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/console-layout-B8oeDtF2.js",
+          "path": "/assets/console-layout-B8oeDtF2.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/pullwise-CrQNcJVf.js",
+          "path": "/assets/pullwise-CrQNcJVf.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-CwAumk_x.js",
+          "path": "/assets/email-sign-in-CwAumk_x.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/auth-B_4hAFCJ.js",
+          "path": "/assets/auth-B_4hAFCJ.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/public-layout-DdXobh5f.js",
+          "path": "/assets/public-layout-DdXobh5f.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-BbjG5AHR.css",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-X9HxdBrG.css",
+          "path": "/assets/index-X9HxdBrG.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/brand-mark.png",
+          "path": "/brand-mark.png",
+          "workspace": null,
+          "resourceType": "image"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/auth/session",
+          "path": "/auth/session",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+          "path": "/api/v1/workspaces",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DDIc20r1.js",
+          "path": "/assets/ledger-DDIc20r1.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/skeleton-z4rAADvL.js",
+          "path": "/assets/skeleton-z4rAADvL.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/financial-value-fTDc9WAl.js",
+          "path": "/assets/financial-value-fTDc9WAl.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DZ6_dt0n.js",
+          "path": "/assets/ledger-DZ6_dt0n.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-Tv40ym5v.css",
+          "path": "/assets/ledger-Tv40ym5v.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/shell-Dyr6mw_i.js",
+          "path": "/assets/shell-Dyr6mw_i.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-C79H08Go.css",
+          "path": "/assets/ledger-C79H08Go.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+          "path": "/api/v1/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expenses",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/timeseries",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+          "path": "/api/v1/projects/prj_date_layout",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects",
+          "path": "/api/v1/projects",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:4248/api/integrations/github/refresh",
+          "path": "/integrations/github/refresh",
+          "workspace": null,
+          "resourceType": "fetch",
+          "fixtureStatus": 503
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expense-recurring-rules",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        }
+      ]
+    },
+    {
+      "kind": "revoked",
+      "passed": true,
+      "financialHistoryVisible": true,
+      "historicalEditEnabled": true,
+      "repositoryRestored": false,
+      "organizationRestored": false,
+      "manualReconnectVisible": true,
+      "automaticOAuthRequests": 0,
+      "screenshot": "/workspace/work/github-refresh-browser/revoked.png",
+      "counts": {
+        "total": 34,
+        "refreshPosts": 1,
+        "businessWrites": 0,
+        "projectReads": 1,
+        "projectListReads": 1,
+        "externalDelivered": 0,
+        "blockedFonts": 1,
+        "violations": 0
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/projects/prj_date_layout",
+          "path": "/projects/prj_date_layout",
+          "workspace": null,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "url": "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap",
+          "path": "/css2",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-CzWR0FRW.js",
+          "path": "/assets/index-CzWR0FRW.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/rolldown-runtime-Bh1tDfsg.js",
+          "path": "/assets/rolldown-runtime-Bh1tDfsg.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-react-9XhioiGP.js",
+          "path": "/assets/vendor-react-9XhioiGP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/vendor-CHwUWPSh.js",
+          "path": "/assets/vendor-CHwUWPSh.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/navigation-BQQsei7j.js",
+          "path": "/assets/navigation-BQQsei7j.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/notifications-BFjqtIZP.js",
+          "path": "/assets/notifications-BFjqtIZP.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/console-layout-B8oeDtF2.js",
+          "path": "/assets/console-layout-B8oeDtF2.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/pullwise-CrQNcJVf.js",
+          "path": "/assets/pullwise-CrQNcJVf.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-CwAumk_x.js",
+          "path": "/assets/email-sign-in-CwAumk_x.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/auth-B_4hAFCJ.js",
+          "path": "/assets/auth-B_4hAFCJ.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/public-layout-DdXobh5f.js",
+          "path": "/assets/public-layout-DdXobh5f.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/email-sign-in-BbjG5AHR.css",
+          "path": "/assets/email-sign-in-BbjG5AHR.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/index-X9HxdBrG.css",
+          "path": "/assets/index-X9HxdBrG.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/brand-mark.png",
+          "path": "/brand-mark.png",
+          "workspace": null,
+          "resourceType": "image"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/auth/session",
+          "path": "/auth/session",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspace-invitation-requests",
+          "path": "/api/v1/workspace-invitation-requests",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/workspaces",
+          "path": "/api/v1/workspaces",
+          "workspace": null,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DDIc20r1.js",
+          "path": "/assets/ledger-DDIc20r1.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/skeleton-z4rAADvL.js",
+          "path": "/assets/skeleton-z4rAADvL.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/financial-value-fTDc9WAl.js",
+          "path": "/assets/financial-value-fTDc9WAl.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-DZ6_dt0n.js",
+          "path": "/assets/ledger-DZ6_dt0n.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-Tv40ym5v.css",
+          "path": "/assets/ledger-Tv40ym5v.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/shell-Dyr6mw_i.js",
+          "path": "/assets/shell-Dyr6mw_i.js",
+          "workspace": null,
+          "resourceType": "script"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/assets/ledger-C79H08Go.css",
+          "path": "/assets/ledger-C79H08Go.css",
+          "workspace": null,
+          "resourceType": "stylesheet"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/categories?includeRemoved=true",
+          "path": "/api/v1/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expenses?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expenses",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/timeseries?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/timeseries",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/reports/categories?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/reports/categories",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects/prj_date_layout",
+          "path": "/api/v1/projects/prj_date_layout",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/projects",
+          "path": "/api/v1/projects",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch",
+          "fixtureAccess": "reauthorization_required"
+        },
+        {
+          "method": "POST",
+          "url": "http://127.0.0.1:4248/api/integrations/github/refresh",
+          "path": "/integrations/github/refresh",
+          "workspace": null,
+          "resourceType": "fetch",
+          "fixtureStatus": 403
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:4248/api/api/v1/expense-recurring-rules?target=project&projectId=prj_date_layout",
+          "path": "/api/v1/expense-recurring-rules",
+          "workspace": "usr_date_layout",
+          "resourceType": "fetch"
+        }
+      ]
+    }
+  ],
+  "engine": "chromium",
+  "browserVersion": "151.0.7922.173",
+  "passed": true
+}

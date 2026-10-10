@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { pullwiseApi } from "./api/pullwise.js";
 import { createLedgerApi, ledgerApi } from "./api/ledger.js";
+import { captureGitHubRefreshScope, setGitHubRefreshIdentity } from "./api/github-refresh.js";
 import { WorkspaceContext } from "./components/workspace-context.jsx";
 import { NotificationProvider } from "./components/notifications.jsx";
 import { InvitationInboxProvider } from "./components/invitation-inbox.jsx";
@@ -172,6 +173,7 @@ export function App() {
     "apiKeys",
   ].includes(screen);
   const identity = sessionIdentity(auth.authenticated, auth.session);
+  const githubAccountId = auth.authenticated ? auth.session?.user?.id : null;
   const workspace =
     workspaceState.identity === identity && workspaceState.status === "ready"
       ? workspaceState.items.find((item) => item.id === workspaceState.selectedId)
@@ -251,8 +253,9 @@ export function App() {
     [workspaceScope]
   );
   const api = useMemo(
-    () => createLedgerApi(workspace?.id, onAccessChanged),
-    [workspace?.id, onAccessChanged]
+    () =>
+      createLedgerApi(workspace?.id, onAccessChanged, captureGitHubRefreshScope(githubAccountId)),
+    [workspace?.id, onAccessChanged, githubAccountId]
   );
   const workspaceReadRef = useRef({ generation: 0, controller: null });
   const accessRefreshRef = useRef(null);
@@ -561,6 +564,8 @@ export function App() {
   const authRef = useRef(auth);
   const authIdentityRef = useRef(null);
 
+  useEffect(() => () => setGitHubRefreshIdentity(null), []);
+
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
@@ -568,6 +573,7 @@ export function App() {
   const setAuthState = useCallback((nextAuth) => {
     const resolvedAuth = typeof nextAuth === "function" ? nextAuth(authRef.current) : nextAuth;
     const nextIdentity = sessionIdentity(resolvedAuth.authenticated, resolvedAuth.session);
+    setGitHubRefreshIdentity(resolvedAuth.authenticated ? resolvedAuth.session?.user?.id : null);
     if (authIdentityRef.current !== nextIdentity) {
       authIdentityRef.current = nextIdentity;
     }
@@ -603,6 +609,7 @@ export function App() {
       sessionAbortRef.current = null;
       sessionCheckingRef.current = false;
       clearSessionConfirmTimer();
+      if (!link) setGitHubRefreshIdentity(null);
       setAuthState({ status: "ready", authenticated: true, session: payload });
       if (!link) {
         const destination = /^#invite=[A-Za-z0-9_-]{20,200}$/.test(window.location.hash)

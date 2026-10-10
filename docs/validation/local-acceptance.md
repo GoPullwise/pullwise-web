@@ -1,5 +1,40 @@
 # Current local acceptance
 
+
+## Automatic GitHub credential renewal (2026-10-10)
+
+Only an explicit Server `githubRefreshRequired: true` permits one cookie-authenticated
+`POST /integrations/github/refresh` and one repeated read. Parallel requests share
+one account-generation renewal; stale account responses, canceled consumers and
+successful logout cannot restore obsolete protected state. A failed logout retains
+the original scope. Ordinary mutations are never replayed, no timer or OAuth
+redirect is introduced, and credentials are never stored in browser storage.
+
+Temporary provider/network failures retain the successfully read financial history
+and binding IDs, hide unavailable repository choices and show the existing recovery
+message. Explicitly revoked authorization keeps manual reconnect. Actual resource
+404, validation 422, account 409, role 403 and session 401 remain errors instead of
+restoring old financial data. Existing users must reconnect once because the older
+Server did not retain their refresh token. Normal provider expiry can then renew
+without a new GitHub authorization flow.
+
+The complete current Web check passes ESLint, **65 files / 1,268 tests** and the
+production build. Worker configuration and both generated OpenAPI artifacts pass;
+Python Server passes **2,396 tests / 62 subtests**. Focused helper/application/ledger/
+settings checks pass **318 tests in eight files**. Final read-only review confirms
+bounded retries, current-account isolation and the explicit safe-error allowlist.
+[Browser evidence](github-refresh-browser-local-2026-10-10.json) passes three
+loopback fixture cases with Playwright 1.57.0 and Chromium 151.0.7922.173 against
+the final built `index-CzWR0FRW.js`. Success performs one shared simulated POST and
+exactly two GETs each for project/list, restores repository and Organization links,
+keeps the existing expense visible/editable and shows no reconnect. Temporary
+503 and revoked 403 each perform one POST and one GET per project/list, preserve
+expense history and binding IDs, and only revoked authorization shows reconnect.
+The cases use 36/34/34 intercepted requests under per-case 64 and total 192 caps.
+No business write, OAuth start or external delivery occurs. These synthetic local
+cases do not establish acceptance against a real GitHub account. Actual preview
+publication is recorded separately.
+
 ## Expense category guidance (2026-10-09)
 
 Project and Shared Pool expense pages now explain the next step when no active
