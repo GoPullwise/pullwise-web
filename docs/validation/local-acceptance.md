@@ -48,6 +48,12 @@ remain in ignored workspace scratch files; no screenshots are tracked.
 
 ## Mobile Safari, Android Chrome and phone layout (2026-10-10)
 
+[Preview publication](mobile-compatibility-preview-release-2026-10-10.json) records
+the released Web version, GitHub main source and three exact assets matching
+this final build. The homepage HEAD returned 200/noindex; the only homepage
+GET returned 403 and was not repeated, so its body references remain unverified.
+No Server or database changes are included.
+
 The approved phone layout uses a compact topbar with a Display options icon,
 three primary bottom tabs plus a native More selector, larger titles and
 single-column forms and records. iPad and desktop retain the shared sidebar and
