@@ -1,5 +1,49 @@
 # Current local acceptance
 
+## Recorded expenses, recurring categorization and recovery (2026-10-10)
+
+Project and Shared Pool now distinguish Recorded expenses from Recurring plans.
+The entry controls pair Record expense with Already paid and Recurring plan with
+Future expenses, using Paid on / Start date fields and a concise historical-start
+versus future-start preview. Each scheduled occurrence remains a separate expense
+with its own date and original amount. Recurring create and explicit Automatic
+edits use the same scoped Jev eligibility as ordinary expense saves; declined
+classification retains the complete draft and focuses the category picker.
+The saved-category confirmation is neutral for both records and future plans.
+
+A plan retains up to ten frozen failed occurrences with exact dates, amounts and
+an explicit Add to expenses action for each. Full-capacity failures preserve those
+actions for manual recovery. Successful recovery refreshes recorded expenses,
+project totals and reports before releasing the shared write guard, then refreshes
+the inbox. Account inbox rows retain the failed expense after toast dismissal and
+open the authorized ledger and exact plan, including when the ledger picker needs
+an explicit access refresh. Server email/capacity/schema behavior is validated in
+the companion Server record.
+
+The final merged Web `npm run check` passes ESLint, **65 test files / 1,283
+tests** and the production build. `npm run check:workers` passes its offline
+configuration guard. The complete suite includes concurrent automatic GitHub
+credential renewal, scoped access boundaries, recurring classification/recovery
+and inbox regressions. No git push or deployment is part of this local check.
+
+The persistent local Chromium 151.0.7922.173 layout check passed **258 states**:
+81 each at desktop 1440px and Chinese touch tablet 1280px, and 48 each at phone
+390→320px and Android-sized 412→360px. Coverage includes ten frozen recovery rows,
+44px recovery actions, complete currency values, equal natural record heights,
+260/520px independent editor rails and live 899/900px reflow. Separate dark-theme
+390px/1440px inbox and entry checks retain the full historical date and precise
+large amount, avoid document/modal overflow, and navigate/focus the named plan.
+The 390px case verifies coarse-pointer media, one touch point and a 44px action.
+
+Browser evidence uses Playwright 1.57.0, local intercepted GET fixtures and a
+100-request cap per context. The separate inbox captures use 40 guarded requests
+plus two locally fulfilled notification reads per context, with no external
+delivery or writes. The evidence was collected before merging the concurrent
+GitHub-renewal main changes; the merged source receives the complete local check
+below. These checks establish browser-engine/emulated layout behavior, not real
+physical-device, provider delivery or live-account acceptance. Logs and screenshots
+remain in ignored workspace scratch files; no screenshots are tracked.
+
 
 ## Automatic GitHub credential renewal (2026-10-10)
 

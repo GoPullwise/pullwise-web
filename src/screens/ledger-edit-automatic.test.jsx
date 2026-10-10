@@ -167,7 +167,7 @@ describe("Automatic categorization while editing ordinary expenses", () => {
       await waitFor(() =>
         expect(screen.getByRole("button", { name: `Edit ${f.expense.purpose}` })).toBeEnabled()
       );
-      expect(screen.getByText("Jev categorized this expense: Hosting.")).toBeVisible();
+      expect(screen.getByText("Jev selected the category: Hosting.")).toBeVisible();
       const row = screen.getByRole("heading", { name: saved.purpose }).closest("article");
       expect(within(row).getByText("2026-10-09 · Hosting")).toBeVisible();
       expect(within(row).getByText(f.expense.amount)).toBeVisible();

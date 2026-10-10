@@ -88,7 +88,11 @@ The project/shared-pool expense form can create a one-time expense or a weekly,
 monthly, calendar-quarterly or yearly rule for that page's fixed target. Rules
 store an IANA timezone, start date, optional end date and original day anchor.
 Short months clamp to their last day without changing later months' anchors.
-The separate recurring list shows the next date and supports editing,
+Recorded expenses and recurring plans have separate sections and entry controls.
+A start date on or before today records that first expense once; a future start
+waits until due. Each following date creates a separate expense at the original
+amount. Eligible Jev assistance can select a category for both entry types.
+The recurring list shows a future next date and supports editing,
 pause/resume and permanent cancellation according to ledger permissions.
 Resume skips paused periods. Planned costs remain outside reports until the
 Server atomically generates an actual expense. Sessions and authorized Bearer
@@ -99,7 +103,11 @@ current authority. Tokens and internal grants never appear in public rule DTOs.
 
 The Server checks due rules hourly in preview, with current membership, GitHub
 target access, category and owner quota checks, bounded catch-up and permanent
-period identity to prevent duplicate charges. The
+period identity to prevent duplicate charges. At full expense capacity, owners
+who leave automatic oldest-expense replacement off receive an English email,
+or an inbox item when email is unavailable. The plan preserves the first ten
+unresolved dates with individual Add to expenses actions; further failed dates
+are discarded while the ten remain unresolved. The
 [feature contract](../pullwise-server/docs/planning/recurring-expenses-project-links.md)
 and current acceptance distinguish local/native tests from actual publication.
 Production D1 remains paused and has no recurring trigger.

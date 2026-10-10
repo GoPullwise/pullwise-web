@@ -2303,7 +2303,7 @@ describe("ledger screens", () => {
       amount: "12.00",
       target: { kind: "shared" },
     });
-    expect(await screen.findByText(/Jev categorized this expense/i)).toHaveTextContent("Tools");
+    expect(await screen.findByText(/Jev selected the category/i)).toHaveTextContent("Tools");
     expect(api.suggestExpense).not.toHaveBeenCalled();
     expect(api.suggestDecision).not.toHaveBeenCalled();
     expect(api.me).toHaveBeenCalledTimes(1);
@@ -2334,7 +2334,7 @@ describe("ledger screens", () => {
       await screen.findByText(/This expense may duplicate an existing entry/i)
     ).toBeInTheDocument();
     expect(api.createExpense.mock.calls[0][0].categoryId).toBe("cat_1");
-    expect(screen.queryByText(/Jev categorized this expense/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Jev selected the category/i)).not.toBeInTheDocument();
   });
 
   it("retains the draft and focuses category when automatic categorization needs manual input", async () => {
@@ -2524,9 +2524,9 @@ describe("ledger screens", () => {
       target: { value: "Hosting" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save expense" }));
-    await screen.findByText(/Jev categorized this expense/i);
+    await screen.findByText(/Jev selected the category/i);
     view.rerender(<LedgerScreen go={vi.fn()} mode="project" projectId="prj_1" />);
     await screen.findByRole("heading", { name: "alice/project", level: 1 });
-    expect(screen.queryByText(/Jev categorized this expense/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Jev selected the category/i)).not.toBeInTheDocument();
   });
 });

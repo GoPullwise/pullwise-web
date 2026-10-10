@@ -1,5 +1,6 @@
 // Short ledger API and key-management labels; technical identifiers remain unchanged.
 const rows = [
+  ["Jev selected the category", "Jev 已自动选择分类", "Jev がカテゴリを選択しました", "Jev가 카테고리를 선택했습니다", "Jev a choisi la catégorie", "Jev seleccionó la categoría"],
   ["Inbox", "站内信", "受信トレイ", "받은 편지함", "Boîte de réception", "Bandeja de entrada"],
   ["Open recurring plan", "打开周期计划", "定期プランを開く", "정기 계획 열기", "Ouvrir le plan récurrent", "Abrir plan recurrente"],
   ["Expense record limit reached", "支出记录已满额", "支出記録の上限に達しました", "지출 기록 한도에 도달했습니다", "Limite des dépenses enregistrées atteinte", "Se alcanzó el límite de registros de gastos"],

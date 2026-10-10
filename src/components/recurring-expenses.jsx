@@ -492,7 +492,7 @@ export function RecurringExpenses({
       setConfirmation(null);
       pendingFocus.current = {
         id: rule.id,
-        action: kind === "edit" ? "edit" : kind === "delete" ? "delete" : kind === "retry" ? "pending" : "status",
+        action: kind === "edit" ? "edit" : kind === "delete" ? "delete" : kind === "retry" ? `pending:${fields.retryPeriodKey}` : "status",
       };
       if (kind === "retry") {
         await live.current.onExpensesChanged?.({ signal: controller.signal });
@@ -798,7 +798,7 @@ export function RecurringExpenses({
                               <button
                                 className="btn"
                                 type="button"
-                                ref={ref(rule.id, "pending")}
+                                ref={ref(rule.id, `pending:${occurrence.periodKey}`)}
                                 disabled={blocked || needsReload.current}
                                 aria-label={T("Add {date} to expenses").replace("{date}", occurrence.scheduledOn)}
                                 onClick={() => mutate(rule, "retry", { retryPeriodKey: occurrence.periodKey })}

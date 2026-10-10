@@ -2157,7 +2157,7 @@ function ScopedLedgerScreen({
               <div className="notice" role="status">
                 {savedAssistance.categorySource === "jev" && (
                   <p>
-                    {T("Jev categorized this expense", "Jev 已自动为这笔支出分类")}:{" "}
+                    {T("Jev selected the category", "Jev 已自动选择分类")}:{" "}
                     {categoryDisplayName(
                       data?.categories?.find(
                         (item) =>

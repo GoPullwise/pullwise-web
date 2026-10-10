@@ -33,7 +33,7 @@ const LEDGER_COPY = [
   "Expense total", "Repositories / organization",
   "Each currency has its own scale.", "Use arrow keys to inspect values.", "Some report amounts are unavailable.",
   "From date", "Export CSV", "Automatic", "Save expense", "Automatic Jev assistance",
-  "Jev categorized this expense", "This expense may duplicate an existing entry. Review your records.",
+  "Jev selected the category", "This expense may duplicate an existing entry. Review your records.",
   "Choose a category to finish saving. Your draft is still here.",
   "Automatic Jev assistance when saving expenses", "Automatic categorization and expense advice · Web + REST API",
   "Annual subscriptions keep the same monthly Jev budget", "Monthly UTC budget · no rollover",

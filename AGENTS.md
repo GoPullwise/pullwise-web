@@ -1,5 +1,32 @@
 # Pullwise Web
 
+## Recorded expenses and recurring recovery (2026-10-10)
+
+Project and Shared Pool entry separates Record expense / Already paid from
+Recurring plan / Future expenses with compact controls, Paid on / Start date
+fields and separate Recorded expenses / Recurring plans sections. Keep the
+historical-start preview concise: record the start once, then future due dates;
+a future start waits for its planned date. Server owns the next planned date,
+which must not remain historical, and creates a distinct expense per occurrence
+without increasing an existing expense's amount.
+
+Recurring create and explicit Automatic edits use the same scoped Jev eligibility
+as ordinary expenses. Retain original categories by default, draft preservation
+and category focus after CATEGORY_REQUIRED; neutral saved-category copy must not
+imply that saving a future plan already recorded an expense.
+
+Capacity failures retain frozen dated occurrences on their plan, with a separate
+Add to expenses action for each. Keep at most ten outstanding failures per plan;
+later failed dates do not evict the saved ten. Explicit PATCH retryPeriodKey uses
+the current If-Match revision and the frozen values. Hold the shared page write
+guard through the required expense/report refresh and preserve recovery actions
+on capacity denial. Send English email when a sendable address exists, otherwise
+retain a durable account inbox item that opens the authorized ledger and plan.
+Refresh notifications on explicit/login/navigation/focus intent and successful
+recovery events without polling. Keep six locales, exact currency amounts,
+identity/access isolation, native controls and 44px touch actions. Publish only
+preview through the established workflow; production remains paused.
+
 ## Automatic GitHub credential renewal (2026-10-10)
 
 The user explicitly requests automatic renewal of expiring GitHub authorization.
