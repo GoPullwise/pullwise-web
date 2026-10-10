@@ -3,6 +3,10 @@
 
 ## Automatic GitHub credential renewal (2026-10-10)
 
+[Preview publication receipt](github-refresh-preview-release-2026-10-10.json) records
+the two released versions, matching static assets and preserved database/coordinator,
+schedules and production D1 pause. No remote business/provider workflow was invoked.
+
 Only an explicit Server `githubRefreshRequired: true` permits one cookie-authenticated
 `POST /integrations/github/refresh` and one repeated read. Parallel requests share
 one account-generation renewal; stale account responses, canceled consumers and
