@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "Web preview HTTPS navigation and mobile controls publication; Server commit is tests/evidence only",
+  "httpNavigation": {
+    "url": "http://preview.pull-wise.com/",
+    "status": 308,
+    "bytes": 0,
+    "robots": "noindex, nofollow",
+    "location": "https://preview.pull-wise.com/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "httpsHomepage": {
+    "url": "https://preview.pull-wise.com/",
+    "status": 200,
+    "bytes": 4732,
+    "robots": "noindex, nofollow",
+    "location": null,
+    "sha256": "8a399bc456a613977aea450bab444e54ee606b46ee9cee7ce4f7682862ef26b8"
+  },
+  "assets": [
+    {
+      "url": "https://preview.pull-wise.com/assets/index-DctqU873.js",
+      "status": 200,
+      "bytes": 101088,
+      "robots": null,
+      "location": null,
+      "sha256": "b69a736a755cbbe27c963fb2862f280f29d5f067eb449e0b0993a7ef4c9abc13",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/index-D51uaxY1.css",
+      "status": 200,
+      "bytes": 93504,
+      "robots": null,
+      "location": null,
+      "sha256": "db272ac5a1b3e86dc2e082095d53e8e5a5a22f007c16870e84beb45782ea1a3b",
+      "matchesBuiltBytes": true
+    },
+    {
+      "url": "https://preview.pull-wise.com/assets/ledger-CfNhAgyv.css",
+      "status": 200,
+      "bytes": 17388,
+      "robots": null,
+      "location": null,
+      "sha256": "f430fcac48a15ce4b27a11cce3ec8e994c1f312cda3f382845c3d26f5cace2f6",
+      "matchesBuiltBytes": true
+    }
+  ],
+  "httpNavigationRequests": 1,
+  "httpsHomepageRequests": 1,
+  "hashedAssetRequests": 3,
+  "serverDeployments": 0,
+  "remoteD1Operations": 0,
+  "businessAPIRequests": 0,
+  "javascriptExecuted": false,
+  "automaticRedirectsFollowed": 0,
+  "clientRetries": 0,
+  "realProviderCalls": 0,
+  "webSourceCommit": "a98b8ac35982c410a4f97fd496896b3ef6d9f38d",
+  "serverMainCommit": "cfd3f513698b7fed1507ae9ac24d39b352cc10a6",
+  "webPreviewVersion": "a8411b87-66c1-45e9-abfc-4937c013b8e1",
+  "previousServerPreviewVersionNotRedeployed": "90489949-62c5-4de8-84ea-92916bbad18b",
+  "buildIndexSha256": "484cd8d868d0df86bdb0c45c1f9c2d47acd8a317b3573560f37fc086df659612",
+  "deployment": {
+    "worker": "pullwise-web-preview",
+    "config": "wrangler.preview.jsonc",
+    "keepVars": true,
+    "serviceBinding": "pullwise-server-preview",
+    "serverRuntimeChanged": false,
+    "serverDeployed": false,
+    "databaseOrCoordinatorConfigurationChanged": false,
+    "cronChanged": false,
+    "productionDeployed": false
+  },
+  "localValidation": {
+    "webTestFiles": 70,
+    "webTests": 1422,
+    "serverTargetedEmailTests": 74,
+    "chromiumContexts": 55,
+    "persistentLayoutStates": 481,
+    "workerDryRun": "passed",
+    "workerConfigurationCheck": "passed",
+    "apiArtifactsCheck": "passed"
+  },
+  "userReportedIPhoneRecovery": "Email login works after explicitly adding https://",
+  "limitations": "Remote readback is finite static-only verification; no page JavaScript, business API, real verification email or independent physical-device/WebKit UI acceptance. Final publication-record commit is documentation only."
+}

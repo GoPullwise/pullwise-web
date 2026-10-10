@@ -2,6 +2,16 @@
 
 ## HTTPS sign-in entry and control spacing (2026-10-10)
 
+[Preview publication](mobile-controls-preview-release-2026-10-10.json) records
+both main commits and the released Web version. One HTTP navigation returns 308
+to the HTTPS preview; one HTTPS homepage returns 200/noindex and references the
+new build. Three exact entry-JavaScript, global-CSS and expense-CSS assets match
+the built bytes. Redirects are inspected without automatic following, and no
+page JavaScript, business API, D1 operation or provider call runs remotely.
+Server changes are tests/evidence only; its runtime, database/coordinator and
+hourly schedule need no redeployment. Production is not deployed. The final
+publication-record commit is documentation-only.
+
 The preview HTTP entry previously returned 200 HTML while email login required
 the configured HTTPS Origin. The user confirmed that explicitly adding
 `https://` restored iPhone Safari email login. Known deployed Web hosts now
