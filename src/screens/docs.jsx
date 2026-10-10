@@ -1,3 +1,4 @@
+import "./docs.css";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
@@ -104,7 +105,7 @@ export function DocsScreen({ go, auth }) {
             ))}
           </div>
         </aside>
-        <main className="docs-main">
+        <main id="main-content" tabIndex={-1} className="docs-main">
           <div className="docs-crumbs">
             <a className="auth-link" {...screenLinkProps(go, "landing")}>
               Pullwise

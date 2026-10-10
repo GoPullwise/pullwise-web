@@ -2,6 +2,7 @@ import { useState } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LedgerSplit } from "./ledger-split.jsx";
+import { installAnimationFrameMock } from "../test/animation-frame.js";
 
 let availableWidth;
 let desktop;
@@ -11,6 +12,7 @@ let capturedPointers;
 let setPointerCapture;
 let releasePointerCapture;
 let captureDescriptors;
+let frames;
 
 function DraftField() {
   const [draft, setDraft] = useState("");
@@ -65,6 +67,7 @@ function resize(width) {
       }));
       if (entries.length > 0) observer.callback(entries, observer);
     }
+    frames.flush();
   });
 }
 
@@ -88,6 +91,7 @@ function dragTo(clientX, pointerId = 7) {
 }
 
 beforeEach(() => {
+  frames = installAnimationFrameMock();
   availableWidth = 1000;
   desktop = true;
   mediaListeners = new Set();

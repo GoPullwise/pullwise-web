@@ -1,3 +1,4 @@
+import "./public.css";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { signOut } from "../lib/auth.js";
@@ -54,7 +55,7 @@ export function PublicHeader({ go, current, auth }) {
           </a>
         ))}
       </nav>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="lp-header-actions">
         {checkingSession ? (
           <button className="btn sm" type="button" disabled>
             <span className="spin">
@@ -97,7 +98,7 @@ export function PublicFooter({ go, current }) {
             key={item.key}
             className="legal-foot-l"
             {...screenLinkProps(go, item.key)}
-            style={{ color: current === item.key ? "var(--text)" : undefined }}
+            aria-current={current === item.key ? "page" : undefined}
           >
             {T(item.labelEn, item.labelZh)}
           </a>

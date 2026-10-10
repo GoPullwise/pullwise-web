@@ -821,7 +821,7 @@ try {
         report.requests = fixture.assertClean();
         assert.deepEqual(errors, [], `${engine}/${profile.name}: browser errors`);
         reports.push(report);
-        process.stdout.write(`${engine}/${profile.name}: ${report.states.length} states passed\n`);
+        process.stderr.write(`${engine}/${profile.name}: ${report.states.length} states passed\n`);
       } catch (error) {
         process.stderr.write(JSON.stringify({ ...report, error: error.message }) + "\n");
         throw error;

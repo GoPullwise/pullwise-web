@@ -3,6 +3,7 @@ import { T, useLang } from "../i18n.jsx";
 import { CurrencyBadge, FinancialValue } from "./financial-value.jsx";
 import { I } from "../icons.jsx";
 import { categoryDisplayName } from "../lib/category-label.js";
+import { createFrameResizeObserver } from "../lib/resize-observer.js";
 import "./expense-charts.css";
 
 const PLOT_HEIGHT = 200;
@@ -74,8 +75,8 @@ function usePlotWidth(ref) {
       if (Number.isFinite(next) && next > 0) setWidth(Math.max(1, next));
     };
     measure();
-    if (typeof ResizeObserver === "function") {
-      const observer = new ResizeObserver(measure);
+    const observer = createFrameResizeObserver(measure);
+    if (observer) {
       observer.observe(node);
       return () => observer.disconnect();
     }

@@ -1,3 +1,5 @@
+import { htmlContentSecurityPolicy } from "./security-headers.js";
+
 const API_PREFIX = "/api";
 const DEFAULT_PROXY_MAX_BODY_BYTES = 1024 * 1024;
 const HTML_SHELL_CACHE_CONTROL = "no-cache";
@@ -7,7 +9,7 @@ const STATIC_SECURITY_HEADERS = {
 };
 const HTML_SHELL_SECURITY_HEADERS = {
   "X-Frame-Options": "DENY",
-  "Content-Security-Policy": "frame-ancestors 'none'",
+  "Content-Security-Policy": htmlContentSecurityPolicy(),
 };
 
 export default {

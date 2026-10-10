@@ -10,7 +10,13 @@ import { PagePreferencesProvider, PagePreferencesReady } from "./components/page
 import { LANGUAGES, T, setLang, useLang } from "./i18n.jsx";
 import { I } from "./icons.jsx";
 import { connectGitHubRepositories } from "./lib/auth.js";
-import { localStorageGet, localStorageSet } from "./lib/browser-storage.js";
+import {
+  applyTheme,
+  readThemePreference,
+  resolveTheme,
+  saveThemePreference,
+  subscribeSystemTheme,
+} from "./lib/theme.js";
 import { pathFromScreen, screenFromPath } from "./lib/navigation.js";
 import { applyCurrentSeoMetadata } from "./lib/seo-client.js";
 import { NotFoundScreen } from "./screens/error.jsx";
@@ -28,7 +34,10 @@ const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDoc
 const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
 const LedgerScreen = lazyScreen(() => import("./screens/ledger.jsx"), "LedgerScreen");
-const LedgerOverviewScreen = lazyScreen(() => import("./screens/ledger-overview.jsx"), "LedgerOverviewScreen");
+const LedgerOverviewScreen = lazyScreen(
+  () => import("./screens/ledger-overview.jsx"),
+  "LedgerOverviewScreen"
+);
 const MembersScreen = lazyScreen(() => import("./screens/members.jsx"), "MembersScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
@@ -38,9 +47,11 @@ const TermsScreen = lazyScreen(() => import("./screens/legal.jsx"), "TermsScreen
 
 function ScreenFallback() {
   return (
-    <div className="auth-wrap fade-in" role="status" aria-label={T("Loading...", "正在加载...")}>
-      {T("Loading...", "正在加载...")}
-    </div>
+    <main id="main-content" tabIndex={-1} className="auth-wrap fade-in">
+      <p role="status" aria-label={T("Loading...", "正在加载...")}>
+        {T("Loading...", "正在加载...")}
+      </p>
+    </main>
   );
 }
 
@@ -144,7 +155,8 @@ function workspaceAccessSignature(workspace) {
 
 export function App() {
   const lang = useLang();
-  const [theme, setTheme] = useState(() => localStorageGet("pw-theme", "light"));
+  const themePreferenceRef = useRef(readThemePreference());
+  const [theme, setTheme] = useState(resolveTheme);
   const [screen, setScreen] = useState(getInitialScreen);
   const [routeVersion, setRouteVersion] = useState(0);
   const [reviewIntent, setReviewIntent] = useState(null);
@@ -946,12 +958,23 @@ export function App() {
   }, [checkSession, scheduleSignedOutConfirmation]);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#080808" : "#f8f7f6");
-    localStorageSet("pw-theme", theme);
+    applyTheme(theme);
   }, [theme]);
+
+  useEffect(
+    () =>
+      subscribeSystemTheme((systemTheme) => {
+        if (themePreferenceRef.current === null) setTheme(systemTheme);
+      }),
+    []
+  );
+
+  const toggleTheme = () => {
+    const preference = theme === "light" ? "dark" : "light";
+    themePreferenceRef.current = preference;
+    saveThemePreference(preference);
+    setTheme(preference);
+  };
 
   useEffect(() => {
     if (auth.status !== "ready" || !auth.authenticated || screen !== "ledgerProjects") return;
@@ -990,9 +1013,9 @@ export function App() {
   let body;
   if (auth.status === "checking" && shouldShowSessionCheck(screen)) {
     body = (
-      <div className="auth-wrap fade-in">
+      <main id="main-content" tabIndex={-1} className="auth-wrap fade-in">
         <div className="auth-card">
-          <div className="brand" style={{ justifyContent: "center", marginBottom: 18 }}>
+          <div className="brand session-check-brand">
             <img
               className="brand-mark"
               src="/brand-mark.png"
@@ -1001,7 +1024,7 @@ export function App() {
               width="24"
               height="24"
             />
-            <span style={{ fontSize: "var(--fs-2xl)" }}>Pullwise</span>
+            <span className="session-check-brand-name">Pullwise</span>
           </div>
           <h2 className="auth-title">{T("Checking session", "正在检查会话")}</h2>
           <p className="auth-sub">
@@ -1011,7 +1034,7 @@ export function App() {
             )}
           </p>
         </div>
-      </div>
+      </main>
     );
   } else
     switch (screen) {
@@ -1031,7 +1054,16 @@ export function App() {
         body = <OAuthScreen go={go} auth={auth} />;
         break;
       case "ledgerOverview":
-        body = <LedgerOverviewScreen go={go} api={api} workspace={workspace} onAccessChanged={onAccessChanged} onReloadAccess={onReloadAccess} accessRefreshing={accessRefreshing} />;
+        body = (
+          <LedgerOverviewScreen
+            go={go}
+            api={api}
+            workspace={workspace}
+            onAccessChanged={onAccessChanged}
+            onReloadAccess={onReloadAccess}
+            accessRefreshing={accessRefreshing}
+          />
+        );
         break;
       case "ledgerProjects":
         body = (
@@ -1159,7 +1191,7 @@ export function App() {
 
   if (auth.status === "ready" && auth.authenticated && scopedScreen && !workspace) {
     body = (
-      <div className="auth-wrap fade-in">
+      <main id="main-content" tabIndex={-1} className="auth-wrap fade-in">
         <div className="auth-card">
           <h1>
             {workspaceState.status === "error"
@@ -1179,7 +1211,7 @@ export function App() {
             </p>
           )}
         </div>
-      </div>
+      </main>
     );
   }
   const consoleScreen =
@@ -1271,7 +1303,7 @@ export function App() {
           type="button"
           ref={themeToggleRef}
           className="theme-toggle"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          onClick={toggleTheme}
           title={
             theme === "light"
               ? T("Switch to dark", "切换到暗色")
@@ -1305,6 +1337,25 @@ export function App() {
   );
   return (
     <div className="app-frame" data-console={consoleScreen ? "true" : "false"}>
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          const main = screenRootRef.current?.querySelector("#main-content");
+          if (!main) return;
+          event.preventDefault();
+          main.focus({ preventScroll: true });
+          main.scrollIntoView?.({ block: "start" });
+        }}
+      >
+        {T("Skip to content", {
+          zh: "跳到主要内容",
+          ja: "本文へスキップ",
+          ko: "본문으로 건너뛰기",
+          fr: "Aller au contenu",
+          es: "Saltar al contenido",
+        })}
+      </a>
       <NotificationProvider
         scope={identity}
         navigationDisabled={navigationDisabled}

@@ -1,3 +1,4 @@
+import "./members.css";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ledgerApi } from "../api/ledger.js";
 import { I } from "../icons.jsx";
@@ -74,7 +75,9 @@ function acceptedAccessChanged(invitation, workspace) {
   )
     return false;
   const permissions = (value) =>
-    JSON.stringify(Object.entries(value || {}).sort(([left], [right]) => left.localeCompare(right)));
+    JSON.stringify(
+      Object.entries(value || {}).sort(([left], [right]) => left.localeCompare(right))
+    );
   return (
     current.id !== workspace?.id ||
     current.role !== workspace?.role ||
@@ -696,7 +699,7 @@ function MembersContent({
       />
       <ConsoleLayout>
         <Sidebar section="ledgerMembers" go={go} navigationDisabled={busy} />
-        <main className="main">
+        <main id="main-content" tabIndex={-1} className="main">
           <div className="page-h">
             <div>
               <h1>{T("Members", "成员")}</h1>

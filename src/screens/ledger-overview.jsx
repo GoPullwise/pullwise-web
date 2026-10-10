@@ -101,7 +101,7 @@ function ScopedOverview({
       <Topbar go={go} loading={busy} breadcrumbs={[{ label: T("Spending overview") }]} />
       <ConsoleLayout>
         <Sidebar go={go} section="ledgerOverview" />
-        <main className="main">
+        <main id="main-content" tabIndex={-1} className="main">
           <div className="page-h">
             <div>
               <h1>{T("Spending overview")}</h1>

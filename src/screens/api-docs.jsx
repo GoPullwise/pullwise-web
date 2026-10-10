@@ -1,3 +1,4 @@
+import "./docs.css";
 import { useEffect, useId, useRef, useState } from "react";
 import { ApiIntegrationGuide, integrationMarkdown } from "./api-guide.jsx";
 import { ApiReference, referenceMarkdown } from "./api-reference.jsx";
@@ -8,11 +9,13 @@ import { T, useLang } from "../i18n.jsx";
 import { screenLinkProps } from "../lib/navigation.js";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
 
-
 function baseUrl() {
   const configured = String(env.VITE_PUBLIC_API_BASE_URL || env.VITE_API_BASE_URL || "").trim();
-  if (!configured) return typeof window !== "undefined" && /^(www\.)?pull-wise\.com$/.test(window.location.hostname)
-    ? "https://api.pull-wise.com" : "https://preview-api.pull-wise.com";
+  if (!configured)
+    return typeof window !== "undefined" &&
+      /^(www\.)?pull-wise\.com$/.test(window.location.hostname)
+      ? "https://api.pull-wise.com"
+      : "https://preview-api.pull-wise.com";
   if (/^[a-z][a-z0-9+.-]*:/i.test(configured)) return configured.replace(/\/$/, "");
   return configured.startsWith("/") && typeof window !== "undefined"
     ? new URL(configured, window.location.origin).href.replace(/\/$/, "")
@@ -141,7 +144,9 @@ export function ApiDocsScreen({ go, auth }) {
   useEffect(() => {
     setCopyState("idle");
     setManualMarkdown("");
-    return () => { copyRequestRef.current = null; };
+    return () => {
+      copyRequestRef.current = null;
+    };
   }, [language]);
   useEffect(() => {
     if (copyState !== "failed") return;
@@ -226,12 +231,23 @@ export function ApiDocsScreen({ go, auth }) {
             <div className="docs-side-h">API</div>
             {nav.map(([id, label]) => (
               <a key={id} className="docs-side-i" href={`#${id}`}>
-                {T(label, label === "Complete API reference" ? { zh: "完整 API 参考", ja: "API リファレンス全体", ko: "전체 API 참조", fr: "Référence API complète", es: "Referencia completa de la API" } : Object.values(API_GUIDE_COPY).find(([english]) => english === label)?.[1])}
+                {T(
+                  label,
+                  label === "Complete API reference"
+                    ? {
+                        zh: "完整 API 参考",
+                        ja: "API リファレンス全体",
+                        ko: "전체 API 참조",
+                        fr: "Référence API complète",
+                        es: "Referencia completa de la API",
+                      }
+                    : Object.values(API_GUIDE_COPY).find(([english]) => english === label)?.[1]
+                )}
               </a>
             ))}
           </div>
         </aside>
-        <main className="docs-main">
+        <main id="main-content" tabIndex={-1} className="docs-main">
           <div className="docs-crumbs">
             <a className="auth-link" {...screenLinkProps(go, "landing")}>
               Pullwise
@@ -243,14 +259,23 @@ export function ApiDocsScreen({ go, auth }) {
             <h1 id="overview" className="docs-h1">
               {T("Pullwise ledger REST API")}
             </h1>
-            <button className="btn sm" type="button" onClick={copyPage} disabled={copyState === "pending"} aria-busy={copyState === "pending"} data-copy-exclude>
+            <button
+              className="btn sm"
+              type="button"
+              onClick={copyPage}
+              disabled={copyState === "pending"}
+              aria-busy={copyState === "pending"}
+              data-copy-exclude
+            >
               {copyState === "copied" ? <I.Check size={13} /> : <I.Copy size={13} />}{" "}
               {copyState === "copied" ? T("Copied", "已复制") : T("Copy Page", "复制页面")}
             </button>
           </div>
           {manualMarkdown && (
             <div className="notice notice-error" data-copy-exclude>
-              <p role="alert">{T("Unable to copy this page. Select and copy the Markdown below.")}</p>
+              <p role="alert">
+                {T("Unable to copy this page. Select and copy the Markdown below.")}
+              </p>
               <label htmlFor={manualCopyId}>{T("Page Markdown")}</label>
               <div className="auth-input">
                 <textarea
@@ -321,7 +346,17 @@ export function ApiDocsScreen({ go, auth }) {
           <DocsCode title={T("Create a standalone project", "创建独立项目")}>
             {projectExample}
           </DocsCode>
-          <ApiIntegrationGuide base={base} ids={["writes", "project-management", "recurring", "members", "activity", "expense-retention"]} />
+          <ApiIntegrationGuide
+            base={base}
+            ids={[
+              "writes",
+              "project-management",
+              "recurring",
+              "members",
+              "activity",
+              "expense-retention",
+            ]}
+          />
           <h2 id="jev-settings" className="docs-h2">
             {T("Jev settings", "Jev 设置")}
           </h2>
@@ -375,7 +410,10 @@ export function ApiDocsScreen({ go, auth }) {
             )}
           </p>
           <DocsCode
-            title={T("Create with automatic categorization (Pro and Max)", "使用自动分类创建支出（Pro 和 Max）")}
+            title={T(
+              "Create with automatic categorization (Pro and Max)",
+              "使用自动分类创建支出（Pro 和 Max）"
+            )}
           >
             {createExample}
           </DocsCode>
@@ -394,7 +432,9 @@ export function ApiDocsScreen({ go, auth }) {
               "巡检返回 expenseId、revision、questionVersion、modelVersion、可选的 suggestionId 及 checks。类别和目标检查的状态为 checked、issue、uncertain 或 unavailable，包含 current 值，以及可选的 suggested 值和 confidence。Jev 只返回预定义选项和评分。可选 reason 是固定代码：disabled、provider_unavailable、no_categories 或 invalid_context。重复检查通过本地规则，匹配同一获准目标下 occurredOn 日期、币种和精确金额相同的其他支出，无需用途相同。重复状态为 checked 或 issue；issue 可包含 candidate {id, revision}，不包含支出详情。模型不可用时，本地重复检查仍可能有结果。不确定或不可用不代表没有问题。修改前先使用 expenses:read GET 当前支出，再主动使用 expenses:write 和新的 If-Match 版本 PATCH。"
             )}
           </p>
-          <DocsCode title={T("Review one saved expense", "检查一笔已保存支出")}>{reviewExample}</DocsCode>
+          <DocsCode title={T("Review one saved expense", "检查一笔已保存支出")}>
+            {reviewExample}
+          </DocsCode>
           <ApiIntegrationGuide base={base} ids={["troubleshooting"]} />
           <ApiReference />
           <div className="docs-foot-actions">

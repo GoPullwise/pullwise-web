@@ -128,6 +128,60 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("follows system theme until an explicit user choice is made", async () => {
+  localStorage.removeItem("pw-theme");
+  const darkMedia = {
+    matches: true,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  };
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query) =>
+      query === "(prefers-color-scheme: dark)"
+        ? darkMedia
+        : { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    )
+  );
+  const view = render(<App />);
+  expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  expect(localStorage.getItem("pw-theme")).toBeNull();
+  const updateSystem = darkMedia.addEventListener.mock.calls[0][1];
+  act(() => {
+    darkMedia.matches = false;
+    updateSystem();
+  });
+  expect(document.documentElement).toHaveAttribute("data-theme", "light");
+  fireEvent.click(await screen.findByRole("button", { name: "Toggle theme" }));
+  expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  expect(localStorage.getItem("pw-theme")).toBe("dark");
+  act(() => updateSystem());
+  expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  view.unmount();
+  expect(darkMedia.removeEventListener).toHaveBeenCalledWith("change", updateSystem);
+  localStorage.removeItem("pw-theme");
+});
+
+it.each([
+  ["/", false, /Track project and shared expenses/],
+  ["/developers/docs", false, "Project expense ledger"],
+  ["/settings", true, "Settings"],
+])("skips page navigation to the real main landmark on %s", async (path, authenticated, title) => {
+  window.history.replaceState({}, "", path);
+  pullwiseApi.auth.getSession.mockResolvedValue({ authenticated, user: { id: "alice" } });
+  render(<App />);
+  await screen.findByRole("heading", { name: title });
+  const main = screen.getByRole("main");
+  const skip = screen.getByRole("link", { name: "Skip to content" });
+  expect(main.tagName).toBe("MAIN");
+  expect(main).toHaveAttribute("id", "main-content");
+  expect(skip).toHaveAttribute("href", "#main-content");
+  skip.focus();
+  await userEvent.keyboard("{Enter}");
+  expect(main).toHaveFocus();
+  expect(window.location.hash).toBe("");
+});
+
 it("establishes GitHub renewal from the confirmed account and clears it on unmount", async () => {
   window.history.replaceState({}, "", "/projects");
   pullwiseApi.auth.getSession.mockResolvedValue({

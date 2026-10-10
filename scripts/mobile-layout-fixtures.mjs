@@ -5,7 +5,9 @@ import { createDateLayoutFixture, WORKSPACE_ID } from "./date-layout-fixtures.mj
 // or any write to a Server. Reuse the contract-backed ledger/date DTOs.
 export function createMobileLayoutFixture({ baseURL }) {
   const base = new URL(baseURL);
-  const core = createDateLayoutFixture({ baseURL, cap: 100 });
+  // Include self-hosted fonts and each visited screen's lazy CSS in the same
+  // finite request allowance used by the multi-screen date checker.
+  const core = createDateLayoutFixture({ baseURL, cap: 120 });
   const requests = [];
   const violations = [];
   let longInbox = false;
@@ -147,7 +149,7 @@ export function createMobileLayoutFixture({ baseURL }) {
         if (!api)
           assert(
             record.resourceType === "document" ||
-              /^\/(?:assets\/[^/]+\.(?:js|css|woff2?)|brand-mark\.png|favicon\.ico)$/.test(
+              /^\/(?:assets\/[^/]+\.(?:js|css|woff2?)|fonts\/geist(?:-mono)?-latin\.woff2|brand-mark\.png|favicon\.ico|apple-touch-icon\.png)$/.test(
                 url.pathname
               ),
             `Unexpected local resource: ${url.pathname}`

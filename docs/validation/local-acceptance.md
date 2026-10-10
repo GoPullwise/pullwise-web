@@ -1,5 +1,138 @@
 # Current local acceptance
 
+## Main integration and preview alignment (2026-10-10)
+
+After reviewing the initial preview, the user authorizes committing and pushing
+GitHub main. This revision is rebased onto remote main `7c90de0`, preserving all
+four later currency-picker and overview-filter commits. The picker adopts the
+shared frame-coalesced ResizeObserver with close/unmount lifecycle regressions;
+its browser progress now goes to stderr so CI JSON artifacts remain parseable.
+Both upstream and checklist CI checks and historical acceptance records remain.
+
+The integrated source passes ESLint, 81 test files / 1,607 tests, build, offline
+Worker configuration and production dependency audit (zero vulnerabilities).
+Completed local browser reports in ignored `work/main-integration/` record:
+
+- Currency: 9 Chromium contexts / 46 states.
+- Overview: 15 Chromium contexts / 105 states plus 38 focused filter checks.
+- Projects: 27 Chromium/WebKit/Firefox contexts / 207 states.
+- Billing: 24 Chromium contexts / 72 states.
+- Date/entry: 12 Chromium/WebKit/Firefox contexts / 774 states.
+- Phone/tablet/navigation/modal: 20 Chromium/WebKit contexts / 414 states.
+
+These integrated reruns omit screenshot-only states; the initial visual review
+below remains historical evidence. Date checks use a verified scratch runner
+with only the fixed loopback port changed from 4248 to 4250, allowing the other
+checks to run concurrently against the same final assets. All original request
+caps, same-origin GET guards, geometry assertions and API limits remain intact.
+The scratch runner is removed afterward. This is bounded local fixture evidence,
+not physical-device or remote business-flow acceptance.
+
+The explicit preview-environment build and Wrangler 4.149.0 preview dry-run pass.
+Web version `98375bfc-db7b-4b5c-8175-b45caf10e5db` is deployed to
+[preview.pull-wise.com](https://preview.pull-wise.com), with management readback
+confirming 100% active traffic and the existing preview bindings. Exactly one
+homepage and three hashed-asset GETs return 200; noindex and the theme CSP hash
+pass, and all three assets match the integrated build bytes. Readback executes
+no JavaScript, redirects, retries or remote business/Server/D1 operations.
+Release logs remain in ignored `work/main-preview-deployment/`. Only acceptance
+documentation changes after the verified build; the main revision contains the
+same runtime source and assets. Server and production remain unchanged.
+
+## Frontend checklist revision (2026-10-10)
+
+This revision reconciles the user's original and corrected frontend reviews
+against the current Web source. Existing modal focus handling, resize keyboard
+support, route-specific Worker metadata, catalog lookup syntax and noninteractive
+tags were already implemented; the original audit's claims about them are not
+treated as defects.
+
+Projects now has a matching single-panel skeleton, independent natural record
+heights, visible selectable title links, 44-by-44 coarse-pointer shortcuts,
+list semantics, Active/Archived filtering and polite result/loading notices.
+Its search state and memoized labels live in an extracted list component.
+Project creation explains missing names or repository choices, and onboarding
+uses native buttons. Repository search preserves authorized selected IDs and
+bounds the additional-repository list. Both searches explicitly cover loaded
+records and retain manual pagination without automatically reading every page.
+
+The system theme applies before paint until explicitly overridden, including
+theme-color updates and later operating-system changes. Every ordinary screen
+has a skip-link main target. Font sizes use rem with a 12px default floor;
+licensed Geist fonts are self-hosted. Static inline styles move to their owning
+stylesheets; duplicate rules are consolidated and route CSS loads with its
+screen while shared selectors remain shared. ResizeObserver callbacks coalesce
+on a frame and cancel on cleanup. Four dialog types share pointer-start/end
+backdrop handling, preserving focus, Escape and pending-write guards.
+
+HTML receives a full same-origin CSP with an exact pre-paint script hash and
+hashes for generated JSON-LD. Inline executable JavaScript, eval, object/frame
+embedding and third-party connections are excluded. The inline-style exception
+remains for exact chart ratios and runtime geometry. API proxy responses and
+OAuth/payment navigation contracts are preserved. The optimized brand image,
+real Apple touch icon and current robots paths are included. Historical
+validation records remain intact; new browser JSON and progress/error logs are
+uploaded as 30-day CI artifacts.
+
+Before the later main integration, using the same lockfile and build environment,
+initial CSS falls from 96,478 to
+65,351 bytes (32.3%); gzip falls from 18,017 to 12,821 bytes (28.8%). These are
+initial linked stylesheet bytes, not full-route bytes or measured page latency.
+
+The initial checklist build passes ESLint, 79 test files / 1,579 tests,
+the production build and offline Worker
+configuration. Projects passes 27 contexts / 213 states across Chromium,
+WebKit and Firefox, with all six locales at 320px, 20px browser font preferences,
+long exact multi-currency amounts, search/pagination and creation-rail resizing.
+Six final desktop/mobile screenshots are inspected. Billing passes 24 Chromium
+contexts / 72 states across six locales, both themes and 1906/1024/390/320px.
+Date/entry checks pass 12 unique contexts / 774 states: the same final build
+passes all four Chromium and WebKit profiles, followed by the four-profile
+Firefox rerun. Firefox touch emulation emits compatibility mouse events without
+pointer events, so those profiles check actual pane sizes using native Home/End;
+desktop Firefox retains native pointer dragging. The final Firefox report
+records each resize input rather than claiming a simulated touch drag.
+Phone/tablet/navigation/modal checks pass 20 Chromium/WebKit contexts / 414
+states. While Firefox reserves port 4248, these checks run against the same
+final assets on isolated loopback port 4250; a byte comparison confirms only
+the port differs and all original request/API guards remain. The temporary
+runner is removed afterward. Spending overview passes nine Chromium contexts /
+36 states, including six locales, long amounts, zero totals and read errors.
+Reports use bounded loopback synthetic GET fixtures and block external delivery
+and business writes. Native coarse-pointer media and touch-point counts are
+recorded; WebKit/Firefox's zero native count is not overridden or presented as
+physical-device acceptance.
+
+Browser checks exposed and repaired the extracted LedgerSplit panel contract,
+frame-recursive layout notifications, a Korean Product target below 44px wide
+and Firefox's short Product label wrapping. The Product text now has a direct
+Range-based single-line regression assertion. Multi-screen date/mobile fixtures
+allow at most 120 local requests to include self-hosted fonts and lazy route CSS;
+the earlier date attempt stopped at its former 100-request cap before Categories.
+
+Cross-page project/repository search still needs a Server query, permission and
+cursor contract. Per-language URLs, hreflang, localized server metadata, public
+body prerendering and honest sitemap lastmod need language-routing/cache and
+content-update sources. Existing per-route SEO remains. This revision extracts
+Projects components, not every large Billing/App/Members module, and retains
+the required flat square design. No Server, database or production deployment
+is changed by this revision.
+
+The user subsequently requests preview publication before any GitHub commit or
+push. Wrangler 4.149.0 builds with the explicit preview URL/API/app-slug values,
+passes the preview dry-run and deploys Web version
+`48f0a193-0ef5-4f42-9dda-2c32faf2f58b` to
+[preview.pull-wise.com](https://preview.pull-wise.com). Management readback
+confirms that version is 100% active and retains the preview bindings. Exactly
+one homepage GET and three exact hashed-asset GETs return 200; homepage noindex,
+theme CSP hash and current entry reference pass, and all three assets match the
+built bytes. No redirects, retries, page JavaScript, business API or Server/D1
+operation runs. At publication, source is an uncommitted worktree based on
+`c2192e881c57518376b64166102ce5f08e60e7eb`; no GitHub commit or push occurs then.
+The user subsequently approves committing and pushing this revision to main,
+preserving later remote-main updates.
+The release receipt and logs stay in ignored `work/preview-deployment/`.
+
 ## Spending overview period alignment (2026-10-10)
 
 The period selector, native month/custom date fields and This month shortcut
@@ -610,7 +743,6 @@ versions, exact three-asset/static-homepage readback, configured plan capacities
 and preserved database, journal, hourly schedule and production D1 pause. No
 remote business mutation, forced tick, provider call or real payment is performed
 by this publication check. Local fixture acceptance is recorded separately below.
-
 
 ## Billing usage simplification (2026-10-09)
 

@@ -3,12 +3,12 @@
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   min-height: 48px;
   min-width: 0;
   width: fit-content;
   max-width: 100%;
-  padding-block: 8px;
+  padding-block: var(--space-2);
   cursor: pointer;
 }
 
@@ -43,17 +43,36 @@
   .settings-jev-control,
   .settings-retention-control {
     width: 100%;
-    padding-block: 12px;
+    padding-block: var(--space-3);
   }
 
   .settings-screen .main > .panel > .panel-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: var(--space-3);
   }
 
   .settings-screen .main > .panel > .btn,
   .settings-screen .main > .panel > .panel-actions > .btn {
     width: 100%;
   }
+}
+
+.settings-screen .github-next-step {
+  color: var(--text-2);
+  font-size: var(--fs-lg);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 18px 0;
+}
+
+.settings-screen .gh-installs {
+  margin-top: 28px;
+}
+.github-installations-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  color: inherit;
 }

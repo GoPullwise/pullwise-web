@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { I } from "../icons.jsx";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { useModalBackdrop } from "../lib/modal-backdrop.js";
 
 export function ConfirmDialog({
   open,
@@ -17,6 +18,7 @@ export function ConfirmDialog({
 }) {
   const dialogRef = useRef(null);
   const cancelRef = useRef(null);
+  const backdropProps = useModalBackdrop({ open, onClose: onCancel, busy });
 
   useModalFocus({
     open,
@@ -33,12 +35,7 @@ export function ConfirmDialog({
   const descriptionId = dialogId + "-description";
 
   return (
-    <div
-      className="modal-back confirm-dialog-back"
-      onClick={(event) => {
-        if (event.target === event.currentTarget && !busy) onCancel();
-      }}
-    >
+    <div className="modal-back confirm-dialog-back" {...backdropProps}>
       <div
         ref={dialogRef}
         className={"modal confirm-dialog" + (danger ? " confirm-dialog-danger" : "")}

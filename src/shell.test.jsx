@@ -212,7 +212,15 @@ describe("Design token discipline", () => {
     expect(screens.match(/^\s*color:\s*white\s*;/gm) || []).toHaveLength(0);
   });
   it("keeps font sizes on the --fs-* scale and token font stacks", () => {
-    const files = ["styles/base.css", "styles/screens.css", "src/app.css", "src/landing-seo.css"];
+    const files = [
+      "styles/base.css",
+      "styles/screens.css",
+      "src/app.css",
+      "src/landing-seo.css",
+      ...["api", "billing", "docs", "error", "legal", "members", "public", "settings"].map(
+        (screen) => `src/screens/${screen}.css`
+      ),
+    ];
     for (const file of files) {
       const css = stylesOf(file);
       expect(css, file).not.toMatch(/font-size:\s*\d+\.\d+px/);
@@ -220,9 +228,11 @@ describe("Design token discipline", () => {
       expect(css, file).not.toContain("11.5px");
     }
 
-    const screens = stylesOf("styles/screens.css");
-    const docsH2 = screens.match(/^\.docs-h2\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
-    const statusH1 = screens.match(/^\.status-overall h1\s*\{(?<body>[^}]*)\}/ms)?.groups?.body;
+    const docsH2 = stylesOf("src/screens/docs.css").match(/^\.docs-h2\s*\{(?<body>[^}]*)\}/ms)
+      ?.groups?.body;
+    const statusH1 = stylesOf("src/screens/legal.css").match(
+      /^\.status-overall h1\s*\{(?<body>[^}]*)\}/ms
+    )?.groups?.body;
     for (const body of [docsH2, statusH1]) {
       expect(body).toBeTruthy();
       expect(body).toContain("font-size: var(--fs-4xl);");

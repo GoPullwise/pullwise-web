@@ -488,7 +488,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
       />
       <ConsoleLayout>
         <Sidebar section="settings" go={go} navigationDisabled={busy} />
-        <main className="main">
+        <main id="main-content" tabIndex={-1} className="main">
           <div className="page-h">
             <div>
               <h1>{T("Settings", "设置")}</h1>
@@ -747,7 +747,7 @@ export function SettingsScreen({ go, onSessionUpdated, onOperationBusy }) {
                   <fieldset
                     disabled={controlsDisabled}
                     aria-label={T("Authorized GitHub installations", "已授权 GitHub 安装")}
-                    style={{ border: 0, padding: 0, margin: 0, minWidth: 0, color: "inherit" }}
+                    className="github-installations-fieldset"
                   >
                     <GitHubInstallationsList
                       installations={github.installations}

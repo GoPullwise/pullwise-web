@@ -1383,8 +1383,10 @@ describe("ledger screens", () => {
 
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
 
-    const status = screen.getByRole("status", { name: /loading ledger/i });
-    expect(status.querySelectorAll(".ledger-split > .panel")).toHaveLength(2);
+    const status = screen.getByRole("status", { name: /loading projects/i });
+    expect(status.querySelectorAll(".panel")).toHaveLength(1);
+    expect(status.querySelector(".ledger-split")).not.toBeInTheDocument();
+    expect(status.querySelectorAll(".ledger-project-row")).toHaveLength(3);
     expect(status.querySelector(".ledger-overview")).not.toBeInTheDocument();
     expect(api.categories).not.toHaveBeenCalled();
     expect(api.reportSummary).not.toHaveBeenCalled();
@@ -1505,7 +1507,7 @@ describe("ledger screens", () => {
 
   it("focuses the project name from the empty-state call to action without GitHub authorization", async () => {
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
-    fireEvent.click(await screen.findByRole("link", { name: "Add project" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
     expect(screen.getByLabelText("Project name")).toHaveFocus();
     expect(api.repositories).not.toHaveBeenCalled();
     expect(github.connect).not.toHaveBeenCalled();
@@ -1515,7 +1517,7 @@ describe("ledger screens", () => {
     api.repositories.mockResolvedValueOnce({ items: [], nextCursor: null });
     github.connect.mockResolvedValueOnce(undefined);
     render(<LedgerScreen go={vi.fn()} mode="projects" />);
-    fireEvent.click(await screen.findByRole("link", { name: "Add project" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
     expect(api.repositories).not.toHaveBeenCalled();
     await openGitHubLinks();
     await screen.findByText(/No repositories are available yet/);

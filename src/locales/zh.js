@@ -1,5 +1,6 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  "Skip to content": "跳到主要内容",
   "Restoring your account if this browser is still signed in.":
     "如果此浏览器仍保持登录，将恢复账户。",
   Organization: "组织",

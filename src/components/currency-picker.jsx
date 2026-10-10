@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { T, useLang } from "../i18n.jsx";
 import { I, Icon } from "../icons.jsx";
+import { createFrameResizeObserver } from "../lib/resize-observer.js";
 import { COMMON_CURRENCIES, CURRENCY_PICKER_COPY } from "../locales/currency-picker.js";
 import "./currency-picker.css";
 
@@ -123,7 +124,7 @@ export function CurrencyPicker({ id, label, value, onChange, disabled = false, r
       });
     };
     measure();
-    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    const observer = createFrameResizeObserver(measure);
     if (triggerRef.current) observer?.observe(triggerRef.current);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);

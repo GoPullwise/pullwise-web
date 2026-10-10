@@ -1,5 +1,6 @@
 // Shared account, payment and navigation copy. Ledger copy lives in ledger*.js.
 export const PHRASES = {
+  "Skip to content": "본문으로 건너뛰기",
   "Restoring your account if this browser is still signed in.":
     "이 브라우저에 아직 로그인되어 있으면 계정을 복원합니다.",
   Organization: "조직",

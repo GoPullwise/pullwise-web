@@ -136,6 +136,42 @@
   justify-content: flex-start;
   gap: 16px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.ledger-project-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px 16px;
+  width: 100%;
+  min-width: 0;
+}
+.ledger-project-filters > .ledger-field {
+  flex: 0 1 180px;
+  min-width: 0;
+}
+.ledger-search-guidance {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  color: var(--text-3);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.ledger-screen .ledger-search-guidance .ledger-help {
+  max-width: none;
+  margin: 0;
+  font-size: var(--fs-md);
+}
+.ledger-repository-list {
+  max-block-size: 18rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.ledger-screen .ledger-your-projects .ledger-list {
+  grid-auto-rows: auto;
 }
 .ledger-your-projects .ledger-project-count {
   display: flex;
@@ -198,9 +234,14 @@
   color: var(--accent);
   text-decoration-color: currentColor;
 }
-.ledger-your-projects .ledger-row-main h2 > a,
-.ledger-your-projects .ledger-project-links > a {
-  text-decoration: none;
+.ledger-project-title-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.ledger-project-title-link > svg {
+  flex-shrink: 0;
+  color: var(--text-3);
 }
 .ledger-your-projects .ledger-project-links > a {
   display: inline-flex;
@@ -208,6 +249,8 @@
   gap: 6px;
   color: var(--text-2);
   font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
 }
 .ledger-your-projects .ledger-row-main h2 > a:hover,
 .ledger-your-projects .ledger-project-links > a:hover,
@@ -309,6 +352,11 @@
   }
 }
 @container (max-width: 419px) {
+  .ledger-project-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
   .ledger-your-projects .ledger-project-toolbar {
     align-items: stretch;
     flex-direction: column;
@@ -362,7 +410,7 @@
   min-width: 0;
   transition: background 160ms ease;
 }
-.ledger-screen .ledger-list > :is(article, .ledger-project-row):not(.skeleton-row):hover {
+.ledger-screen .ledger-list > article:not(.skeleton-row):not(.ledger-project-row):hover {
   background: var(--bg-tint);
 }
 .ledger-screen .ledger-list > :last-child {
@@ -958,8 +1006,15 @@
     height: 44px;
   }
   .ledger-project-shortcuts > a,
+  .ledger-your-projects .ledger-row-main h2 > a,
+  .ledger-your-projects .ledger-project-links > a,
   .ledger-project-shortcuts > .ledger-project-repositories > summary {
+    min-width: 44px;
     min-height: 44px;
+  }
+  .ledger-your-projects .ledger-row-main h2 > a {
+    display: inline-flex;
+    align-items: center;
   }
   .ledger-search > .btn {
     flex-basis: 44px;

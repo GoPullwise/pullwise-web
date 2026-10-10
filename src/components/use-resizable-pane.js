@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createFrameResizeObserver } from "../lib/resize-observer.js";
 
 const DESKTOP_QUERY = "(min-width: 900px)";
 const NO_TARGETS = () => [];
@@ -95,7 +96,7 @@ export function useResizablePane({
     };
     updateMedia();
     measure();
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    const observer = createFrameResizeObserver(measure);
     observer?.observe(element.current);
     for (const target of measureTargets(element.current)) observer?.observe(target);
     media?.addEventListener?.("change", updateMedia);

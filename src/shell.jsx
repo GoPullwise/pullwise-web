@@ -2,6 +2,7 @@ import React from "react";
 import { I } from "./icons.jsx";
 import { T, useLang } from "./i18n.jsx";
 import { screenLinkProps } from "./lib/navigation.js";
+import { createFrameResizeObserver } from "./lib/resize-observer.js";
 import { useWorkspace } from "./components/workspace-context.jsx";
 import { InvitationInboxButton } from "./components/invitation-inbox.jsx";
 import { PagePreferencesSlot } from "./components/page-preferences.jsx";
@@ -30,7 +31,7 @@ export function Topbar({ go, breadcrumbs, loading = false, navigationDisabled = 
       if (height > 0) app.style.setProperty("--workspace-header-height", `${height}px`);
     };
     measure();
-    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    const observer = createFrameResizeObserver(measure);
     observer?.observe(header);
     window.addEventListener("resize", measure);
     return () => {
@@ -151,7 +152,7 @@ export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled
       }
     };
     measure();
-    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    const observer = createFrameResizeObserver(measure);
     observer?.observe(navigation);
     media?.addEventListener?.("change", measure);
     window.addEventListener("resize", measure);

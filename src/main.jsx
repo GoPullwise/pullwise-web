@@ -4,12 +4,12 @@ import "../styles/base.css";
 import "../styles/screens.css";
 import "./app.css";
 import { App } from "./App.jsx";
-import { preloadActiveLocale, T } from "./i18n.jsx";
-import { localStorageGet } from "./lib/browser-storage.js";
+import { preloadActiveLocale, T, useLang } from "./i18n.jsx";
+import { applyTheme, resolveTheme } from "./lib/theme.js";
 import { isInstallPopupReturn, notifyOpenerAndClose } from "./lib/install-popup.js";
 
 const root = createRoot(document.getElementById("root"));
-document.documentElement.setAttribute("data-theme", localStorageGet("pw-theme", "light"));
+applyTheme(resolveTheme());
 
 if (isInstallPopupReturn()) {
   notifyOpenerAndClose();
@@ -23,7 +23,8 @@ if (isInstallPopupReturn()) {
 }
 
 function ApplicationStartup() {
-  const [ready, setReady] = useState(false);
+  const lang = useLang();
+  const [ready, setReady] = useState(lang === "en");
   useEffect(() => {
     let current = true;
     const finish = () => {
@@ -55,20 +56,9 @@ function ApplicationStartup() {
 
 function InstallPopupReturn() {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        padding: "16px",
-        textAlign: "center",
-        fontFamily: "var(--font-sans)",
-        color: "var(--text)",
-      }}
-    >
+    <main className="install-return">
       <div>
-        <p style={{ fontSize: "var(--fs-xl)", margin: 0 }}>
+        <p className="install-return-title">
           {T("GitHub installation complete", {
             zh: "GitHub 安装完成",
             ja: "GitHub インストールが完了しました",
@@ -77,7 +67,7 @@ function InstallPopupReturn() {
             es: "Instalación de GitHub completada",
           })}
         </p>
-        <p style={{ fontSize: "var(--fs-md)", marginTop: 8, color: "var(--text-3)" }}>
+        <p className="install-return-description">
           {T("You can close this window.", {
             zh: "你可以关闭此窗口。",
             ja: "このウィンドウを閉じてかまいません。",
@@ -87,6 +77,6 @@ function InstallPopupReturn() {
           })}
         </p>
       </div>
-    </div>
+    </main>
   );
 }

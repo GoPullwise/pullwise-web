@@ -87,6 +87,105 @@ const blankProject = {
 };
 
 describe("Projects authorization and creation", () => {
+  it("loads a full-width Projects list skeleton without predicting a creation rail", () => {
+    api.projects.mockImplementationOnce(() => new Promise(() => {}));
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    const loading = screen.getByRole("status", { name: "Loading projects…" });
+    expect(loading.querySelectorAll(".panel")).toHaveLength(1);
+    expect(loading.querySelectorAll(".ledger-project-row")).toHaveLength(3);
+    expect(loading.querySelector(".ledger-split")).toBeNull();
+    expect(screen.queryByLabelText("Project name")).not.toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
+    expect(screen.getByRole("main")).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("opens the existing Projects list and creation form as the two shared split panels", async () => {
+    api.projects.mockResolvedValue({ items: [blankProject], nextCursor: null });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    const projectLink = await screen.findByRole("link", { name: blankProject.name });
+    const projectPanel = projectLink.closest(".ledger-your-projects");
+    expect(projectPanel.closest(".ledger-split")).toBeNull();
+    const opener = screen.getByRole("button", { name: "Add project" });
+    fireEvent.click(opener);
+    const name = await screen.findByRole("textbox", { name: "Project name" });
+    const split = projectPanel.closest(".ledger-split");
+    expect(split).not.toBeNull();
+    const panels = Array.from(split.children).filter((child) => child.classList.contains("panel"));
+    expect(panels).toHaveLength(2);
+    expect(panels[0]).toBe(projectPanel);
+    expect(panels[1]).toContainElement(name);
+    await waitFor(() => expect(name).toHaveFocus());
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(opener).toHaveFocus());
+    expect(screen.queryByRole("textbox", { name: "Project name" })).not.toBeInTheDocument();
+  });
+
+  it("explains disabled project creation and gives working onboarding actions", async () => {
+    const go = vi.fn();
+    render(<LedgerScreen go={go} mode="projects" />);
+    const name = await screen.findByLabelText("Project name");
+    const create = screen.getByRole("button", { name: "Create project" });
+    expect(create).toBeDisabled();
+    expect(document.getElementById(create.getAttribute("aria-describedby"))).toHaveTextContent(
+      "Enter a project name to continue.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Add project" }));
+    await waitFor(() => expect(name).toHaveFocus());
+    fireEvent.click(screen.getByRole("button", { name: "Create categories" }));
+    expect(go).toHaveBeenCalledWith("ledgerCategories");
+    await nameProject();
+    expect(create).toBeEnabled();
+    expect(create).not.toHaveAttribute("aria-describedby");
+    await openGitHubLinks();
+    await screen.findByLabelText("Repository");
+    expect(create).toBeDisabled();
+    expect(document.getElementById(create.getAttribute("aria-describedby"))).toHaveTextContent(
+      "Choose a repository, or close optional GitHub links",
+    );
+  });
+
+  it("groups concurrent recoverable notices into one alert while keeping project history", async () => {
+    api.projects.mockResolvedValue({ items: [blankProject], nextCursor: null });
+    api.repositories.mockRejectedValue(new Error("Repository provider unavailable"));
+    render(<LedgerScreen go={vi.fn()} mode="projects" authorizationError="Authorization notice" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
+    await openGitHubLinks();
+    await screen.findByText("Repository provider unavailable");
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(screen.getByRole("alert")).toHaveTextContent("Authorization notice");
+    expect(screen.getByRole("alert")).toHaveTextContent("Repository provider unavailable");
+    expect(screen.getByRole("link", { name: blankProject.name })).toBeVisible();
+    expect(api.projects).toHaveBeenCalledTimes(1);
+  });
+
+  it("searches repositories locally without losing authorized primary or additional selections", async () => {
+    api.repositories.mockResolvedValue({
+      items: [
+        { githubRepoId: 202, fullName: "alice/web" },
+        { githubRepoId: 303, fullName: "alice/api" },
+        { githubRepoId: 404, fullName: "alice/docs" },
+      ],
+      nextCursor: "repository_page_two",
+    });
+    render(<LedgerScreen go={vi.fn()} mode="projects" />);
+    await nameProject("Platform");
+    await selectRepository(202);
+    fireEvent.click(screen.getByRole("checkbox", { name: "alice/api" }));
+    fireEvent.change(screen.getByRole("searchbox", { name: "Find a repository" }), {
+      target: { value: "docs" },
+    });
+    expect(screen.getByRole("combobox", { name: "Repository" })).toHaveValue("202");
+    expect(screen.queryByRole("checkbox", { name: "alice/api" })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "alice/docs" })).toBeVisible();
+    expect(api.repositories).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Load more repositories" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Create project" }));
+    await waitFor(() => expect(api.createProject).toHaveBeenCalledWith(
+      { name: "Platform", description: "", githubRepoIds: [202, 303] },
+      {},
+    ));
+  });
+
   it.each([
     { items: [], nextCursor: null },
     {

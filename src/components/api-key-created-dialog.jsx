@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { I } from "../icons.jsx";
 import { T, useLang } from "../i18n.jsx";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { useModalBackdrop } from "../lib/modal-backdrop.js";
 import "./api-key-created-dialog.css";
 
 export function ApiKeyCreatedDialog({
@@ -26,6 +27,7 @@ export function ApiKeyCreatedDialog({
   const close = () => {
     if (!busy) onClose();
   };
+  const backdropProps = useModalBackdrop({ onClose: close, busy });
   useModalFocus({
     open: true,
     dialogRef,
@@ -98,12 +100,7 @@ export function ApiKeyCreatedDialog({
   };
 
   return (
-    <div
-      className="modal-back api-key-created-dialog-back"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) close();
-      }}
-    >
+    <div className="modal-back api-key-created-dialog-back" {...backdropProps}>
       <div
         ref={dialogRef}
         className="modal api-key-created-dialog"

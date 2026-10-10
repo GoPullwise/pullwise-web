@@ -42,7 +42,12 @@ const stressUsage = {
   // produce a calculated status alongside the exact values and meter.
   projects: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER - 1, remaining: -1 },
   expenseRecords: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER, remaining: 999 },
-  jev: { month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER, limitMicrousd: 4250001 },
+  jev: {
+    month: "2026-10",
+    currency: "USD",
+    usedMicrousd: Number.MAX_SAFE_INTEGER,
+    limitMicrousd: 4250001,
+  },
 };
 const forbiddenCopy = [
   "Remaining",
@@ -182,7 +187,7 @@ function createFixture() {
         if (!api) {
           assert(
             record.type === "document" ||
-              /^\/(?:assets\/[^/]+\.(?:js|css|woff2?)|brand-mark\.png|favicon\.ico)$/.test(
+              /^\/(?:assets\/[^/]+\.(?:js|css|woff2?)|fonts\/geist(?:-mono)?-latin\.woff2|brand-mark\.png|favicon\.ico|apple-touch-icon\.png)$/.test(
                 url.pathname
               ),
             `Unexpected local static resource: ${url.pathname}`
@@ -267,9 +272,11 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
         .filter((box) => box.width > 0)
         .map(rect);
     };
-    const region = document.querySelector(kind === "jev"
-      ? '[aria-labelledby="billing-jev-usage-title"]'
-      : '[aria-labelledby="billing-usage-title"]');
+    const region = document.querySelector(
+      kind === "jev"
+        ? '[aria-labelledby="billing-jev-usage-title"]'
+        : '[aria-labelledby="billing-usage-title"]'
+    );
     const refresh = region.querySelector(".billing-usage-heading button");
     return {
       viewport: innerWidth,
@@ -297,14 +304,16 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
         statuses: row.querySelectorAll(".tag, [data-over-limit]").length,
         meter: (() => {
           const meter = row.querySelector("meter");
-          return meter ? {
-            rect: rect(meter),
-            min: meter.min,
-            max: meter.max,
-            value: meter.value,
-            namedBy: meter.getAttribute("aria-labelledby"),
-            valueText: meter.getAttribute("aria-valuetext"),
-          } : null;
+          return meter
+            ? {
+                rect: rect(meter),
+                min: meter.min,
+                max: meter.max,
+                value: meter.value,
+                namedBy: meter.getAttribute("aria-labelledby"),
+                valueText: meter.getAttribute("aria-valuetext"),
+              }
+            : null;
         })(),
         groups: Array.from(row.querySelectorAll("dl > div")).map((group) => {
           const label = group.querySelector("dt");
@@ -382,12 +391,20 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
     assert.equal(row.meter.max, allowance, details);
     assert.equal(row.meter.value, Math.min(usedAmount, allowance), details);
     assert.equal(row.meter.namedBy, row.titleId, details);
-    assert.equal(row.meter.valueText,
-      `${copy("used", lang)}: ${used.value}; ${copy("total", lang)}: ${total.value}`, details);
+    assert.equal(
+      row.meter.valueText,
+      `${copy("used", lang)}: ${used.value}; ${copy("total", lang)}: ${total.value}`,
+      details
+    );
     assert(inside(row.meter.rect, row.rect), `Meter escapes card: ${details}`);
-    assert(row.meter.rect.width > 0 && row.meter.rect.height >= 8, `Meter is not visible: ${details}`);
-    assert(row.meter.rect.top >= Math.max(used.rect.bottom, total.rect.bottom) - tolerance,
-      `Meter overlaps exact usage values: ${details}`);
+    assert(
+      row.meter.rect.width > 0 && row.meter.rect.height >= 8,
+      `Meter is not visible: ${details}`
+    );
+    assert(
+      row.meter.rect.top >= Math.max(used.rect.bottom, total.rect.bottom) - tolerance,
+      `Meter overlaps exact usage values: ${details}`
+    );
     assert.equal(used.className, "billing-usage-used", details);
     assert.equal(total.className, "billing-usage-total", details);
     assert.equal(used.label, copy("used", lang), details);
@@ -395,19 +412,26 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
     const exactUsd = (micros) => {
       const integer = BigInt(micros);
       const whole = new Intl.NumberFormat(lang).format(integer / 1000000n);
-      const fraction = String(integer % 1000000n).padStart(6, "0").replace(/0{1,4}$/, "");
-      const separator = new Intl.NumberFormat(lang).formatToParts(0.1)
+      const fraction = String(integer % 1000000n)
+        .padStart(6, "0")
+        .replace(/0{1,4}$/, "");
+      const separator = new Intl.NumberFormat(lang)
+        .formatToParts(0.1)
         .find((part) => part.type === "decimal").value;
       return `USD ${whole}${separator}${fraction}`;
     };
     assert.equal(
       used.value,
-      kind === "jev" ? exactUsd(usage.jev.usedMicrousd) : new Intl.NumberFormat(lang).format(usage[key].used),
+      kind === "jev"
+        ? exactUsd(usage.jev.usedMicrousd)
+        : new Intl.NumberFormat(lang).format(usage[key].used),
       `Inexact used value: ${details}`
     );
     assert.equal(
       total.value,
-      kind === "jev" ? exactUsd(usage.jev.limitMicrousd) : new Intl.NumberFormat(lang).format(usage[key].limit),
+      kind === "jev"
+        ? exactUsd(usage.jev.limitMicrousd)
+        : new Intl.NumberFormat(lang).format(usage[key].limit),
       `Inexact total value: ${details}`
     );
     assert(used.fontSize > total.fontSize, `Used value lacks primary emphasis: ${details}`);
@@ -455,7 +479,8 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
   if (kind === "jev") {
     assert(measured.text.includes(`${copy("jevMonth", lang)}: ${usage.jev.month}`), details);
     assert(measured.text.includes(copy("jevPolicy", lang)), details);
-  } else assert(
+  } else
+    assert(
       !overlaps(measured.rows[0].rect, measured.rows[1].rect),
       `Usage articles overlap: ${details}`
     );
@@ -469,9 +494,12 @@ async function measure(page, profile, lang, theme, usage, name, kind = "ledger")
     );
   }
   return {
-    name, kind, bodyWidth: measured.body.width,
+    name,
+    kind,
+    bodyWidth: measured.body.width,
     rows: measured.rows.map((row) => row.rect.width),
-    coarse: measured.coarse, touchPoints: measured.touchPoints,
+    coarse: measured.coarse,
+    touchPoints: measured.touchPoints,
   };
 }
 
@@ -581,14 +609,19 @@ try {
                 await page.locator(".billing-usage-layout").screenshot({ path });
               else await page.screenshot({ path, fullPage: true });
               report.screenshot = path;
-              const jevPath = join(screenshotDir, `${engine}-${lang}-${theme}-${profile.width}-jev.png`);
-              await page.getByRole("region", { name: copy("jevTitle", lang), exact: true })
+              const jevPath = join(
+                screenshotDir,
+                `${engine}-${lang}-${theme}-${profile.width}-jev.png`
+              );
+              await page
+                .getByRole("region", { name: copy("jevTitle", lang), exact: true })
                 .screenshot({ path: jevPath });
               report.jevScreenshot = jevPath;
               if (profile.touch && engine === "chromium") {
                 const session = await context.newCDPSession(page);
                 await session.send("Emulation.setTouchEmulationEnabled", {
-                  enabled: true, maxTouchPoints: 1,
+                  enabled: true,
+                  maxTouchPoints: 1,
                 });
               }
               report.states.push(
@@ -618,7 +651,7 @@ try {
             report.totalRequests = fixture.requests.length;
             report.selectedShared = selectedShared;
             reports.push(report);
-            process.stdout.write(
+            process.stderr.write(
               `${engine}/${profile.name}/${lang}/${theme}: ${report.states.length} states passed\n`
             );
           } catch (error) {

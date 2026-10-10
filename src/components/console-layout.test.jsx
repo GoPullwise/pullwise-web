@@ -2,6 +2,7 @@ import { useState } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConsoleLayout, ConsoleLayoutProvider } from "./console-layout.jsx";
+import { installAnimationFrameMock } from "../test/animation-frame.js";
 
 let availableWidth;
 let desktop;
@@ -10,6 +11,7 @@ let observers;
 let capturedPointers;
 let captureDescriptors;
 let releasePointerCapture;
+let frames;
 
 function DraftField() {
   const [value, setValue] = useState("");
@@ -54,6 +56,7 @@ function resize(width) {
     for (const observer of observers) {
       if (observer.targets.size > 0) observer.callback();
     }
+    frames.flush();
   });
 }
 
@@ -65,6 +68,7 @@ function setDesktop(matches) {
 }
 
 beforeEach(() => {
+  frames = installAnimationFrameMock();
   availableWidth = 1440;
   desktop = true;
   mediaListeners = new Set();

@@ -200,7 +200,8 @@ function fixedTarget(params) {
 }
 
 function filteredExpenses(params, allowAll = false) {
-  const kind = allowAll && !params.get("target") && !params.get("projectId") ? "all" : fixedTarget(params);
+  const kind =
+    allowAll && !params.get("target") && !params.get("projectId") ? "all" : fixedTarget(params);
   return expenses.filter(
     (row) =>
       (kind === "all" || row.target.kind === kind) &&
@@ -215,11 +216,21 @@ function report(rows, dimension, params) {
   if (dimension === "summary") {
     const groups = new Map();
     for (const row of rows) {
-      const dimensions = [[row.target.kind, row.target.projectId || null], ["account", null]];
+      const dimensions = [
+        [row.target.kind, row.target.projectId || null],
+        ["account", null],
+      ];
       if (row.target.kind === "project") dimensions.push(["project", null]);
       for (const [target, projectId] of dimensions) {
         const key = `${target}:${projectId}:${row.currency}`;
-        const group = groups.get(key) || { target, projectId, categoryId: null, bucket: null, currency: row.currency, amountMinor: 0 };
+        const group = groups.get(key) || {
+          target,
+          projectId,
+          categoryId: null,
+          bucket: null,
+          currency: row.currency,
+          amountMinor: 0,
+        };
         group.amountMinor += row.amountMinor;
         groups.set(key, group);
       }
@@ -320,7 +331,7 @@ function payloadFor(path, params) {
         ? "categories"
         : path === "/api/v1/reports/summary"
           ? "summary"
-        : null;
+          : null;
   if (path === "/api/v1/expenses" || reportKind) {
     assertQuery(params, [
       "target",
@@ -368,8 +379,8 @@ export function createDateLayoutFixture({ baseURL, cap = 100 }) {
   ) {
     throw new Error("Date layout fixtures require a loopback HTTP origin on port 4248.");
   }
-  if (!Number.isInteger(cap) || cap < 1 || cap > 100) {
-    throw new Error("Date layout fixture cap must be an integer from 1 to 100.");
+  if (!Number.isInteger(cap) || cap < 1 || cap > 120) {
+    throw new Error("Date layout fixture cap must be an integer from 1 to 120.");
   }
   const requests = [];
   const blockedFonts = [];

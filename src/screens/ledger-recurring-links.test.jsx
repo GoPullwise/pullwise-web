@@ -125,7 +125,11 @@ describe("Project links in the real ledger views", () => {
         expect(links).toHaveLength(2);
         for (const link of links) {
           expect(getComputedStyle(link).userSelect).toBe("text");
-          expect(getComputedStyle(link).textDecoration).toBe("none");
+          expect(getComputedStyle(link).textDecoration).toBe(
+            mode === "projects" && link.classList.contains("ledger-project-link")
+              ? "underline"
+              : "none",
+          );
           expect(link).toHaveAttribute("draggable", "false");
         }
         if (mode === "projects") {

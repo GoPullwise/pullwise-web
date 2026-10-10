@@ -15,6 +15,7 @@ export default [
       "dist-ssr/**",
       "node_modules/**",
       "out/**",
+      "work/**",
     ],
   },
   {

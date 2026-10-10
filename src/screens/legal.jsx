@@ -1,3 +1,4 @@
+import "./legal.css";
 import { useEffect, useRef, useState } from "react";
 import { pullwiseApi } from "../api/pullwise.js";
 import { useErrorNotification } from "../components/notifications.jsx";
@@ -37,7 +38,7 @@ function LegalDocLayout({ go, current, sections, title, subtitle, children, auth
             <div className="legal-side-d">{LAST_UPDATED}</div>
           </div>
         </aside>
-        <main className="legal-main">
+        <main id="main-content" tabIndex={-1} className="legal-main">
           <div className="legal-crumbs">
             <a {...screenLinkProps(go, "landing")}>Pullwise</a>
             <span className="sep">/</span>
@@ -336,7 +337,7 @@ function StatusRow({ icon, title, status, label, detail }) {
         </div>
         <div className="status-row-region">{detail}</div>
       </div>
-      <div className="status-row-pct" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className="status-row-pct">
         {icon}
         <span>{label}</span>
       </div>
@@ -455,103 +456,109 @@ export function StatusScreen({ go, auth }) {
 
   return (
     <LegalChrome go={go} current="status" auth={auth}>
-      <section className="status-hero">
-        <div className={"status-overall " + apiStatus}>
-          <span className="status-dot" />
-          <h1>{title}</h1>
-        </div>
-        <p className="status-sub">
-          {T("Last checked", "最近检查")} {now.toLocaleTimeString()} ·{" "}
-          {T("Initial check, then refresh manually", "首次检查后，请手动刷新")}
-        </p>
-        <p className="status-sub">
-          {T(
-            "This check reports API reachability and backend information. It does not verify ledger writes, GitHub authorization or payments.",
-            "此检查显示 API 可访问性及后端信息，不验证账本写入、GitHub 授权或支付是否成功。"
-          )}
-        </p>
-        <button
-          className="btn"
-          disabled={loading}
-          aria-busy={loading}
-          onClick={() => {
-            if (requestPending.current) return;
-            requestPending.current = true;
-            setLoading(true);
-            setRequestRevision((value) => value + 1);
-          }}
-        >
-          <I.Refresh size={14} /> {T("Refresh status", "刷新状态")}
-        </button>
-      </section>
-
-      <section className="status-section">
-        <div className="status-card card">
-          <div className="status-card-h">
-            <h2>{T("Current connection", "当前连接")}</h2>
-            <span className="muted">
-              {T("No generated uptime or incident history", "不生成 uptime 或事故历史")}
-            </span>
+      <main id="main-content" tabIndex={-1}>
+        <section className="status-hero">
+          <div className={"status-overall " + apiStatus}>
+            <span className="status-dot" />
+            <h1>{title}</h1>
           </div>
-          <StatusRow
-            icon={<I.Code size={14} />}
-            title={T("Web app", "Web 应用")}
-            status="operational"
-            label={T("Loaded in this browser", "已在当前浏览器加载")}
-            detail={window.location.host || "local browser"}
-          />
-          <StatusRow
-            icon={<I.Activity size={14} />}
-            title={T("REST API", "REST API")}
-            status={apiStatus}
-            label={apiLabel}
-            detail={apiDetail}
-          />
-          <StatusRow
-            icon={<I.Database size={14} />}
-            title={T("Database backend", "数据库后端")}
-            status={health?.database?.configured ? "operational" : "degraded"}
-            label={health?.database?.configured
-              ? T("Configured", "已配置")
-              : T("Not reported", "未报告")}
-            detail={databaseDetail}
-          />
-        </div>
+          <p className="status-sub">
+            {T("Last checked", "最近检查")} {now.toLocaleTimeString()} ·{" "}
+            {T("Initial check, then refresh manually", "首次检查后，请手动刷新")}
+          </p>
+          <p className="status-sub">
+            {T(
+              "This check reports API reachability and backend information. It does not verify ledger writes, GitHub authorization or payments.",
+              "此检查显示 API 可访问性及后端信息，不验证账本写入、GitHub 授权或支付是否成功。"
+            )}
+          </p>
+          <button
+            className="btn"
+            disabled={loading}
+            aria-busy={loading}
+            onClick={() => {
+              if (requestPending.current) return;
+              requestPending.current = true;
+              setLoading(true);
+              setRequestRevision((value) => value + 1);
+            }}
+          >
+            <I.Refresh size={14} /> {T("Refresh status", "刷新状态")}
+          </button>
+        </section>
 
-        {readinessAvailable(health) && (
-          <div className="status-card card" style={{ marginTop: 14 }}>
+        <section className="status-section">
+          <div className="status-card card">
             <div className="status-card-h">
-              <h2>{T("Reported configuration", "返回的配置")}</h2>
+              <h2>{T("Current connection", "当前连接")}</h2>
               <span className="muted">
-                {T(
-                  "Configuration flags do not verify integration availability",
-                  "配置标志不代表集成可用性已通过验证"
-                )}
+                {T("No generated uptime or incident history", "不生成 uptime 或事故历史")}
               </span>
             </div>
-            {github && (
-              <StatusRow
-                icon={<I.Github size={14} />}
-                title={T("GitHub integration", "GitHub 集成")}
-                status={githubReady ? "operational" : "degraded"}
-                label={githubReady
+            <StatusRow
+              icon={<I.Code size={14} />}
+              title={T("Web app", "Web 应用")}
+              status="operational"
+              label={T("Loaded in this browser", "已在当前浏览器加载")}
+              detail={window.location.host || "local browser"}
+            />
+            <StatusRow
+              icon={<I.Activity size={14} />}
+              title={T("REST API", "REST API")}
+              status={apiStatus}
+              label={apiLabel}
+              detail={apiDetail}
+            />
+            <StatusRow
+              icon={<I.Database size={14} />}
+              title={T("Database backend", "数据库后端")}
+              status={health?.database?.configured ? "operational" : "degraded"}
+              label={
+                health?.database?.configured
                   ? T("Configured", "已配置")
-                  : T("Incomplete configuration", "配置不完整")}
-                detail={githubDetail}
-              />
-            )}
-            {billing && (
-              <StatusRow
-                icon={<I.Package size={14} />}
-                title={T("Billing provider", "支付提供方")}
-                status={billing.enabled ? "operational" : "degraded"}
-                label={billing.enabled ? T("enabled", "已启用") : T("not enabled", "未启用")}
-                detail={billingDetail}
-              />
-            )}
+                  : T("Not reported", "未报告")
+              }
+              detail={databaseDetail}
+            />
           </div>
-        )}
-      </section>
+
+          {readinessAvailable(health) && (
+            <div className="status-card card status-card-reported">
+              <div className="status-card-h">
+                <h2>{T("Reported configuration", "返回的配置")}</h2>
+                <span className="muted">
+                  {T(
+                    "Configuration flags do not verify integration availability",
+                    "配置标志不代表集成可用性已通过验证"
+                  )}
+                </span>
+              </div>
+              {github && (
+                <StatusRow
+                  icon={<I.Github size={14} />}
+                  title={T("GitHub integration", "GitHub 集成")}
+                  status={githubReady ? "operational" : "degraded"}
+                  label={
+                    githubReady
+                      ? T("Configured", "已配置")
+                      : T("Incomplete configuration", "配置不完整")
+                  }
+                  detail={githubDetail}
+                />
+              )}
+              {billing && (
+                <StatusRow
+                  icon={<I.Package size={14} />}
+                  title={T("Billing provider", "支付提供方")}
+                  status={billing.enabled ? "operational" : "degraded"}
+                  label={billing.enabled ? T("enabled", "已启用") : T("not enabled", "未启用")}
+                  detail={billingDetail}
+                />
+              )}
+            </div>
+          )}
+        </section>
+      </main>
     </LegalChrome>
   );
 }

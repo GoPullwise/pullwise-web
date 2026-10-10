@@ -123,14 +123,22 @@ describe("BillingScreen", () => {
     expect(meter).toHaveAttribute("min", "0");
     expect(meter).toHaveAttribute("max", String(total));
     expect(meter).toHaveAttribute("value", String(Math.min(used, total)));
-    expect(meter).toHaveAttribute("aria-valuetext",
-      `${labels[0]}: ${new Intl.NumberFormat(locale).format(used)}; ${labels[1]}: ${new Intl.NumberFormat(locale).format(total)}`);
+    expect(meter).toHaveAttribute(
+      "aria-valuetext",
+      `${labels[0]}: ${new Intl.NumberFormat(locale).format(used)}; ${labels[1]}: ${new Intl.NumberFormat(locale).format(total)}`
+    );
     return article;
   }
 
-  function withJevUsage(planId = "pro", jev = {
-    month: "2026-10", currency: "USD", usedMicrousd: 1234567, limitMicrousd: 3000000,
-  }) {
+  function withJevUsage(
+    planId = "pro",
+    jev = {
+      month: "2026-10",
+      currency: "USD",
+      usedMicrousd: 1234567,
+      limitMicrousd: 3000000,
+    }
+  ) {
     const payload = withUsage(planId, { used: 2, limit: 20 }, { used: 8, limit: 20000 });
     payload.ledgerUsage.jev = jev;
     return payload;
@@ -149,45 +157,75 @@ describe("BillingScreen", () => {
       render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
       const region = await screen.findByRole("region", { name: "Jev usage" });
       expect(region).toHaveTextContent("UTC month: 2026-10");
-      expect(within(region).getAllByRole("term").map((node) => node.textContent))
-        .toEqual(["Used", "Total allowance"]);
-      expect(within(region).getAllByRole("definition").map((node) => node.textContent))
-        .toEqual(["USD 1.234567", "USD 3.00"]);
+      expect(
+        within(region)
+          .getAllByRole("term")
+          .map((node) => node.textContent)
+      ).toEqual(["Used", "Total allowance"]);
+      expect(
+        within(region)
+          .getAllByRole("definition")
+          .map((node) => node.textContent)
+      ).toEqual(["USD 1.234567", "USD 3.00"]);
       expect(region).toHaveTextContent("not the provider’s actual invoice");
       expect(region).toHaveTextContent("without rollover, including annual subscriptions");
       expect(region).not.toHaveTextContent(/Remaining|Over limit|Daily/);
       const meter = within(region).getByRole("meter", { name: "Jev assistance allowance" });
       expect(meter).toHaveAttribute("value", "1234567");
       expect(meter).toHaveAttribute("max", "3000000");
-      expect(meter).toHaveAttribute("aria-valuetext", "Used: USD 1.234567; Total allowance: USD 3.00");
+      expect(meter).toHaveAttribute(
+        "aria-valuetext",
+        "Used: USD 1.234567; Total allowance: USD 3.00"
+      );
       expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
     }
   );
 
-  it.each([0, 1])("keeps %i micro-USD reservations with zero allowance exact and omits an undefined ratio", async (usedMicrousd) => {
-    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("pro", {
-      month: "2026-10", currency: "USD", usedMicrousd, limitMicrousd: 0,
-    }));
-    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
-    const region = await screen.findByRole("region", { name: "Jev usage" });
-    expect(within(region).getAllByRole("definition").map((node) => node.textContent))
-      .toEqual([usedMicrousd === 0 ? "USD 0.00" : "USD 0.000001", "USD 0.00"]);
-    expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
-  });
+  it.each([0, 1])(
+    "keeps %i micro-USD reservations with zero allowance exact and omits an undefined ratio",
+    async (usedMicrousd) => {
+      pullwiseApi.billing.getPlan.mockResolvedValue(
+        withJevUsage("pro", {
+          month: "2026-10",
+          currency: "USD",
+          usedMicrousd,
+          limitMicrousd: 0,
+        })
+      );
+      render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+      const region = await screen.findByRole("region", { name: "Jev usage" });
+      expect(
+        within(region)
+          .getAllByRole("definition")
+          .map((node) => node.textContent)
+      ).toEqual([usedMicrousd === 0 ? "USD 0.00" : "USD 0.000001", "USD 0.00"]);
+      expect(within(region).queryByRole("meter")).not.toBeInTheDocument();
+    }
+  );
 
   it("does not round a safe-integer reservation or hide usage above a changed allowance", async () => {
-    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("max", {
-      month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER,
-      limitMicrousd: 4250001,
-    }));
+    pullwiseApi.billing.getPlan.mockResolvedValue(
+      withJevUsage("max", {
+        month: "2026-10",
+        currency: "USD",
+        usedMicrousd: Number.MAX_SAFE_INTEGER,
+        limitMicrousd: 4250001,
+      })
+    );
     render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
     const region = await screen.findByRole("region", { name: "Jev usage" });
-    expect(within(region).getAllByRole("definition").map((node) => node.textContent))
-      .toEqual(["USD 9,007,199,254.740991", "USD 4.250001"]);
+    expect(
+      within(region)
+        .getAllByRole("definition")
+        .map((node) => node.textContent)
+    ).toEqual(["USD 9,007,199,254.740991", "USD 4.250001"]);
     const meter = within(region).getByRole("meter", { name: "Jev assistance allowance" });
     expect(meter).toHaveAttribute("value", "4250001");
     expect(meter).toHaveAttribute("max", "4250001");
-    expect(meter).toHaveAttribute("aria-valuetext", "Used: USD 9,007,199,254.740991; Total allowance: USD 4.250001");
+    expect(meter).toHaveAttribute(
+      "aria-valuetext",
+      "Used: USD 9,007,199,254.740991; Total allowance: USD 4.250001"
+    );
   });
 
   it.each([
@@ -195,7 +233,12 @@ describe("BillingScreen", () => {
     { month: "2026-10", currency: "USD", usedMicrousd: null, limitMicrousd: 3000000 },
     { month: "2026-10", currency: "USD", usedMicrousd: "0", limitMicrousd: 3000000 },
     { month: "2026-10", currency: "USD", usedMicrousd: 1.5, limitMicrousd: 3000000 },
-    { month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER + 1, limitMicrousd: 3000000 },
+    {
+      month: "2026-10",
+      currency: "USD",
+      usedMicrousd: Number.MAX_SAFE_INTEGER + 1,
+      limitMicrousd: 3000000,
+    },
     { month: "2026-10", currency: "USD", usedMicrousd: -1, limitMicrousd: 3000000 },
     { month: "2026-10", currency: "USD", usedMicrousd: 0 },
     { month: "2026-10", currency: "USD", usedMicrousd: 0, limitMicrousd: -1 },
@@ -241,16 +284,19 @@ describe("BillingScreen", () => {
     ["ko", "Jev 사용량", "UTC 월", "1.234567", "이월되지 않습니다"],
     ["fr", "Utilisation de Jev", "Mois UTC", "1,234567", "sans report"],
     ["es", "Uso de Jev", "Mes UTC", "1,234567", "sin acumulación"],
-  ])("localizes Jev usage and its monthly policy in %s", async (lang, title, month, amount, rollover) => {
-    await setLang(lang);
-    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage());
-    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
-    const region = await screen.findByRole("region", { name: title });
-    expect(region).toHaveTextContent(`${month}: 2026-10`);
-    expect(region).toHaveTextContent(`USD ${amount}`);
-    expect(region).toHaveTextContent(rollover);
-    if (lang !== "en") expect(region).not.toHaveTextContent("Jev usage");
-  });
+  ])(
+    "localizes Jev usage and its monthly policy in %s",
+    async (lang, title, month, amount, rollover) => {
+      await setLang(lang);
+      pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage());
+      render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+      const region = await screen.findByRole("region", { name: title });
+      expect(region).toHaveTextContent(`${month}: 2026-10`);
+      expect(region).toHaveTextContent(`USD ${amount}`);
+      expect(region).toHaveTextContent(rollover);
+      if (lang !== "en") expect(region).not.toHaveTextContent("Jev usage");
+    }
+  );
 
   it.each([
     ["free", 2, 3, 79, 100],
@@ -639,7 +685,7 @@ describe("BillingScreen", () => {
   });
 
   it("keeps the Pricing heading centered independently from the landing hero", () => {
-    const styles = readFileSync("src/app.css", "utf8");
+    const styles = readFileSync("src/screens/billing.css", "utf8");
 
     expect(styles).toMatch(
       /\.pricing-hero\s*>\s*\.lp-title\s*{[^}]*margin:\s*0 auto 18px;[^}]*text-align:\s*center;/s
@@ -673,7 +719,7 @@ describe("BillingScreen", () => {
   });
 
   it("keeps the billing change confirmation dialog compact on desktop", () => {
-    const styles = readFileSync("styles/screens.css", "utf8");
+    const styles = readFileSync("src/screens/billing.css", "utf8");
 
     expect(styles).toMatch(/\.billing-change-modal\s*{[^}]*max-width:\s*640px;/s);
     expect(styles).not.toMatch(/\.billing-change-modal\s*{[^}]*max-width:\s*720px;/s);
@@ -1554,6 +1600,58 @@ describe("BillingScreen", () => {
     });
 
     expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps selected billing text and cross-boundary drags open but dismisses a backdrop click", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "active", plan: "pro", interval: "month" },
+    });
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} />);
+    const opener = await screen.findByRole("button", { name: /switch to yearly/i });
+    await user.click(opener);
+    const dialog = screen.getByRole("dialog", { name: /confirm billing change/i });
+    const backdrop = dialog.closest(".modal-back");
+    const details = within(dialog).getByText(/Review the plan, cadence/i);
+    for (const [start, end] of [
+      [details, backdrop],
+      [backdrop, details],
+    ]) {
+      await user.pointer([
+        { keys: "[MouseLeft>]", target: start },
+        { target: end },
+        { keys: "[/MouseLeft]", target: end },
+      ]);
+      expect(dialog).toBeInTheDocument();
+    }
+    await user.click(backdrop);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(opener).toHaveFocus());
+    expect(pullwiseApi.billing.changeSubscriptionInterval).not.toHaveBeenCalled();
+  });
+
+  it("blocks billing-change backdrop dismissal and Escape throughout a pending write", async () => {
+    const change = deferred();
+    pullwiseApi.billing.getPlan.mockResolvedValue({
+      ...billingCatalog,
+      account: { status: "active", plan: "pro", interval: "month" },
+    });
+    pullwiseApi.billing.changeSubscriptionInterval.mockReturnValue(change.promise);
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: /switch to yearly/i }));
+    await user.click(screen.getByRole("button", { name: /confirm change/i }));
+    const dialog = screen.getByRole("dialog", { name: /confirm billing change/i });
+    await user.click(dialog.closest(".modal-back"));
+    await user.keyboard("{Escape}");
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /^cancel$/i })).toBeDisabled();
+    await act(async () => change.reject(new Error("Provider unavailable")));
+    expect(dialog).toBeInTheDocument();
+    await user.click(dialog.closest(".modal-back"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(pullwiseApi.billing.changeSubscriptionInterval).toHaveBeenCalledOnce();
   });
 
   it("does not redirect after a pending subscription change unmounts", async () => {

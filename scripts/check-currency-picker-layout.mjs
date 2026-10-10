@@ -410,7 +410,7 @@ try {
       assert.deepEqual(errors, []);
       report.requests = fixture.assertClean();
       reports.push(report);
-      process.stdout.write(
+      process.stderr.write(
         `${profile.name}: ${report.states.length} states passed; ${report.requests.total} GET; ${report.requests.api} API\n`
       );
     } catch (error) {

@@ -17,7 +17,7 @@
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text);
-  font-size: 16px;
+  font-size: 1rem;
 }
 .email-sign-in input:focus {
   border-color: var(--accent);

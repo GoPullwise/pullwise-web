@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ExpenseCharts } from "./expense-charts.jsx";
+import { installAnimationFrameMock } from "../test/animation-frame.js";
 
 function minorAmount(value) {
   if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) return BigInt(value);
@@ -413,6 +414,7 @@ describe("ExpenseCharts", () => {
   });
 
   it("reflows geometry to its actual container width and disconnects its observer", () => {
+    const frames = installAnimationFrameMock();
     let width = 320;
     let onResize;
     const disconnect = vi.fn();
@@ -434,10 +436,16 @@ describe("ExpenseCharts", () => {
     );
     expect(points("USD")[0]).toHaveAttribute("data-x", "160");
     width = 0;
-    act(() => onResize());
+    act(() => {
+      onResize();
+      frames.flush();
+    });
     expect(points("USD")[0]).toHaveAttribute("data-x", "160");
     width = 280;
-    act(() => onResize());
+    act(() => {
+      onResize();
+      frames.flush();
+    });
     expect(points("USD")[0]).toHaveAttribute("data-x", "140");
     expect(screen.getByRole("group", { name: "Expenses over time · USD" })).toHaveAttribute(
       "viewBox",

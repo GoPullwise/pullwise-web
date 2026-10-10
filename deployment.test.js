@@ -29,10 +29,12 @@ describe("web Worker deployment", () => {
     expect(headerLinesFor("/*")).toEqual(
       expect.arrayContaining([
         "X-Frame-Options: DENY",
-        "Content-Security-Policy: frame-ancestors 'none'",
         "Cache-Control: no-cache",
       ])
     );
+    const csp = headerLinesFor("/*").find((line) => line.startsWith("Content-Security-Policy:"));
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("script-src 'self'");
     expect(headerLinesFor("/assets/*")).toEqual(
       expect.arrayContaining([
         "! Cache-Control",

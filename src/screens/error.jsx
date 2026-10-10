@@ -1,3 +1,4 @@
+import "./error.css";
 // screens/error.jsx — Not Found / fallback screens
 
 import { I } from "../icons.jsx";
@@ -50,7 +51,7 @@ export function NotFoundScreen({ go, requested, auth }) {
       ];
 
   return (
-    <div className="notfound-shell fade-in">
+    <main id="main-content" tabIndex={-1} className="notfound-shell fade-in">
       <div className="notfound-card">
         <div className="notfound-code">404</div>
         <h1 className="notfound-title">{T("This page took a wrong turn", "这个页面走丢了")}</h1>
@@ -71,11 +72,11 @@ export function NotFoundScreen({ go, requested, auth }) {
           {suggestions.map((s) => (
             <a key={s.k} className="notfound-suggest-i" {...screenLinkProps(go, s.k)}>
               <span className="notfound-suggest-ic">{s.i}</span>
-              <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+              <div className="notfound-suggest-content">
                 <div className="notfound-suggest-t">{s.t}</div>
                 <div className="notfound-suggest-d">{s.d}</div>
               </div>
-              <I.ArrowR size={12} style={{ color: "var(--text-4)" }} />
+              <I.ArrowR size={12} className="notfound-suggest-arrow" />
             </a>
           ))}
         </div>
@@ -85,6 +86,6 @@ export function NotFoundScreen({ go, requested, auth }) {
           </a>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

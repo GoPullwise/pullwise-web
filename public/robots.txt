@@ -1,18 +1,17 @@
 User-agent: *
+User-agent: OAI-SearchBot
 Allow: /
 Disallow: /login
 Disallow: /oauth
-Disallow: /repos
-Disallow: /scanning
-Disallow: /dashboard
-Disallow: /issues
-Disallow: /history
+Disallow: /projects
+Disallow: /overview
+Disallow: /categories
+Disallow: /shared
+Disallow: /members
 Disallow: /api-keys
 Disallow: /settings
 Disallow: /billing
-
-User-agent: OAI-SearchBot
-Allow: /
+Disallow: /api/
 
 User-agent: GPTBot
 Disallow: /

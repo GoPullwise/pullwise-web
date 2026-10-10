@@ -1,5 +1,6 @@
 import baseWorker from "./worker.js";
 import { renderSeoHead, seoMetadataForPath } from "./src/lib/seo.js";
+import { htmlContentSecurityPolicy } from "./security-headers.js";
 
 const CANONICAL_HOST = "pull-wise.com";
 const WWW_HOST = "www.pull-wise.com";
@@ -34,8 +35,15 @@ export default {
     if (env.PULLWISE_MODE === "preview") {
       const headers = new Headers(response.headers);
       headers.set("X-Robots-Tag", "noindex, nofollow");
-      response = new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+      response = new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
     }
+    // Server responses include their own OAuth callback documents/redirects.
+    // Never rewrite their HTML or apply the app shell's script policy.
+    if (url.pathname === "/api" || url.pathname.startsWith("/api/")) return response;
     if (request.method !== "GET" || !isHtmlResponse(response)) return response;
 
     const metadata = seoMetadataForPath(url.pathname, {
@@ -70,10 +78,21 @@ async function injectSeoMetadata(response, metadata) {
     : `${head}\n${withoutManagedTags}`;
   const headers = new Headers(response.headers);
   headers.delete("content-length");
+  // Only trust the JSON-LD generated above, never arbitrary inline scripts
+  // found in the asset body. The theme bootstrap has its own fixed hash.
+  const schemaScript = head.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i)?.[1];
+  const schemaHashes = schemaScript ? [await scriptHash(schemaScript)] : [];
+  headers.set("Content-Security-Policy", htmlContentSecurityPolicy(schemaHashes));
 
   return new Response(body, {
     status: response.status,
     statusText: response.statusText,
     headers,
   });
+}
+
+async function scriptHash(source) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(source));
+  const encoded = btoa(String.fromCharCode(...new Uint8Array(digest)));
+  return `sha256-${encoded}`;
 }

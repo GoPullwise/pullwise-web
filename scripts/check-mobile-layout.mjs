@@ -215,7 +215,10 @@ async function measure(page, report, name) {
       assert(control.label.trim(), `Unnamed bottom navigation control: ${details}`);
     const firstTop = measured.nav.controls[0].rect.top;
     for (const control of measured.nav.controls)
-      assert(Math.abs(control.rect.top - firstTop) <= tolerance, `Bottom navigation wrapped to a second row: ${details}`);
+      assert(
+        Math.abs(control.rect.top - firstTop) <= tolerance,
+        `Bottom navigation wrapped to a second row: ${details}`
+      );
     assert(
       Math.abs(measured.measuredNavHeight - measured.nav.rect.height) <= tolerance,
       `Measured bottom navigation height does not reserve its full border box: ${details}`
@@ -390,9 +393,10 @@ async function checkLastControl(page, report, name) {
       (left, right) => right.getBoundingClientRect().bottom - left.getBoundingClientRect().bottom
     )[0];
     const header = document.querySelector(".topbar");
-    const visibleTop = header && getComputedStyle(header).position === "sticky"
-      ? Math.max(0, header.getBoundingClientRect().bottom)
-      : 0;
+    const visibleTop =
+      header && getComputedStyle(header).position === "sticky"
+        ? Math.max(0, header.getBoundingClientRect().bottom)
+        : 0;
     // Read-only material can follow the last action, especially on Billing.
     // An action above the viewport at document end must be reachable by scroll;
     // actions already at the end still face the stricter bottom-dock check.
@@ -426,9 +430,10 @@ async function checkLastControl(page, report, name) {
       top: box.top,
       bottom: box.bottom,
       height: innerHeight,
-      visibleTop: header && getComputedStyle(header).position === "sticky"
-        ? Math.max(0, header.getBoundingClientRect().bottom)
-        : 0,
+      visibleTop:
+        header && getComputedStyle(header).position === "sticky"
+          ? Math.max(0, header.getBoundingClientRect().bottom)
+          : 0,
       navTop:
         nav?.getClientRects().length && getComputedStyle(nav).position === "fixed"
           ? nav.getBoundingClientRect().top
@@ -438,7 +443,8 @@ async function checkLastControl(page, report, name) {
   });
   assert(last, `${name}: no final interactive control to inspect`);
   assert(
-    last.top >= last.visibleTop - tolerance && last.bottom <= Math.min(last.height, last.navTop) + tolerance,
+    last.top >= last.visibleTop - tolerance &&
+      last.bottom <= Math.min(last.height, last.navTop) + tolerance,
     `${name}: final control obscured at document end ${JSON.stringify(last)}`
   );
   assert(last.hit, `${name}: final control is not hit-testable ${JSON.stringify(last)}`);
@@ -819,7 +825,7 @@ try {
         report.requests = fixture.assertClean();
         assert.deepEqual(errors, [], `${engine}/${profile.name}: browser errors`);
         results.push(report);
-        process.stdout.write(`${engine}/${profile.name}: ${report.states.length} states passed\n`);
+        process.stderr.write(`${engine}/${profile.name}: ${report.states.length} states passed\n`);
       } catch (error) {
         process.stderr.write(
           JSON.stringify({

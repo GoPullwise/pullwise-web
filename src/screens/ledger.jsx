@@ -4,6 +4,8 @@ import { ledgerApi } from "../api/ledger.js";
 import { EXPENSE_CAPACITY_COPY, EXPENSE_CAPACITY_ERRORS } from "../locales/expense-capacity.js";
 import { SkeletonLine } from "../components/skeleton.jsx";
 import { LedgerSplit } from "../components/ledger-split.jsx";
+import { ProjectsList } from "../components/projects-list.jsx";
+import { ProjectRepositoryPicker } from "../components/project-repository-picker.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { FinancialValue } from "../components/financial-value.jsx";
 import { CurrencyPicker } from "../components/currency-picker.jsx";
@@ -400,6 +402,44 @@ function ReportGroups({ title, groups, error, categories = [], dimension, icon: 
 }
 
 function LedgerSkeleton({ mode }) {
+  if (mode === "projects")
+    return (
+      <div className="ledger-project-skeleton" role="status" aria-label={T("Loading projects…")}>
+        <section className="panel ledger-your-projects" aria-hidden="true">
+          <div className="ledger-project-toolbar">
+            <div className="ledger-project-filters">
+              <SkeletonLine className="sk-line sk-w-70 sk-h-40" />
+              <SkeletonLine className="sk-line sk-w-26 sk-h-40" />
+            </div>
+          </div>
+          <div className="ledger-search-guidance">
+            <SkeletonLine className="sk-line sk-w-65" />
+            <SkeletonLine className="sk-line sk-w-34" />
+          </div>
+          <div className="ledger-project-head">
+            <SkeletonLine className="sk-line sk-w-42" />
+            <SkeletonLine className="sk-line sk-w-56" />
+            <SkeletonLine className="sk-line sk-w-42" />
+          </div>
+          <div className="ledger-list ledger-project-list">
+            {Array.from({ length: 3 }, (_, index) => (
+              <article className="ledger-project-row skeleton-row" key={index}>
+                <div className="ledger-row-main skeleton-stack">
+                  <SkeletonLine className="sk-line sk-w-65 sk-h-16" />
+                  <SkeletonLine className="sk-line sk-w-42" />
+                </div>
+                <div className="ledger-project-total">
+                  <SkeletonLine className="sk-line sk-w-56 sk-h-16" />
+                </div>
+                <div className="ledger-project-associations">
+                  <SkeletonLine className="sk-line sk-w-42" />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
   const headingSkeleton = (
     <div className="panel-h skeleton-row">
       <SkeletonLine className="sk-square sk-size-16" />
@@ -430,7 +470,7 @@ function LedgerSkeleton({ mode }) {
       role="status"
       aria-label={T(mode === "project" ? "Loading project expenses…" : "Loading ledger…")}
     >
-      {mode === "projects" || mode === "categories" ? (
+      {mode === "categories" ? (
         <div className="ledger-split">
           <div className="panel">
             {headingSkeleton}
@@ -455,14 +495,14 @@ const boundRepositoryIds = (project) =>
   project?.githubRepoIds ||
   project?.repositories?.map((repo) => repo.githubRepoId) ||
   [project?.githubRepoId].filter(Boolean);
-const projectLabel = (project) =>
+const projectLabel = (project, fallback = T("Project", "项目")) =>
   project.name ||
   project.repositories?.find((repo) => repo.githubAccess === "authorized" && repo.githubFullName)
     ?.githubFullName ||
   (!["lost", "unavailable", "reauthorization_required"].includes(project.githubAccess) &&
     project.githubFullName) ||
   project.description ||
-  T("Project", "项目");
+  fallback;
 
 function ProjectExternalLinks({ project }) {
   const repositories = [...new Set(boundRepositoryIds(project))].map((id) => {
@@ -563,45 +603,6 @@ function ProjectLinkFields({ developmentUrl, productUrl, onChange, disabled }) {
         )}
       </p>
     </>
-  );
-}
-
-function ProjectListRow({ project, go, navigationDisabled = false }) {
-  const productHref = projectUrlHref(project.productUrl);
-  return (
-    <article className="ledger-project-row">
-      <div className="ledger-row-main">
-        <h2>
-          <a
-            draggable={false}
-            {...screenLinkProps(go, "ledgerProject", { id: project.id }, navigationDisabled)}
-          >
-            {projectLabel(project)}
-          </a>
-        </h2>
-        {project.description && projectLabel(project) !== project.description && (
-          <p>{project.description}</p>
-        )}
-        {project.status === "archived" && (
-          <p className="ledger-meta">{T("Archived project", "已归档项目")}</p>
-        )}
-      </div>
-      <div className="ledger-project-total">
-        <span className="ledger-project-label">{T("Expense total", "支出合计")}</span>
-        {project.totals.length
-          ? project.totals.map((total) => <LedgerTotal key={total.currency} total={total} />)
-          : T("No expenses")}
-      </div>
-      <div className="ledger-project-associations">
-        {productHref && (
-          <div className="ledger-project-links">
-            <a href={productHref} target="_blank" rel="noopener noreferrer" draggable={false}>
-              {T("Product", "产品")} <span aria-hidden="true">↗</span>
-            </a>
-          </div>
-        )}
-      </div>
-    </article>
   );
 }
 
@@ -1016,6 +1017,7 @@ function ScopedLedgerScreen({
   const [parentBusy, setBusy] = useState(false);
   const [recurringBusy, setRecurringBusy] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingMoreKind, setLoadingMoreKind] = useState("");
   const [expensePage, setExpensePage] = useState(0);
   const expensePageHistory = useRef({ scope: "", index: 0, cursors: [null] });
   const [inspection, setInspection] = useState(null);
@@ -1045,18 +1047,16 @@ function ScopedLedgerScreen({
   const [projectRemovalError, setProjectRemovalError] = useState("");
   const [projectRemovalConflict, setProjectRemovalConflict] = useState(false);
   const [view, setView] = useState("expenses");
-  const [projectSearch, setProjectSearch] = useState("");
   const [addingProject, setAddingProject] = useState(false);
   const [linkRepositories, setLinkRepositories] = useState(false);
   const viewId = useId();
-  const repositoryFieldId = useId();
   const projectNameId = useId();
   const organizationFieldId = useId();
   const projectDescriptionId = useId();
+  const projectCreateHelpId = useId();
   const projectStatusId = useId();
   const projectSettingsBase = useRef(null);
   const projectSettingsDirty = useRef(false);
-  const projectSearchRef = useRef(null);
   const projectOpenerRef = useRef(null);
   const restoreProjectFocus = useRef(false);
   const inFlight = useRef(false);
@@ -1291,7 +1291,6 @@ function ScopedLedgerScreen({
       setView("expenses");
       setAddingProject(false);
       setLinkRepositories(false);
-      setProjectSearch("");
       setProjectName("");
       setProjectStatus("active");
       setDevelopmentUrl("");
@@ -1540,6 +1539,7 @@ function ScopedLedgerScreen({
     const controller = new AbortController();
     moreController.current = controller;
     setLoadingMore(true);
+    setLoadingMoreKind(kind);
     setActionError("");
     try {
       const next =
@@ -1591,7 +1591,10 @@ function ScopedLedgerScreen({
       }
     } finally {
       if (moreController.current === controller) moreController.current = null;
-      if (request === requestId.current) setLoadingMore(false);
+      if (request === requestId.current) {
+        setLoadingMore(false);
+        setLoadingMoreKind("");
+      }
     }
   };
 
@@ -2194,17 +2197,21 @@ function ScopedLedgerScreen({
   const showProjectForm = Boolean(
     canManageProjects && data && (addingProject || data.projects?.items.length === 0)
   );
-  const matchingProjects =
-    data?.projects?.items.filter((project) =>
-      `${projectLabel(project)} ${project.description || ""} ${
-        project.repositories
-          ?.filter((repo) => repo.githubAccess === "authorized")
-          .map((repo) => repo.githubFullName)
-          .join(" ") || ""
-      }`
-        .toLowerCase()
-        .includes(projectSearch.trim().toLowerCase())
-    ) || [];
+  const projectCreateReason = blocked
+    ? T("Wait for the current project operation to finish.")
+    : !projectName.trim()
+      ? T("Enter a project name to continue.")
+      : linkRepositories && repositoryLoading
+        ? T("Wait for repositories to finish loading, or close optional GitHub links.")
+        : linkRepositories && needsGitHubReconnect
+          ? T("Reconnect GitHub, or close optional GitHub links to create an unlinked project.")
+          : linkRepositories && !data?.repositories
+            ? T("Check repository access, or close optional GitHub links to create an unlinked project.")
+            : linkRepositories && selectedCreateIds.length < 1
+              ? T("Choose a repository, or close optional GitHub links to create an unlinked project.")
+              : linkRepositories && selectedCreateIds.length > 30
+                ? T("Choose no more than thirty repositories.")
+                : "";
   useEffect(() => {
     if (blocked) return;
     if (!addingProject && restoreProjectFocus.current) {
@@ -2248,7 +2255,7 @@ function ScopedLedgerScreen({
                 : "ledgerProjects"
           }
         />
-        <main className={`main ledger-${mode}`} aria-busy={writing}>
+        <main id="main-content" tabIndex={-1} className={`main ledger-${mode}`} aria-busy={writing}>
           <div className="page-h">
             <div className={mode === "project" ? "ledger-project-identity" : undefined}>
               <h1>{title}</h1>
@@ -2330,23 +2337,57 @@ function ScopedLedgerScreen({
               </button>
             </div>
           </div>
-          {authorizationError && (
-            <p role="alert" className="notice">
-              {authorizationError}
-            </p>
-          )}
-          {error && (
-            <div role="alert" className="notice">
-              {error}{" "}
-              <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
-                {T("Retry")}
-              </button>
+          {(authorizationError || error || actionError ||
+            (data && mode === "projects" && data.repositoryError) || githubRefreshError ||
+            (canManageProjects && needsGitHubReconnect && (linkRepositories || mode === "project"))) && (
+            <div role="alert">
+              {authorizationError && (
+                <p className="notice notice-error">
+                  {authorizationError}
+                </p>
+              )}
+              {error && (
+                <div className="notice notice-error">
+                  {error}{" "}
+                  <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
+                    {T("Retry")}
+                  </button>
+                </div>
+              )}
+              {actionError && (
+                <p className="notice notice-error">
+                  {actionError}
+                </p>
+              )}
+              {data && mode === "projects" && data.repositoryError && (
+                <div className="notice notice-error">
+                  <p>{errorText(data.repositoryError)}</p>
+                  <button className="btn" disabled={blocked} onClick={retryRepositories}>
+                    {T("Check repository access", "检查仓库授权")}
+                  </button>
+                </div>
+              )}
+              {githubRefreshError && (
+                <div className="notice notice-error">
+                  <p>{errorText(githubRefreshError)}</p>
+                  <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
+                    {T("Retry")}
+                  </button>
+                </div>
+              )}
+              {canManageProjects &&
+                needsGitHubReconnect &&
+                (linkRepositories || mode === "project") && (
+                  <div className="notice notice-error">
+                    <p>
+                      {errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}
+                    </p>
+                    <button className="btn primary" disabled={blocked} onClick={reconnectGitHub}>
+                      {T("Reconnect GitHub", "重新连接 GitHub")}
+                    </button>
+                  </div>
+                )}
             </div>
-          )}
-          {actionError && (
-            <p role="alert" className="notice">
-              {actionError}
-            </p>
           )}
           {gitHubOutcome && <GitHubClosedNotice outcome={gitHubOutcome} />}
           {savedAssistance &&
@@ -2398,34 +2439,6 @@ function ScopedLedgerScreen({
               </p>
             </div>
           )}
-          {data && mode === "projects" && data.repositoryError && (
-            <div role="alert" className="notice">
-              <p>{errorText(data.repositoryError)}</p>
-              <button className="btn" disabled={blocked} onClick={retryRepositories}>
-                {T("Check repository access", "检查仓库授权")}
-              </button>
-            </div>
-          )}
-          {githubRefreshError && (
-            <div role="alert" className="notice">
-              <p>{errorText(githubRefreshError)}</p>
-              <button className="btn" disabled={blocked} onClick={reloadWithAccess}>
-                {T("Retry")}
-              </button>
-            </div>
-          )}
-          {canManageProjects &&
-            needsGitHubReconnect &&
-            (linkRepositories || mode === "project") && (
-              <div role="alert" className="notice">
-                <p>
-                  {errorText({ payload: { error: { code: "GITHUB_REAUTHORIZATION_REQUIRED" } } })}
-                </p>
-                <button className="btn primary" disabled={blocked} onClick={reconnectGitHub}>
-                  {T("Reconnect GitHub", "重新连接 GitHub")}
-                </button>
-              </div>
-            )}
           {loading && !data && <LedgerSkeleton mode={mode} />}
           {data && mode === "projects" && (
             <>
@@ -2439,15 +2452,15 @@ function ScopedLedgerScreen({
                       <span className="setup-number">01</span>
                       <div>
                         <strong>
-                          <a
-                            href="#add-repository"
-                            onClick={(event) => {
-                              event.preventDefault();
-                              startAddingProject();
-                            }}
+                          <button
+                            className="btn ghost"
+                            type="button"
+                            disabled={blocked}
+                            aria-controls="add-repository"
+                            onClick={startAddingProject}
                           >
                             {T("Add project", "添加项目")} <I.ArrowR size={12} />
-                          </a>
+                          </button>
                         </strong>
                         <p>
                           {T("Name the project you want to track.", "为你想记账的项目起个名字。")}
@@ -2458,9 +2471,14 @@ function ScopedLedgerScreen({
                       <span className="setup-number">02</span>
                       <div>
                         <strong>
-                          <a {...screenLinkProps(go, "ledgerCategories", {}, writing)}>
+                          <button
+                            className="btn ghost"
+                            type="button"
+                            disabled={writing}
+                            onClick={() => go("ledgerCategories")}
+                          >
                             {T("Create categories")} <I.ArrowR size={12} />
-                          </a>
+                          </button>
                         </strong>
                         <p>
                           {T(
@@ -2490,81 +2508,17 @@ function ScopedLedgerScreen({
                 scope={`${workspaceScope}:projects`}
               >
                 {data.projects.items.length > 0 && (
-                  <section className="panel ledger-your-projects" aria-label={T("Projects")}>
-                    <div className="ledger-project-toolbar">
-                      <div className="ledger-search">
-                        <I.Search size={16} aria-hidden="true" />
-                        <input
-                          ref={projectSearchRef}
-                          type="search"
-                          aria-label={T("Find a project", "查找项目")}
-                          placeholder={T("Find a project", "查找项目")}
-                          value={projectSearch}
-                          onChange={(event) => setProjectSearch(event.target.value)}
-                        />
-                        {projectSearch && (
-                          <button
-                            className="btn ghost sm"
-                            type="button"
-                            aria-label={T("Clear search", "清除搜索")}
-                            title={T("Clear search", "清除搜索")}
-                            onClick={() => {
-                              setProjectSearch("");
-                              projectSearchRef.current?.focus({ preventScroll: true });
-                            }}
-                          >
-                            <I.X size={16} aria-hidden="true" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="ledger-project-head">
-                      <span className="ledger-project-count">
-                        <span>{T("Project", "项目")}</span>
-                        <span className="count">
-                          {data.projects.items.length}
-                          {data.projects.nextCursor ? "+" : ""}
-                        </span>
-                      </span>
-                      <span className="ledger-project-head-amount">
-                        {T("Expense total", "支出合计")}
-                      </span>
-                      <span>{T("Product", "产品")}</span>
-                    </div>
-                    {projectSearch.trim() && matchingProjects.length === 0 && (
-                      <div className="empty">
-                        <I.Search size={24} />
-                        <h3>{T("No matching projects", "没有匹配的项目")}</h3>
-                        <p>
-                          {T(
-                            "Try another name or load more projects.",
-                            "换个名称搜索，或加载更多项目。"
-                          )}
-                        </p>
-                      </div>
-                    )}
-                    <div className="ledger-list">
-                      {matchingProjects.map((project) => (
-                        <ProjectListRow
-                          key={project.id}
-                          project={project}
-                          go={go}
-                          navigationDisabled={writing}
-                        />
-                      ))}
-                    </div>
-                    {data.projects.nextCursor && (
-                      <div className="panel-actions">
-                        <button
-                          className="btn"
-                          disabled={blocked}
-                          onClick={() => loadMore("projects")}
-                        >
-                          {T("Load more projects")}
-                        </button>
-                      </div>
-                    )}
-                  </section>
+                  <ProjectsList
+                    className="panel ledger-your-projects"
+                    page={data.projects}
+                    go={go}
+                    labelForProject={projectLabel}
+                    Total={LedgerTotal}
+                    writing={writing}
+                    loading={loading || (loadingMore && loadingMoreKind === "projects")}
+                    paginationDisabled={blocked}
+                    onLoadMore={() => loadMore("projects")}
+                  />
                 )}
                 {showProjectForm && (
                   <section className="panel" id="add-repository" ref={addProjectPanelRef}>
@@ -2630,6 +2584,7 @@ function ScopedLedgerScreen({
                           value={projectName}
                           required
                           maxLength={120}
+                          aria-describedby={projectCreateReason ? projectCreateHelpId : undefined}
                           disabled={blocked}
                           onChange={(event) => setProjectName(event.target.value)}
                         />
@@ -2718,68 +2673,22 @@ function ScopedLedgerScreen({
                                   "为这个支出项目选择 1 到 30 个已授权仓库，使用你自己的 GitHub 授权。"
                                 )}
                               </p>
-                              <div className="ledger-field">
-                                <label htmlFor={repositoryFieldId}>{T("Repository")}</label>
-                                <select
-                                  id={repositoryFieldId}
-                                  value={
-                                    selectedRepository
-                                      ? String(selectedRepository.githubRepoId)
-                                      : ""
-                                  }
-                                  required={linkRepositories}
-                                  disabled={blocked || repositoryLoading}
-                                  onChange={(event) => setSelectedRepo(event.target.value)}
-                                >
-                                  <option value="">{T("Choose a repository", "选择仓库")}</option>
-                                  {availableRepos.map((repo) => (
-                                    <option key={repo.githubRepoId} value={repo.githubRepoId}>
-                                      {repo.fullName}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              {selectedRepository && availableRepos.length > 1 && (
-                                <fieldset className="api-scope-panel">
-                                  <legend>
-                                    {T("Additional repositories (optional)", "其他仓库（选填）")}
-                                  </legend>
-                                  <div className="api-scope-list">
-                                    {availableRepos
-                                      .filter(
-                                        (repo) =>
-                                          repo.githubRepoId !== selectedRepository.githubRepoId
-                                      )
-                                      .map((repo) => (
-                                        <label className="api-scope-row" key={repo.githubRepoId}>
-                                          <input
-                                            type="checkbox"
-                                            checked={additionalRepoIds.includes(repo.githubRepoId)}
-                                            disabled={
-                                              busy ||
-                                              repositoryLoading ||
-                                              (selectedCreateIds.length >= 30 &&
-                                                !additionalRepoIds.includes(repo.githubRepoId))
-                                            }
-                                            onChange={(event) =>
-                                              setAdditionalRepoIds((old) =>
-                                                event.target.checked
-                                                  ? [...old, repo.githubRepoId]
-                                                  : old.filter((id) => id !== repo.githubRepoId)
-                                              )
-                                            }
-                                          />
-                                          <span className="api-scope-copy">
-                                            <span>{repo.fullName}</span>
-                                          </span>
-                                        </label>
-                                      ))}
-                                  </div>
-                                  <p className="ledger-help">
-                                    {selectedCreateIds.length} / 30 {T("repositories", "个仓库")}
-                                  </p>
-                                </fieldset>
-                              )}
+                              <ProjectRepositoryPicker
+                                key={organizationId}
+                                repositories={availableRepos}
+                                hasMore={Boolean(data.repositories?.nextCursor)}
+                                selectedRepository={selectedRepository}
+                                additionalRepoIds={additionalRepoIds}
+                                selectedCount={selectedCreateIds.length}
+                                required={linkRepositories}
+                                disabled={blocked || repositoryLoading}
+                                onSelect={setSelectedRepo}
+                                onAdditionalChange={(id, checked) =>
+                                  setAdditionalRepoIds((old) =>
+                                    checked ? [...old, id] : old.filter((item) => item !== id)
+                                  )
+                                }
+                              />
                             </>
                           )}
                           {data.repositories &&
@@ -2824,12 +2733,16 @@ function ScopedLedgerScreen({
                           <GitHubAuthorizationGuidance />
                         </div>
                       </details>
+                      {projectCreateReason && (
+                        <p className="ledger-help" id={projectCreateHelpId}>{projectCreateReason}</p>
+                      )}
                       <div className="panel-actions">
                         <button
                           className="btn primary"
                           type="submit"
+                          aria-describedby={projectCreateReason ? projectCreateHelpId : undefined}
                           disabled={
-                            busy ||
+                            blocked ||
                             !projectName.trim() ||
                             (linkRepositories &&
                               (repositoryLoading ||

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CurrencyPicker } from "./currency-picker.jsx";
 import { COMMON_CURRENCIES } from "../locales/currency-picker.js";
 import { setLang } from "../i18n.jsx";
+import { installAnimationFrameMock } from "../test/animation-frame.js";
 
 afterEach(async () => {
   await act(async () => {
@@ -204,4 +205,94 @@ describe("CurrencyPicker", () => {
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it.each(["close", "unmount"])(
+    "repositions from queued resize notifications and cancels pending positioning on %s",
+    (completion) => {
+      const frames = installAnimationFrameMock();
+      const observers = [];
+      vi.stubGlobal("innerHeight", 800);
+      vi.stubGlobal("visualViewport", undefined);
+      vi.stubGlobal(
+        "ResizeObserver",
+        class {
+          constructor(callback) {
+            this.notify = callback;
+            this.disconnect = vi.fn();
+            observers.push(this);
+          }
+          observe() {}
+        }
+      );
+      let anchorTop = 100;
+      const bounds = vi
+        .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+        .mockImplementation(() => ({
+          top: anchorTop,
+          bottom: anchorTop + 44,
+          left: 0,
+          right: 240,
+          width: 240,
+          height: 44,
+          x: 0,
+          y: anchorTop,
+          toJSON() {},
+        }));
+      let view;
+      try {
+        view = harness();
+        fireEvent.click(trigger());
+        const popover = screen.getByRole("listbox").closest(".currency-picker-popover");
+        expect(popover).toHaveAttribute("data-side", "bottom");
+        const observer = observers.at(-1);
+        bounds.mockClear();
+        anchorTop = 300;
+        act(() => observer.notify());
+        anchorTop = 650;
+        act(() => observer.notify());
+        expect(bounds).not.toHaveBeenCalled();
+        expect(popover).toHaveAttribute("data-side", "bottom");
+        act(() => frames.flush());
+        expect(popover).toHaveAttribute("data-side", "top");
+        expect(trigger()).toHaveTextContent(/^USD$/);
+        expect(view.onChange).not.toHaveBeenCalled();
+
+        // Queue a return to the lower edge, then close before it can measure.
+        anchorTop = 50;
+        act(() => observer.notify());
+        const pendingFrame = frames.request.mock.results.at(-1).value;
+        bounds.mockClear();
+        if (completion === "close") fireEvent.keyDown(trigger(), { key: "Escape" });
+        else view.unmount();
+        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+        expect(observer.disconnect).toHaveBeenCalledOnce();
+        expect(frames.cancel).toHaveBeenCalledWith(pendingFrame);
+        act(() => {
+          observer.notify();
+          frames.flush();
+        });
+        expect(bounds).not.toHaveBeenCalled();
+        expect(view.onChange).not.toHaveBeenCalled();
+
+        if (completion === "close") {
+          expect(trigger()).toHaveFocus();
+          fireEvent.click(trigger());
+          const reopened = screen.getByRole("listbox").closest(".currency-picker-popover");
+          expect(reopened).toHaveAttribute("data-side", "bottom");
+          bounds.mockClear();
+          anchorTop = 650;
+          act(() => {
+            observer.notify();
+            frames.flush();
+          });
+          expect(bounds).not.toHaveBeenCalled();
+          expect(reopened).toHaveAttribute("data-side", "bottom");
+        }
+      } finally {
+        view?.unmount();
+        bounds.mockRestore();
+        vi.unstubAllGlobals();
+      }
+    }
+  );
 });

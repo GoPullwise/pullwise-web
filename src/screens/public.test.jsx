@@ -303,20 +303,38 @@ describe("public navigation links", () => {
   });
 
   it("keeps the public-page frame on one shared horizontal baseline", () => {
-    const styles = readFileSync("src/app.css", "utf8");
+    const styles = ["public", "billing", "docs", "legal"]
+      .map((name) => readFileSync(`src/screens/${name}.css`, "utf8"))
+      .join("\n");
+    const sharedStyles = readFileSync("styles/base.css", "utf8");
+    // The shared desktop gutter remains 40px at the browser's default 16px root.
+    expect(sharedStyles).toMatch(/--space-10:\s*2\.5rem;/);
 
     expect(styles).toMatch(/\.lp-top\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(/\.lp-hero\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(/\.lp-preview\s*{[^}]*max-width:\s*1240px;/s);
     expect(styles).toMatch(
-      /\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px 40px calc\(88px \+ env\(safe-area-inset-bottom\)\);/s
+      /\.lp-foot\s*{[^}]*max-width:\s*1240px;[^}]*padding:\s*28px var\(--space-10\) calc\(88px \+ env\(safe-area-inset-bottom\)\);/s
     );
-    expect(styles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*max-width:\s*1240px;/s
-    );
-    expect(styles).toMatch(
-      /\.pricing-hero,\s*\.pricing-tiers,\s*\.pricing-faq,\s*\.docs-shell,\s*\.legal-shell,\s*\.status-hero,\s*\.status-section\s*{[^}]*padding-left:\s*40px;[^}]*padding-right:\s*40px;/s
-    );
+    for (const name of [
+      "pricing-hero",
+      "pricing-tiers",
+      "pricing-faq",
+      "docs-shell",
+      "legal-shell",
+      "status-hero",
+      "status-section",
+    ]) {
+      const selector = `\\.${name}(?=\\s*[,\\{])[^\\{]*\\{[^}]*`;
+      expect(styles).toMatch(new RegExp(selector + "max-width:\\s*1240px;", "s"));
+      expect(styles).toMatch(
+        new RegExp(
+          selector +
+            "padding-left:\\s*var\\(--space-10\\);[^}]*padding-right:\\s*var\\(--space-10\\);",
+          "s"
+        )
+      );
+    }
     expect(styles).toMatch(/\.legal-main\s*{[^}]*max-width:\s*none;/s);
   });
   it("opens landing footer legal pages from real links", async () => {

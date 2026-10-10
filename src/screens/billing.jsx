@@ -10,10 +10,12 @@ import { pathFromScreen, screenLinkProps } from "../lib/navigation.js";
 import { formatBillingTimestamp } from "../lib/billing-date.js";
 import { safeBillingRedirectUrl } from "../lib/trusted-redirects.js";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { useModalBackdrop } from "../lib/modal-backdrop.js";
 import { BILLING_USAGE_COPY } from "../locales/billing-usage.js";
 import { Sidebar, Topbar } from "../shell.jsx";
 import { ConsoleLayout } from "../components/console-layout.jsx";
 import { PublicFooter, PublicHeader } from "./public-layout.jsx";
+import "./billing.css";
 
 const CHECKOUT_PENDING_TIMEOUT_MS = 15 * 1000;
 
@@ -393,9 +395,12 @@ function usageMetric(usage, key) {
   if (typeof usage?.workspaceId !== "string" || !usage.workspaceId.trim()) return null;
   const metric = usage[key];
   if (
-    !Number.isSafeInteger(metric?.used) || metric.used < 0 ||
-    !Number.isSafeInteger(metric?.limit) || metric.limit <= 0
-  ) return null;
+    !Number.isSafeInteger(metric?.used) ||
+    metric.used < 0 ||
+    !Number.isSafeInteger(metric?.limit) ||
+    metric.limit <= 0
+  )
+    return null;
   return metric;
 }
 
@@ -404,10 +409,14 @@ function jevUsageMetric(usage) {
   const metric = usage.jev;
   if (
     metric?.currency !== "USD" ||
-    typeof metric.month !== "string" || !/^[0-9]{4}-(?:0[1-9]|1[0-2])$/.test(metric.month) ||
-    !Number.isSafeInteger(metric.usedMicrousd) || metric.usedMicrousd < 0 ||
-    !Number.isSafeInteger(metric.limitMicrousd) || metric.limitMicrousd < 0
-  ) return null;
+    typeof metric.month !== "string" ||
+    !/^[0-9]{4}-(?:0[1-9]|1[0-2])$/.test(metric.month) ||
+    !Number.isSafeInteger(metric.usedMicrousd) ||
+    metric.usedMicrousd < 0 ||
+    !Number.isSafeInteger(metric.limitMicrousd) ||
+    metric.limitMicrousd < 0
+  )
+    return null;
   return metric;
 }
 
@@ -416,8 +425,11 @@ function jevUsageAmount(microusd, lang) {
   // could lose the last reserved micro-dollar on large, otherwise safe values.
   const micros = BigInt(microusd);
   const whole = new Intl.NumberFormat(lang).format(micros / 1000000n);
-  const fraction = String(micros % 1000000n).padStart(6, "0").replace(/0{1,4}$/, "");
-  const separator = new Intl.NumberFormat(lang).formatToParts(0.1)
+  const fraction = String(micros % 1000000n)
+    .padStart(6, "0")
+    .replace(/0{1,4}$/, "");
+  const separator = new Intl.NumberFormat(lang)
+    .formatToParts(0.1)
     .find((part) => part.type === "decimal").value;
   return `USD ${whole}${separator}${fraction}`;
 }
@@ -445,7 +457,11 @@ function BillingJevUsage({ usage, lang }) {
       <div className="panel-h billing-usage-heading">
         <h2 id="billing-jev-usage-title">{usageText("jevTitle")}</h2>
       </div>
-      {metric && <p className="muted billing-usage-meta">{usageText("jevMonth")}: <time>{metric.month}</time></p>}
+      {metric && (
+        <p className="muted billing-usage-meta">
+          {usageText("jevMonth")}: <time>{metric.month}</time>
+        </p>
+      )}
       <div className="billing-usage-grid">
         <article className="billing-usage-row" aria-labelledby="billing-jev-allowance-title">
           <div className="billing-usage-label">
@@ -457,11 +473,21 @@ function BillingJevUsage({ usage, lang }) {
               <dl className="billing-usage-values">
                 <div className="billing-usage-used">
                   <dt>{usageText("used")}</dt>
-                  <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.usedMicrousd, lang)} /></dd>
+                  <dd>
+                    <FinancialValue
+                      currency="USD"
+                      value={jevUsageAmount(metric.usedMicrousd, lang)}
+                    />
+                  </dd>
                 </div>
                 <div className="billing-usage-total">
                   <dt>{usageText("total")}</dt>
-                  <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.limitMicrousd, lang)} /></dd>
+                  <dd>
+                    <FinancialValue
+                      currency="USD"
+                      value={jevUsageAmount(metric.limitMicrousd, lang)}
+                    />
+                  </dd>
                 </div>
               </dl>
               <BillingUsageMeter
@@ -472,7 +498,9 @@ function BillingJevUsage({ usage, lang }) {
                 totalLabel={jevUsageAmount(metric.limitMicrousd, lang)}
               />
             </>
-          ) : <p className="muted">{usageText("unavailable")}</p>}
+          ) : (
+            <p className="muted">{usageText("unavailable")}</p>
+          )}
         </article>
       </div>
       <p className="muted billing-usage-policy">{usageText("jevPolicy")}</p>
@@ -499,7 +527,11 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
           return (
             <article className="billing-usage-row" key={key} aria-labelledby={titleId}>
               <div className="billing-usage-label">
-                {key === "projects" ? <I.Folder size={18} aria-hidden="true" /> : <I.FileCode size={18} aria-hidden="true" />}
+                {key === "projects" ? (
+                  <I.Folder size={18} aria-hidden="true" />
+                ) : (
+                  <I.FileCode size={18} aria-hidden="true" />
+                )}
                 <h3 id={titleId}>{label}</h3>
               </div>
               {metric ? (
@@ -507,11 +539,15 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
                   <dl className="billing-usage-values">
                     <div className="billing-usage-used">
                       <dt>{usageText("used")}</dt>
-                      <dd><FinancialValue value={number(metric.used)} /></dd>
+                      <dd>
+                        <FinancialValue value={number(metric.used)} />
+                      </dd>
                     </div>
                     <div className="billing-usage-total">
                       <dt>{usageText("total")}</dt>
-                      <dd><FinancialValue value={number(metric.limit)} /></dd>
+                      <dd>
+                        <FinancialValue value={number(metric.limit)} />
+                      </dd>
                     </div>
                   </dl>
                   <BillingUsageMeter
@@ -522,7 +558,9 @@ function BillingUsage({ usage, lang, busy, onRefresh }) {
                     totalLabel={number(metric.limit)}
                   />
                 </>
-              ) : <p className="muted">{usageText("unavailable")}</p>}
+              ) : (
+                <p className="muted">{usageText("unavailable")}</p>
+              )}
             </article>
           );
         })}
@@ -559,8 +597,14 @@ function BillingSkeleton() {
               <dl className="billing-usage-values">
                 {["used", "total"].map((field) => (
                   <div key={field} className={`billing-usage-${field}`}>
-                    <dt><SkeletonLine className="sk-line sk-w-70" /></dt>
-                    <dd><SkeletonLine className={`sk-line sk-w-52 ${field === "used" ? "sk-h-40" : "sk-h-28"}`} /></dd>
+                    <dt>
+                      <SkeletonLine className="sk-line sk-w-70" />
+                    </dt>
+                    <dd>
+                      <SkeletonLine
+                        className={`sk-line sk-w-52 ${field === "used" ? "sk-h-40" : "sk-h-28"}`}
+                      />
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -809,6 +853,11 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
   const closeChangeConfirmation = () => {
     if (!billingMutationRef.current) setChangeDraft(null);
   };
+  const changeBackdropProps = useModalBackdrop({
+    open: Boolean(changeDetails),
+    onClose: closeChangeConfirmation,
+    busy: Boolean(pendingAction),
+  });
 
   useModalFocus({
     open: Boolean(changeDetails),
@@ -919,7 +968,7 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
         />
         <ConsoleLayout>
           <Sidebar section="billing" go={go} navigationDisabled={writing} />
-          <div className="main" role="main" aria-busy={writing}>
+          <main id="main-content" tabIndex={-1} className="main" aria-busy={writing}>
             <div className="page-h">
               <div>
                 <h1>{T("Billing", "Billing")}</h1>
@@ -1132,11 +1181,11 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                 </div>
               )}
             </div>
-          </div>
+          </main>
         </ConsoleLayout>
       </div>
       {changeDetails && (
-        <div className="modal-back billing-change-back" onClick={closeChangeConfirmation}>
+        <div className="modal-back billing-change-back" {...changeBackdropProps}>
           <div
             className="modal billing-change-modal"
             role="dialog"
@@ -1487,126 +1536,128 @@ export function PricingScreen({
   return (
     <div className="landing fade-in">
       <PublicHeader go={go} current="pricing" auth={auth} />
-
-      <section className="pricing-hero">
-        <div className="lp-hero-tag">
-          <span className="dot" style={{ background: "var(--accent)" }} />
-          <span>{T("Account plans", "Account plans")}</span>
-          <I.ArrowR size={12} />
-        </div>
-        <h1 className="lp-title">{T("Pricing", "Pricing")}</h1>
-        <p className="lp-sub">
-          {T(
-            "Compare Pullwise platform subscriptions. Expenses you record in the ledger are separate from these charges.",
-            "比较 Pullwise 平台订阅。你在账本中录入的支出与这些费用分开。"
-          )}
-        </p>
-        <div className="pricing-toggle" role="group" aria-label={T("Billing interval", "计费周期")}>
-          <button
-            className={"seg-i" + (interval === "month" ? " active" : "")}
-            disabled={Boolean(pendingAction)}
-            onClick={() => {
-              if (!checkoutPendingRef.current) setInterval("month");
-            }}
-          >
-            <I.Clock size={13} /> {T("Monthly", "按月")}
-          </button>
-          <button
-            className={"seg-i" + (interval === "year" ? " active" : "")}
-            disabled={Boolean(pendingAction)}
-            onClick={() => {
-              if (!checkoutPendingRef.current) setInterval("year");
-            }}
-          >
-            <I.Package size={13} /> {T("Yearly", "按年")}{" "}
-          </button>
-        </div>
-      </section>
-
-      {error && !plan ? (
-        <section className="pricing-tiers">
-          <PricingLoadError error={error} onRetry={loadPricingPlan} />
-        </section>
-      ) : (
-        <section className="pricing-tiers">
-          <PlanCard
-            plan={freePlan}
-            price={priceFor(freePlan, "month")}
-            interval="month"
-            active={account.plan === "free" || !activePaid}
-            featured={false}
-            cta={
-              <a className="btn" {...screenLinkProps(go, signedIn ? "ledgerProjects" : "login")}>
-                <I.Check size={14} />{" "}
-                {signedIn ? T("Open projects", "打开项目") : T("Start free", "免费开始")}
-              </a>
-            }
-          />
-
-          {paidPlans.map((paidPlan) => {
-            const selectedPrice = priceFor(paidPlan, interval);
-            const activePlan = activePaid && account.plan === paidPlan.id;
-            const canStartPlan =
-              billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
-            const hasMax = paidPlans.some((candidate) => candidate.id === "max");
-            return (
-              <PlanCard
-                key={paidPlan.id}
-                plan={paidPlan}
-                price={selectedPrice}
-                interval={interval}
-                active={activePlan}
-                featured={hasMax ? paidPlan.id === "max" : paidPlan.id === "pro"}
-                cta={
-                  <div className="billing-actions">
-                    {activePaid ? (
-                      <a className="btn" {...screenLinkProps(go, "billing")}>
-                        <I.Settings size={14} /> {T("Open billing", "打开账单")}
-                      </a>
-                    ) : (
-                      <button
-                        className="btn primary"
-                        disabled={!canStartPlan || Boolean(pendingAction)}
-                        onClick={() => startCheckout(paidPlan)}
-                      >
-                        {pendingAction === `checkout-${paidPlan.id}` && (
-                          <span className="spin">
-                            <I.Refresh size={14} />
-                          </span>
-                        )}
-                        <I.Package size={14} />{" "}
-                        {signedIn
-                          ? T(`Start ${planLabel(paidPlan)}`, `升级 ${planLabel(paidPlan)}`)
-                          : T("Sign in to subscribe", "登录后订阅")}
-                      </button>
-                    )}
-                  </div>
-                }
-              />
-            );
-          })}
-        </section>
-      )}
-
-      {!pricingLoading && !error && (
-        <div className="pricing-faq" style={{ paddingTop: 0 }}>
-          <p className="muted">
-            {usageText("policy")}
-          </p>
-          <p className="muted">
+      <main id="main-content" tabIndex={-1}>
+        <section className="pricing-hero">
+          <div className="lp-hero-tag">
+            <span className="dot pricing-hero-dot" />
+            <span>{T("Account plans", "Account plans")}</span>
+            <I.ArrowR size={12} />
+          </div>
+          <h1 className="lp-title">{T("Pricing", "Pricing")}</h1>
+          <p className="lp-sub">
             {T(
-              "The monthly Jev allowance covers model assistance, has no cash value, and cannot pay expenses or subscription charges.",
-              "Jev 月度额度用于模型辅助，没有现金价值，不能用于支付支出或订阅费用。"
+              "Compare Pullwise platform subscriptions. Expenses you record in the ledger are separate from these charges.",
+              "比较 Pullwise 平台订阅。你在账本中录入的支出与这些费用分开。"
             )}
           </p>
-          {!billingEnabled && (
-            <p className="muted">
-              {T("Paid subscriptions are currently unavailable.", "付费订阅暂不可用。")}
-            </p>
-          )}
-        </div>
-      )}
+          <div
+            className="pricing-toggle"
+            role="group"
+            aria-label={T("Billing interval", "计费周期")}
+          >
+            <button
+              className={"seg-i" + (interval === "month" ? " active" : "")}
+              disabled={Boolean(pendingAction)}
+              onClick={() => {
+                if (!checkoutPendingRef.current) setInterval("month");
+              }}
+            >
+              <I.Clock size={13} /> {T("Monthly", "按月")}
+            </button>
+            <button
+              className={"seg-i" + (interval === "year" ? " active" : "")}
+              disabled={Boolean(pendingAction)}
+              onClick={() => {
+                if (!checkoutPendingRef.current) setInterval("year");
+              }}
+            >
+              <I.Package size={13} /> {T("Yearly", "按年")}{" "}
+            </button>
+          </div>
+        </section>
 
+        {error && !plan ? (
+          <section className="pricing-tiers">
+            <PricingLoadError error={error} onRetry={loadPricingPlan} />
+          </section>
+        ) : (
+          <section className="pricing-tiers">
+            <PlanCard
+              plan={freePlan}
+              price={priceFor(freePlan, "month")}
+              interval="month"
+              active={account.plan === "free" || !activePaid}
+              featured={false}
+              cta={
+                <a className="btn" {...screenLinkProps(go, signedIn ? "ledgerProjects" : "login")}>
+                  <I.Check size={14} />{" "}
+                  {signedIn ? T("Open projects", "打开项目") : T("Start free", "免费开始")}
+                </a>
+              }
+            />
+
+            {paidPlans.map((paidPlan) => {
+              const selectedPrice = priceFor(paidPlan, interval);
+              const activePlan = activePaid && account.plan === paidPlan.id;
+              const canStartPlan =
+                billingEnabled && Boolean(selectedPrice?.configured) && !activePaid;
+              const hasMax = paidPlans.some((candidate) => candidate.id === "max");
+              return (
+                <PlanCard
+                  key={paidPlan.id}
+                  plan={paidPlan}
+                  price={selectedPrice}
+                  interval={interval}
+                  active={activePlan}
+                  featured={hasMax ? paidPlan.id === "max" : paidPlan.id === "pro"}
+                  cta={
+                    <div className="billing-actions">
+                      {activePaid ? (
+                        <a className="btn" {...screenLinkProps(go, "billing")}>
+                          <I.Settings size={14} /> {T("Open billing", "打开账单")}
+                        </a>
+                      ) : (
+                        <button
+                          className="btn primary"
+                          disabled={!canStartPlan || Boolean(pendingAction)}
+                          onClick={() => startCheckout(paidPlan)}
+                        >
+                          {pendingAction === `checkout-${paidPlan.id}` && (
+                            <span className="spin">
+                              <I.Refresh size={14} />
+                            </span>
+                          )}
+                          <I.Package size={14} />{" "}
+                          {signedIn
+                            ? T(`Start ${planLabel(paidPlan)}`, `升级 ${planLabel(paidPlan)}`)
+                            : T("Sign in to subscribe", "登录后订阅")}
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
+              );
+            })}
+          </section>
+        )}
+
+        {!pricingLoading && !error && (
+          <div className="pricing-faq pricing-policy">
+            <p className="muted">{usageText("policy")}</p>
+            <p className="muted">
+              {T(
+                "The monthly Jev allowance covers model assistance, has no cash value, and cannot pay expenses or subscription charges.",
+                "Jev 月度额度用于模型辅助，没有现金价值，不能用于支付支出或订阅费用。"
+              )}
+            </p>
+            {!billingEnabled && (
+              <p className="muted">
+                {T("Paid subscriptions are currently unavailable.", "付费订阅暂不可用。")}
+              </p>
+            )}
+          </div>
+        )}
+      </main>
       <PublicFooter go={go} current="pricing" />
     </div>
   );

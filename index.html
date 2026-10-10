@@ -4,8 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <meta name="theme-color" content="#f8f7f6" />
+    <script id="pw-theme-bootstrap">
+      (() => {
+        let stored;
+        try {
+          stored = localStorage.getItem("pw-theme");
+        } catch {}
+        const theme =
+          stored === "light" || stored === "dark"
+            ? stored
+            : window.matchMedia?.("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.setAttribute("data-theme", theme);
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", theme === "dark" ? "#080808" : "#f8f7f6");
+      })();
+    </script>
     <title data-seo-managed="true">
       Pullwise — Project Expense Tracking for Developers and Teams
     </title>
@@ -90,12 +108,7 @@
         ]
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
     <div id="root"></div>

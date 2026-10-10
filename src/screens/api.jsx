@@ -1,3 +1,4 @@
+import "./api.css";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createLedgerApi } from "../api/ledger.js";
 import { pullwiseApi } from "../api/pullwise.js";
@@ -724,7 +725,7 @@ export function ApiKeysScreen({
         />
         <ConsoleLayout>
           <Sidebar section="apiKeys" go={go} navigationDisabled={writing} />
-          <div className="main" role="main" aria-busy={controlsDisabled}>
+          <main id="main-content" tabIndex={-1} className="main" aria-busy={controlsDisabled}>
             <div className="page-h">
               <div>
                 <h1>{T("API Keys", "API 密钥")}</h1>
@@ -851,7 +852,10 @@ export function ApiKeysScreen({
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  disabled={controlsDisabled || (restrictProjects && scope.value.startsWith("members:"))}
+                                  disabled={
+                                    controlsDisabled ||
+                                    (restrictProjects && scope.value.startsWith("members:"))
+                                  }
                                   onChange={() => toggleScope(scope.value)}
                                 />
                                 <span className="api-scope-copy">
@@ -864,7 +868,10 @@ export function ApiKeysScreen({
                           })}
                         </div>
                         <p className="api-scope-help">
-                          {T("Member scopes apply to the whole ledger. Turn off project restrictions to select them, or deselect member scopes to restrict projects.", "成员权限作用于整个账本。关闭项目限制后可选择成员权限；取消成员权限后可限制项目。")}
+                          {T(
+                            "Member scopes apply to the whole ledger. Turn off project restrictions to select them, or deselect member scopes to restrict projects.",
+                            "成员权限作用于整个账本。关闭项目限制后可选择成员权限；取消成员权限后可限制项目。"
+                          )}
                         </p>
                       </fieldset>
                       <fieldset className="api-scope-panel">
@@ -1159,7 +1166,7 @@ export function ApiKeysScreen({
                 </div>
               )}
             </div>
-          </div>
+          </main>
         </ConsoleLayout>
       </div>
       {currentScope && createdCredential?.token && (

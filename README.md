@@ -16,6 +16,12 @@ Members supports invitation links, applications, original-inviter approval, role
 
 Create a standalone project with a name and optional description; no GitHub App installation or repository authorization is needed for its expense entries. Optionally link 1–30 distinct stable GitHub repository IDs and a GitHub Organization. The chooser uses the acting member's current GitHub authorization, filters by the selected organization and revalidates selections after access changes. Project settings can add, change or remove these associations while preserving the project ID and expense history. A new expense in a linked project requires at least one linked repository authorized for the acting member; unavailable protected repository metadata stays hidden while permitted financial history remains accessible. Removing all repository links requires a nonempty project name and clears the Organization association.
 
+Projects search and its Active/Archived filter apply to loaded projects. Load
+more explicitly to include another page; no-match results retain that action.
+Repository search also covers currently loaded authorized repositories and
+preserves selected IDs. Project rows grow independently with their complete
+descriptions and per-currency amounts.
+
 When an expiring GitHub authorization has a saved refresh token, repository and
 project reads renew it automatically and retry the read once. Concurrent reads
 share one renewal for the signed-in account, and account changes cancel obsolete
@@ -154,6 +160,10 @@ setup, run `PLAYWRIGHT_BROWSERS_PATH=node_modules/.cache/ms-playwright npx playw
 `npm run test:layout -- --browser=webkit` to inspect one engine. Layout changes
 must pass these checks as well as the unit suite. Emulation is separate from
 real iOS/Android device verification.
+Firefox touch emulation emits compatibility mouse events without pointer events
+for automated mouse drags. Those profiles verify actual separator sizes through
+native keyboard controls; desktop Firefox retains native pointer dragging.
+The layout report records the input method for each resize.
 
 `npm run test:mobile-layout` checks the phone bottom navigation, native More
 selector, form sizing, footer hit targets, display options and scroll/focus-locked
@@ -164,12 +174,24 @@ Linux WebKit touch-point limitations are reported without modifying navigator;
 smaller viewport checks do not emulate a native keyboard. CI keeps unit-test
 environment defaults separate from the API-prefixed browser build.
 
+`npm run test:projects-layout` checks the Projects skeleton, loaded-page search,
+status filter, result announcements, natural record heights, selectable links,
+long exact monetary values, creation-rail resizing and browser font preferences
+in Chromium, WebKit and Firefox, including all six locales at 320px. Run it after
+building. CI uploads generated layout JSON and progress/error logs as 30-day artifacts under
+`browser-validation`; local scratch output stays in ignored `work/` directories.
+
 The production build explicitly targets Chrome/Edge 111+, Firefox 114+ and
 Safari/iOS/iPadOS 16.4+. Android browsers must provide a compatible current
 browser engine; old WebViews and embedded browsers are not automatically covered.
 These build targets define syntax compatibility, not physical-device acceptance.
 Keep them explicit when updating Vite, and validate Safari and Android keyboard,
 download, authorization and background-return flows on actual devices.
+
+The default display theme follows the operating system until a user selects a
+theme. An early bootstrap applies it before rendering; the CSP authorizes that
+script by its exact hash. Geist/Geist Mono are bundled locally with their OFL
+license, and font sizes follow browser preferences through rem units.
 
 ## Cloudflare configuration
 

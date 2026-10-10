@@ -18,6 +18,7 @@
     "test:overview-layout": "node scripts/check-overview-layout.mjs",
     "test:currency-layout": "node scripts/check-currency-picker-layout.mjs",
     "test:mobile-layout": "node scripts/check-mobile-layout.mjs",
+    "test:projects-layout": "node scripts/check-projects-layout.mjs",
     "test:watch": "vitest --passWithNoTests",
     "preview:workers": "npm run build && npx wrangler dev --var PULLWISE_API_ORIGIN:http://localhost:8080",
     "check:workers": "node scripts/check-cloudflare-config.mjs",

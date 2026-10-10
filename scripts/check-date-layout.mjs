@@ -746,7 +746,7 @@ async function checkPaneWidth(page, panelSelector, width, name) {
   );
 }
 
-async function dragSide(
+async function resizeSide(
   page,
   width,
   report,
@@ -757,8 +757,32 @@ async function dragSide(
   const { handle } = paneTargets(page, panelSelector);
   await handle.scrollIntoViewIfNeeded();
   const initial = Number(await handle.getAttribute("aria-valuenow"));
+  const minimum = Number(await handle.getAttribute("aria-valuemin"));
   const maximum = Number(await handle.getAttribute("aria-valuemax"));
   assert(maximum >= width, `${name}: pane cannot reach ${width}px (${maximum})`);
+  // Firefox's hasTouch emulation dispatches compatibility MouseEvents for
+  // page.mouse, without the PointerEvents used by the production divider.
+  // Exercise its real keyboard controls on that profile; desktop Firefox and
+  // both other engines retain the native mouse drag below.
+  const keyboard = report.engine === "firefox" && report.profile.touch;
+  if (keyboard) {
+    assert(
+      width === minimum || width === maximum,
+      `${name}: keyboard boundary probe must request the actual minimum or maximum`
+    );
+    await handle.focus();
+    await handle.press(width === minimum ? "Home" : "End");
+    await checkPaneWidth(page, panelSelector, width, name);
+    report.resizeInputs.push({
+      name,
+      panelSelector,
+      width,
+      method: "keyboard",
+      key: width === minimum ? "Home" : "End",
+    });
+    await measureState(page, report, name);
+    return;
+  }
   const bounds = await handle.boundingBox();
   assert(bounds, `${name}: divider has no pointer geometry`);
   const point = {
@@ -780,6 +804,7 @@ async function dragSide(
     await page.mouse.up();
   }
   await checkPaneWidth(page, panelSelector, width, name);
+  report.resizeInputs.push({ name, panelSelector, width, method: "native mouse drag" });
   await measureState(page, report, name);
 }
 
@@ -797,6 +822,13 @@ async function keyboardSide(page, report, name, panelSelector) {
   ]) {
     await handle.press(key);
     await checkPaneWidth(page, panelSelector, expected, `${name}-${key}`);
+    report.resizeInputs.push({
+      name: `${name}-${key}`,
+      panelSelector,
+      width: expected,
+      method: "keyboard",
+      key,
+    });
     assert(
       await handle.evaluate((element) => document.activeElement === element),
       `${name}-${key}: divider lost keyboard focus`
@@ -971,8 +1003,8 @@ async function checkScope(page, report, mode) {
   await form.locator('.ledger-fields input[type="date"]').first().fill("2026-10-08");
   await measure(page, report, `${mode}-create-populated`);
   if (report.profile.width >= 900) {
-    await dragSide(page, 260, report, `${mode}-create-pane-260`);
-    await dragSide(page, 520, report, `${mode}-create-pane-520`);
+    await resizeSide(page, 260, report, `${mode}-create-pane-260`);
+    await resizeSide(page, 520, report, `${mode}-create-pane-520`);
   }
   await form.locator(".ledger-entry-types button[aria-pressed]").nth(1).click();
   await measure(page, report, `${mode}-recurring-create-end-empty`);
@@ -983,8 +1015,8 @@ async function checkScope(page, report, mode) {
     await measure(page, report, `${mode}-live-narrow-recurring-create`);
     await page.setViewportSize({ width: report.profile.width, height: report.profile.height });
   } else {
-    await dragSide(page, 260, report, `${mode}-recurring-create-pane-260`);
-    await dragSide(page, 520, report, `${mode}-recurring-create-pane-520`);
+    await resizeSide(page, 260, report, `${mode}-recurring-create-pane-260`);
+    await resizeSide(page, 520, report, `${mode}-recurring-create-pane-520`);
   }
   await closeForm(form);
   await page.locator(".ledger-expense-row .ledger-actions button[aria-label]").first().click();
@@ -1018,9 +1050,9 @@ async function checkScope(page, report, mode) {
   await scheduleForm.locator('.recurring-schedule-fields input[type="date"]').fill("");
   await measure(page, report, `${mode}-edit-recurring-end-empty`);
   if (report.profile.width >= 900) {
-    await dragSide(page, 260, report, `${mode}-recurring-edit-pane-260`, schedulePanel);
+    await resizeSide(page, 260, report, `${mode}-recurring-edit-pane-260`, schedulePanel);
     await measureRecurring(page, report, `${mode}-recurring-edit-list-at-260`, true);
-    await dragSide(page, 520, report, `${mode}-recurring-edit-pane-520`, schedulePanel);
+    await resizeSide(page, 520, report, `${mode}-recurring-edit-pane-520`, schedulePanel);
     await measureRecurring(page, report, `${mode}-recurring-edit-list-at-520`, true);
     await keyboardSide(page, report, `${mode}-recurring-edit-keyboard`, schedulePanel);
 
@@ -1030,7 +1062,7 @@ async function checkScope(page, report, mode) {
     const ordinaryWidth = await page
       .locator("#expense-form")
       .evaluate((element) => element.getBoundingClientRect().width);
-    await dragSide(page, 260, report, `${mode}-recurring-edit-with-expense-pane`, schedulePanel);
+    await resizeSide(page, 260, report, `${mode}-recurring-edit-with-expense-pane`, schedulePanel);
     assert(
       Math.abs(
         (await page
@@ -1506,7 +1538,7 @@ async function checkCategories(page, report) {
   await measureCategories(page, report, "categories-inline-editor-open");
   if (report.profile.width >= 900) {
     const panel = ".ledger-categories .ledger-split > .panel:nth-child(2)";
-    await dragSide(
+    await resizeSide(
       page,
       260,
       report,
@@ -1514,7 +1546,7 @@ async function checkCategories(page, report) {
       panel,
       measureCategories
     );
-    await dragSide(
+    await resizeSide(
       page,
       520,
       report,
@@ -1603,7 +1635,9 @@ try {
       },
     });
     for (const profile of profiles) {
-      const fixture = createDateLayoutFixture({ baseURL, cap: 100 });
+      // Local fonts and route-owned CSS add static requests; keep the complete
+      // multi-screen flow finite without cutting it off before Categories.
+      const fixture = createDateLayoutFixture({ baseURL, cap: 120 });
       const context = await activeBrowser.newContext({
         viewport: { width: profile.width, height: profile.height },
         locale: profile.lang === "zh" ? "zh-CN" : "en-US",
@@ -1611,7 +1645,13 @@ try {
         ...(engine !== "firefox" ? { isMobile: Boolean(profile.narrow) } : {}),
         serviceWorkers: "block",
       });
-      const report = { engine, version: activeBrowser.version(), profile, states: [] };
+      const report = {
+        engine,
+        version: activeBrowser.version(),
+        profile,
+        states: [],
+        resizeInputs: [],
+      };
       const errors = [];
       try {
         await context.route("**/*", (route) => fixture.handle(route));
@@ -1636,7 +1676,7 @@ try {
         assert.deepEqual(errors, [], `${engine}/${profile.name}: browser errors`);
         report.requests = fixture.getRequests();
         results.push(report);
-        process.stdout.write(
+        process.stderr.write(
           `${engine}/${profile.name}: ${report.states.length} layout states passed\n`
         );
       } catch (error) {

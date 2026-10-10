@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { FinancialValue } from "./financial-value.jsx";
 import { useModalFocus } from "../lib/modal-focus.js";
+import { useModalBackdrop } from "../lib/modal-backdrop.js";
 import { categoryDisplayName } from "../lib/category-label.js";
 import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
@@ -67,8 +68,7 @@ function reviewRecords(page, target) {
     ) ||
     new Set(page.items.map((expense) => expense.id)).size !== page.items.length ||
     (!page.items.length && page.nextCursor) ||
-    (page.nextCursor != null &&
-      (typeof page.nextCursor !== "string" || !page.nextCursor))
+    (page.nextCursor != null && (typeof page.nextCursor !== "string" || !page.nextCursor))
   )
     throw new Error("Invalid review selection");
   return page.items;
@@ -138,10 +138,9 @@ function ReviewChecks({ result, expense, records, categories }) {
     categoryDisplayName(
       categories.find((item) => item.id === id),
       T("Removed", "已移除"),
-      T("Category not loaded", "类别尚未加载"),
+      T("Category not loaded", "类别尚未加载")
     );
-  const targetName = (kind) =>
-    kind === "shared" ? T("Shared expense pool") : T("Project");
+  const targetName = (kind) => (kind === "shared" ? T("Shared expense pool") : T("Project"));
   const candidate =
     duplicate.candidate &&
     records.find(
@@ -291,6 +290,7 @@ export function ExpenseReviewDialog({
     editRef.current?.controller.abort();
     onClose();
   };
+  const backdropProps = useModalBackdrop({ open, onClose: close });
   useModalFocus({ open, dialogRef, initialFocusRef: closeRef, backgroundRef, onClose: close });
 
   useEffect(() => {
@@ -337,9 +337,7 @@ export function ExpenseReviewDialog({
     const request = { controller: new AbortController(), release };
     recordsRef.current = request;
     const current = () =>
-      mountedRef.current &&
-      recordsRef.current === request &&
-      !request.controller.signal.aborted;
+      mountedRef.current && recordsRef.current === request && !request.controller.signal.aborted;
     setRecordsState("loading");
     Promise.resolve()
       .then(() => {
@@ -493,12 +491,7 @@ export function ExpenseReviewDialog({
   if (!open) return null;
   const visibleRecords = started ? records.filter((item) => results[item.id]) : records;
   return (
-    <div
-      className="modal-back expense-review-dialog-back"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) close();
-      }}
-    >
+    <div className="modal-back expense-review-dialog-back" {...backdropProps}>
       <div
         ref={dialogRef}
         className="modal expense-review-dialog"

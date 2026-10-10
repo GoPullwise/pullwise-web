@@ -1,5 +1,33 @@
 # Pullwise Web
 
+## Frontend review checklist (2026-10-10)
+
+The user supplies the original and corrected frontend audits and requests one
+revised Web version. Projects now uses natural per-record heights; this
+supersedes the older equal-height requirement for Projects only. Preserve equal
+rows in the other console lists. Its title links have visible link affordances,
+with selectable names and money and separate external product links. Local
+search and the status filter explicitly describe their loaded-page scope;
+pagination stays available for no matches without background page enumeration.
+The repository picker retains authorized selections while narrowing its local
+search and bounds the additional repository list. Keep the shared LedgerSplit
+panel class contract when extracting child components.
+
+Default theme follows the system until an explicit choice, with a pre-paint
+bootstrap and matching CSP hash. Font sizes use rem with a 12px default minimum;
+Geist fonts are self-hosted. Screen styles load with their route, while selectors
+used across routes remain shared. ResizeObserver notifications are coalesced on
+the next frame and canceled on cleanup. Preserve the flat square palette, six
+locales, exact financial values, access fences and mutation guards.
+Run `npm run test:projects-layout` after a completed build in addition to the
+existing date, mobile, Billing and overview checks. New generated browser
+evidence belongs in ignored work directories and CI artifacts.
+
+The user requests Cloudflare preview publication first, then approves GitHub
+main commit/push after reviewing the published revision. Preserve remote main
+updates when preparing that commit. Server and production remain outside this
+release; the preview continues to use the existing Web preview configuration.
+
 ## Spending overview period controls (2026-10-10)
 
 The user requests rebuilding the Overview's period filter layout while retaining
