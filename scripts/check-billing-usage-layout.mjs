@@ -34,6 +34,7 @@ const normalUsage = {
   workspaceId: ownerId,
   projects: { used: 3, limit: 100 },
   expenseRecords: { used: 0, limit: 100000 },
+  jev: { month: "2026-10", currency: "USD", usedMicrousd: 1234567, limitMicrousd: 5000000 },
 };
 const stressUsage = {
   workspaceId: ownerId,
@@ -41,6 +42,7 @@ const stressUsage = {
   // produce a calculated status in this two-value presentation.
   projects: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER - 1, remaining: -1 },
   expenseRecords: { used: Number.MAX_SAFE_INTEGER, limit: Number.MAX_SAFE_INTEGER, remaining: 999 },
+  jev: { month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER, limitMicrousd: 4250001 },
 };
 const forbiddenCopy = [
   "Remaining",
@@ -249,9 +251,9 @@ function overlaps(left, right) {
   );
 }
 
-async function measure(page, profile, lang, theme, usage, name) {
+async function measure(page, profile, lang, theme, usage, name, kind = "ledger") {
   await settle(page);
-  const measured = await page.evaluate(() => {
+  const measured = await page.evaluate((kind) => {
     const rect = (element) => {
       const { left, right, top, bottom, width, height } = element.getBoundingClientRect
         ? element.getBoundingClientRect()
@@ -265,7 +267,10 @@ async function measure(page, profile, lang, theme, usage, name) {
         .filter((box) => box.width > 0)
         .map(rect);
     };
-    const region = document.querySelector('[aria-labelledby="billing-usage-title"]');
+    const region = document.querySelector(kind === "jev"
+      ? '[aria-labelledby="billing-jev-usage-title"]'
+      : '[aria-labelledby="billing-usage-title"]');
+    const refresh = region.querySelector(".billing-usage-heading button");
     return {
       viewport: innerWidth,
       documentWidth: document.documentElement.scrollWidth,
@@ -280,7 +285,7 @@ async function measure(page, profile, lang, theme, usage, name) {
         '[role="meter"], [role="progressbar"], meter, progress, .billing-usage-track'
       ).length,
       headingIcons: region.querySelectorAll(".billing-usage-heading > svg").length,
-      refresh: rect(region.querySelector(".billing-usage-heading button")),
+      refresh: refresh ? rect(refresh) : null,
       rows: Array.from(region.querySelectorAll(".billing-usage-row")).map((row) => ({
         rect: rect(row),
         tag: row.tagName,
@@ -327,8 +332,8 @@ async function measure(page, profile, lang, theme, usage, name) {
         }),
       })),
     };
-  });
-  const context = `${name}/${lang}/${theme}`;
+  }, kind);
+  const context = `${kind}/${name}/${lang}/${theme}`;
   const details = `${context}: ${JSON.stringify(measured)}`;
   assert.equal(measured.theme, theme, details);
   assert.equal(measured.lang.split("-")[0], lang, details);
@@ -337,13 +342,14 @@ async function measure(page, profile, lang, theme, usage, name) {
   assert(measured.documentWidth <= measured.viewport + tolerance, `Document overflow: ${details}`);
   assert.equal(measured.meters, 0, `Retired usage meter is visible: ${details}`);
   assert.equal(measured.headingIcons, 0, `Decorative usage heading icon remains: ${details}`);
-  assert.equal(measured.rows.length, 2, `Missing two usage articles: ${details}`);
+  const keys = kind === "jev" ? ["jevAllowance"] : ["projects", "expenseRecords"];
+  assert.equal(measured.rows.length, keys.length, `Missing usage articles: ${details}`);
   for (const phrase of forbiddenCopy)
     assert(
       !measured.text.includes(phrase),
       `Calculated capacity copy remains (${phrase}): ${details}`
     );
-  for (const [index, key] of ["projects", "expenseRecords"].entries()) {
+  for (const [index, key] of keys.entries()) {
     const row = measured.rows[index];
     assert.equal(row.tag, "ARTICLE", details);
     assert(
@@ -361,14 +367,22 @@ async function measure(page, profile, lang, theme, usage, name) {
     assert.equal(total.className, "billing-usage-total", details);
     assert.equal(used.label, copy("used", lang), details);
     assert.equal(total.label, copy("total", lang), details);
+    const exactUsd = (micros) => {
+      const integer = BigInt(micros);
+      const whole = new Intl.NumberFormat(lang).format(integer / 1000000n);
+      const fraction = String(integer % 1000000n).padStart(6, "0").replace(/0{1,4}$/, "");
+      const separator = new Intl.NumberFormat(lang).formatToParts(0.1)
+        .find((part) => part.type === "decimal").value;
+      return `USD ${whole}${separator}${fraction}`;
+    };
     assert.equal(
       used.value,
-      new Intl.NumberFormat(lang).format(usage[key].used),
+      kind === "jev" ? exactUsd(usage.jev.usedMicrousd) : new Intl.NumberFormat(lang).format(usage[key].used),
       `Inexact used value: ${details}`
     );
     assert.equal(
       total.value,
-      new Intl.NumberFormat(lang).format(usage[key].limit),
+      kind === "jev" ? exactUsd(usage.jev.limitMicrousd) : new Intl.NumberFormat(lang).format(usage[key].limit),
       `Inexact total value: ${details}`
     );
     assert(used.fontSize > total.fontSize, `Used value lacks primary emphasis: ${details}`);
@@ -413,20 +427,23 @@ async function measure(page, profile, lang, theme, usage, name) {
         );
     }
   }
-  assert(
-    !overlaps(measured.rows[0].rect, measured.rows[1].rect),
-    `Usage articles overlap: ${details}`
-  );
-  if (profile.touch)
+  if (kind === "jev") {
+    assert(measured.text.includes(`${copy("jevMonth", lang)}: ${usage.jev.month}`), details);
+    assert(measured.text.includes(copy("jevPolicy", lang)), details);
+  } else assert(
+      !overlaps(measured.rows[0].rect, measured.rows[1].rect),
+      `Usage articles overlap: ${details}`
+    );
+  if (profile.touch && measured.refresh)
     assert(measured.refresh.height >= 44 - tolerance, `Small refresh touch target: ${details}`);
-  if (profile.width === 1024) {
+  if (profile.width === 1024 && kind !== "jev") {
     assert(measured.body.width < 568, `Intermediate set-body is not narrow enough: ${details}`);
     assert(
       measured.rows[1].rect.top >= measured.rows[0].rect.bottom,
       `Narrow container did not stack rows: ${details}`
     );
   }
-  return { name, bodyWidth: measured.body.width, rows: measured.rows.map((row) => row.rect.width) };
+  return { name, kind, bodyWidth: measured.body.width, rows: measured.rows.map((row) => row.rect.width) };
 }
 
 await access(join(root, "dist", "index.html"));
@@ -521,7 +538,8 @@ try {
               page.locator(".topbar-loading").waitFor({ state: "detached" }),
             ]);
             report.states.push(
-              await measure(page, profile, lang, theme, normalUsage, "used-and-total")
+              await measure(page, profile, lang, theme, normalUsage, "used-and-total"),
+              await measure(page, profile, lang, theme, normalUsage, "used-and-total", "jev")
             );
             if (
               saveScreenshots &&
@@ -536,6 +554,10 @@ try {
                   .screenshot({ path });
               else await page.screenshot({ path, fullPage: true });
               report.screenshot = path;
+              const jevPath = join(screenshotDir, `${engine}-zh-dark-${profile.width}-jev.png`);
+              await page.getByRole("region", { name: copy("jevTitle", lang), exact: true })
+                .screenshot({ path: jevPath });
+              report.jevScreenshot = jevPath;
             }
             if (profile.width === 320) {
               fixture.stress();
@@ -545,7 +567,8 @@ try {
                 page.locator(".topbar-loading").waitFor({ state: "detached" }),
               ]);
               report.states.push(
-                await measure(page, profile, lang, theme, stressUsage, "max-safe-integers")
+                await measure(page, profile, lang, theme, stressUsage, "max-safe-integers"),
+                await measure(page, profile, lang, theme, stressUsage, "max-safe-integers", "jev")
               );
             }
             fixture.assertClean(profile.width === 320 ? 2 : 1);

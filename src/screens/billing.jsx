@@ -399,6 +399,59 @@ function usageMetric(usage, key) {
   return metric;
 }
 
+function jevUsageMetric(usage) {
+  if (typeof usage?.workspaceId !== "string" || !usage.workspaceId.trim()) return null;
+  const metric = usage.jev;
+  if (
+    metric?.currency !== "USD" ||
+    typeof metric.month !== "string" || !/^[0-9]{4}-(?:0[1-9]|1[0-2])$/.test(metric.month) ||
+    !Number.isSafeInteger(metric.usedMicrousd) || metric.usedMicrousd < 0 ||
+    !Number.isSafeInteger(metric.limitMicrousd) || metric.limitMicrousd < 0
+  ) return null;
+  return metric;
+}
+
+function jevUsageAmount(microusd, lang) {
+  // Split exact micro-USD integers before formatting; division through Number
+  // could lose the last reserved micro-dollar on large, otherwise safe values.
+  const micros = BigInt(microusd);
+  const whole = new Intl.NumberFormat(lang).format(micros / 1000000n);
+  const fraction = String(micros % 1000000n).padStart(6, "0").replace(/0{1,4}$/, "");
+  const separator = new Intl.NumberFormat(lang).formatToParts(0.1)
+    .find((part) => part.type === "decimal").value;
+  return `USD ${whole}${separator}${fraction}`;
+}
+
+function BillingJevUsage({ usage, lang }) {
+  const metric = jevUsageMetric(usage);
+  return (
+    <section className="panel" aria-labelledby="billing-jev-usage-title">
+      <div className="panel-h">
+        <h2 id="billing-jev-usage-title">{usageText("jevTitle")}</h2>
+      </div>
+      {metric && <p className="muted">{usageText("jevMonth")}: {metric.month}</p>}
+      <div className="billing-usage-grid">
+        <article className="billing-usage-row" aria-labelledby="billing-jev-allowance-title">
+          <h3 id="billing-jev-allowance-title">{usageText("jevAllowance")}</h3>
+          {metric ? (
+            <dl className="billing-usage-values">
+              <div className="billing-usage-used">
+                <dt>{usageText("used")}</dt>
+                <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.usedMicrousd, lang)} /></dd>
+              </div>
+              <div className="billing-usage-total">
+                <dt>{usageText("total")}</dt>
+                <dd><FinancialValue currency="USD" value={jevUsageAmount(metric.limitMicrousd, lang)} /></dd>
+              </div>
+            </dl>
+          ) : <p className="muted">{usageText("unavailable")}</p>}
+        </article>
+      </div>
+      <p className="muted">{usageText("jevPolicy")}</p>
+    </section>
+  );
+}
+
 function BillingUsage({ usage, lang, busy, onRefresh }) {
   const number = (value) => new Intl.NumberFormat(lang).format(value);
   return (
@@ -972,6 +1025,9 @@ export function BillingScreen({ go, navigate = (url) => window.location.assign(u
                     busy={loading || writing}
                     onRefresh={loadBillingPlan}
                   />
+                  {["pro", "max"].includes(account.plan) && (
+                    <BillingJevUsage usage={plan?.ledgerUsage} lang={lang} />
+                  )}
 
                   {(paymentPending ||
                     new URLSearchParams(window.location.search).get("billing") === "success") && (

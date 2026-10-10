@@ -97,12 +97,14 @@ describe("product Docs", () => {
   it("explains explicit bounded checks and manual editing of saved expenses", () => {
     render(<DocsScreen go={vi.fn()} auth={{ authenticated: true }} />);
     expect(screen.getByRole("heading", { name: "Review saved expenses" })).toHaveAttribute("id", "expense-review");
-    const review = screen.getByText(/open Expense review and select up to 10/i);
-    expect(review).toHaveTextContent("currently loaded filtered list");
+    const review = screen.getByText(/open Expense review to load up to 100/i);
+    expect(review).toHaveTextContent("matching the current filters, separately from the ten-record expense page");
     expect(review).toHaveTextContent("Opening the dialog does not run Jev");
     expect(review).toHaveTextContent("only Start review sends requests, one record at a time");
     expect(review).toHaveTextContent("Stop ends the remaining queue");
     expect(review).toHaveTextContent("requests already started may still consume allowance");
+    expect(review).toHaveTextContent("monthly allowance");
+    expect(review).not.toHaveTextContent("daily");
     expect(review).toHaveTextContent("predefined choices and any returned confidence scores");
     expect(review).toHaveTextContent("the interface uses fixed wording");
     expect(review).toHaveTextContent("Possible duplicates are checked locally");

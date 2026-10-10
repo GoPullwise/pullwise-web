@@ -46,7 +46,7 @@ function fixture({ mode = "shared", projectId = "prj_current", purpose = "Curren
     project: vi.fn().mockResolvedValue(project),
     expenses: vi.fn().mockResolvedValue({ items: [expense], nextCursor: null }),
     recurringRules: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
-    reportSummary: vi.fn(),
+    reportSummary: vi.fn().mockResolvedValue({ groups: [] }),
     reportTimeseries: vi.fn().mockResolvedValue({ groups: [] }),
     reportCategories: vi.fn().mockResolvedValue({ groups: [] }),
     repositories: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
@@ -106,7 +106,7 @@ describe("Shared expense and project view toolbar", () => {
   });
 
   it.each(["shared", "project"])(
-    "shows %s records first and starts Reports with charts without requesting a summary",
+    "shows %s records first and adds a compact shared-pool total beside Reports",
     async (mode) => {
       const { api, expense } = fixture({ mode });
       const view = render(
@@ -125,7 +125,7 @@ describe("Shared expense and project view toolbar", () => {
       expect(
         screen.queryByRole("heading", { name: "Totals by currency", hidden: true })
       ).not.toBeInTheDocument();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 1 : 0);
       expect(view.container.querySelectorAll(".ledger-view-toolbar")).toHaveLength(1);
       expect(filterToggle()).toHaveAttribute("type", "button");
       expect(filterToggle()).toHaveAttribute("aria-expanded", "false");
@@ -138,7 +138,8 @@ describe("Shared expense and project view toolbar", () => {
       fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
       const reports = screen.getByRole("tabpanel", { name: "Reports" });
       const charts = reports.querySelector(".ledger-reports");
-      expect(reports.firstElementChild).toBe(charts);
+      if (mode === "project") expect(reports.firstElementChild).toBe(charts);
+      else expect(within(reports).getByRole("heading", { name: "Shared pool total" })).toBeVisible();
       expect(within(charts).getByRole("heading", { name: "Expenses over time" })).toBeVisible();
       expect(within(charts).getByRole("heading", { name: "Expenses by category" })).toBeVisible();
       expect(
@@ -153,7 +154,7 @@ describe("Shared expense and project view toolbar", () => {
       fireEvent.click(screen.getByRole("button", { name: "Reload" }));
       await waitFor(() => expect(api.expenses).toHaveBeenCalledTimes(2));
       await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 2 : 0);
     }
   );
 
@@ -197,7 +198,8 @@ describe("Shared expense and project view toolbar", () => {
       await waitFor(() => expect(screen.getByRole("button", { name: "Reload" })).toBeEnabled());
       for (const report of [api.reportTimeseries, api.reportCategories])
         expect(report).toHaveBeenLastCalledWith(expected, expect.anything());
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      if (mode === "shared") expect(api.reportSummary).toHaveBeenLastCalledWith(expected, expect.anything());
+      else expect(api.reportSummary).not.toHaveBeenCalled();
       expect(before).toHaveAttribute("min", "2026-09-01");
       expect(within(filterToggle()).getByText("3")).toHaveClass("ledger-filter-count");
       for (const [key, value] of Object.entries({ ...expected, workspaceId: "wsp_current" }))
@@ -229,7 +231,8 @@ describe("Shared expense and project view toolbar", () => {
       expect(exportQuery().get("from")).toBeNull();
       expect(exportQuery().get("to")).toBeNull();
       expect(exportQuery().get("categoryId")).toBeNull();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      if (mode === "shared") expect(api.reportSummary).toHaveBeenLastCalledWith({ target: "shared" }, expect.anything());
+      else expect(api.reportSummary).not.toHaveBeenCalled();
     }
   );
 
@@ -291,7 +294,7 @@ describe("Shared expense and project view toolbar", () => {
       expect(within(unavailable).queryByText("No expenses in this range.")).not.toBeInTheDocument();
       expect(within(available).getByText("No expenses in this range.")).toBeVisible();
       expect(within(available).queryByRole("status")).not.toBeInTheDocument();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 1 : 0);
       fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
       expect(screen.getByText(expense.purpose)).toBeVisible();
     }
@@ -311,7 +314,7 @@ describe("Shared expense and project view toolbar", () => {
         within(reports).queryByText(/Your spending totals will appear/)
       ).not.toBeInTheDocument();
       expect(reports.querySelector(".financial-value, .ledger-report-totals")).toBeNull();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 1 : 0);
     }
   );
 
@@ -406,7 +409,7 @@ describe("Shared expense and project view toolbar", () => {
       expect(screen.queryByRole("link", { name: "Export CSV" })).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /^Filters/ })).not.toBeInTheDocument();
       expect(screen.queryByRole("heading", { name: "Totals by currency" })).not.toBeInTheDocument();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 2 : 0);
     }
   );
 });

@@ -203,22 +203,25 @@ async function measure(page, report, name) {
     );
     assert.equal(
       measured.nav.controls.length,
-      4,
-      `Phone navigation must expose 4 controls: ${details}`
+      5,
+      `Phone navigation must expose 5 controls: ${details}`
     );
     assert.deepEqual(
       measured.nav.controls.filter((item) => item.href).map((item) => item.href),
-      ["/projects", "/shared", "/categories"],
+      ["/overview", "/projects", "/shared", "/categories"],
       details
     );
     for (const control of measured.nav.controls)
       assert(control.label.trim(), `Unnamed bottom navigation control: ${details}`);
+    const firstTop = measured.nav.controls[0].rect.top;
+    for (const control of measured.nav.controls)
+      assert(Math.abs(control.rect.top - firstTop) <= tolerance, `Bottom navigation wrapped to a second row: ${details}`);
     assert(
       Math.abs(measured.measuredNavHeight - measured.nav.rect.height) <= tolerance,
       `Measured bottom navigation height does not reserve its full border box: ${details}`
     );
     const current = measured.nav.controls.filter((control) => control.current === "page");
-    if (["/projects", "/shared", "/categories"].includes(measured.pathname)) {
+    if (["/overview", "/projects", "/shared", "/categories"].includes(measured.pathname)) {
       assert.equal(
         current.length,
         1,
@@ -354,7 +357,7 @@ async function ready(page) {
 
 async function navigate(page, report, path, key) {
   if (page.viewportSize().width <= 760) {
-    if (["/projects", "/shared", "/categories"].includes(path))
+    if (["/overview", "/projects", "/shared", "/categories"].includes(path))
       await activate(page.locator(`.mobile-tabbar a[href="${path}"]`), report);
     else {
       const more = page.locator(".mobile-tabbar select");
@@ -763,6 +766,7 @@ try {
         await capture(page, report, "projects");
         await checkPreferences(page, report);
         for (const [path, key] of [
+          ["/overview", "ledgerOverview"],
           ["/shared", "ledgerShared"],
           ["/categories", "ledgerCategories"],
           ["/api-keys", "apiKeys"],
@@ -771,6 +775,19 @@ try {
           ["/settings", "settings"],
         ]) {
           await navigate(page, report, path, key);
+          if (path === "/overview") {
+            await page.locator('input[type="month"]').fill("2026-09");
+            await page.locator(".ledger-summary-primary .financial-value").waitFor();
+            assert.deepEqual(
+              await page.locator(".ledger-summary .financial-value").allTextContents(),
+              ["USD 24.00", "USD 12.00", "USD 12.00"],
+              "Overview must include projects and shared expenses exactly once"
+            );
+            await page.locator('select[id$="-period"]').selectOption("custom");
+            await page.locator('input[id$="-from"]').fill("2026-09-01");
+            await page.locator('input[id$="-end"]').fill("2026-09-30");
+            await page.locator(".ledger-summary-primary .financial-value").waitFor();
+          }
           if (path === "/api-keys") await page.locator(".api-scope-row").first().waitFor();
           if (path === "/shared") {
             await page.locator('.page-h button[aria-controls="expense-form"]').click();

@@ -1051,7 +1051,7 @@ describe("ledger screens", () => {
       expect(
         reports.querySelector(".ledger-stat, .ledger-stats, .ledger-report-totals")
       ).not.toBeInTheDocument();
-      expect(api.reportSummary).not.toHaveBeenCalled();
+      expect(api.reportSummary).toHaveBeenCalledTimes(mode === "shared" ? 1 : 0);
     }
   );
   it.each([undefined, Object.assign(new Error("Renewal unavailable"), {
@@ -2225,7 +2225,7 @@ describe("ledger screens", () => {
     expect(
       screen.queryByRole("heading", { name: "Totals by currency", hidden: true })
     ).not.toBeInTheDocument();
-    expect(api.reportSummary).not.toHaveBeenCalled();
+    expect(api.reportSummary).toHaveBeenCalledWith({ target: "shared" }, expect.anything());
   });
 
   it("scales each currency independently in trend and category charts", async () => {

@@ -28,6 +28,7 @@ const ApiDocsScreen = lazyScreen(() => import("./screens/api-docs.jsx"), "ApiDoc
 const BillingScreen = lazyScreen(() => import("./screens/billing.jsx"), "BillingScreen");
 const PricingScreen = lazyScreen(() => import("./screens/billing.jsx"), "PricingScreen");
 const LedgerScreen = lazyScreen(() => import("./screens/ledger.jsx"), "LedgerScreen");
+const LedgerOverviewScreen = lazyScreen(() => import("./screens/ledger-overview.jsx"), "LedgerOverviewScreen");
 const MembersScreen = lazyScreen(() => import("./screens/members.jsx"), "MembersScreen");
 const DocsScreen = lazyScreen(() => import("./screens/docs.jsx"), "DocsScreen");
 const SettingsScreen = lazyScreen(() => import("./screens/settings.jsx"), "SettingsScreen");
@@ -174,6 +175,7 @@ export function App() {
   const [accessRefreshing, setAccessRefreshing] = useState(false);
   const scopedScreen = [
     "ledgerProjects",
+    "ledgerOverview",
     "ledgerCategories",
     "ledgerShared",
     "ledgerProject",
@@ -1027,6 +1029,9 @@ export function App() {
         break;
       case "oauth":
         body = <OAuthScreen go={go} auth={auth} />;
+        break;
+      case "ledgerOverview":
+        body = <LedgerOverviewScreen go={go} api={api} workspace={workspace} onAccessChanged={onAccessChanged} onReloadAccess={onReloadAccess} accessRefreshing={accessRefreshing} />;
         break;
       case "ledgerProjects":
         body = (

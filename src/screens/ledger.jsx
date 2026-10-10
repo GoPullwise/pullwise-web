@@ -15,6 +15,8 @@ import {
   projectUrlHref,
 } from "../lib/project-links.js";
 import { ExpenseCharts } from "../components/expense-charts.jsx";
+import { LedgerSummary } from "../components/ledger-summary.jsx";
+import { formatLedgerTotal, minorAmount } from "../lib/ledger-summary.js";
 import { ActivityLog } from "../components/activity-log.jsx";
 import { ConfirmDialog } from "../components/confirm-dialog.jsx";
 import { ExpenseReviewDialog } from "../components/expense-review-dialog.jsx";
@@ -183,27 +185,7 @@ function projectRemovalErrorText(error) {
   return errorText(error);
 }
 
-function minorAmount(value) {
-  if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) return BigInt(value);
-  if (typeof value === "string" && /^(0|[1-9][0-9]*)$/.test(value)) return BigInt(value);
-  return null;
-}
-
-function formatTotal({ currency, amountMinor }) {
-  const minor = minorAmount(amountMinor);
-  if (minor === null || typeof currency !== "string") return T("Unavailable");
-  let exponent = 2;
-  try {
-    exponent = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions()
-      .maximumFractionDigits;
-  } catch {
-    /* Keep a readable fallback for an older browser currency table. */
-  }
-  const scale = 10n ** BigInt(exponent);
-  const whole = (minor / scale).toLocaleString("en");
-  const fraction = exponent ? `.${(minor % scale).toString().padStart(exponent, "0")}` : "";
-  return `${currency} ${whole}${fraction}`;
-}
+const formatTotal = (total) => formatLedgerTotal(total, T("Unavailable"));
 
 function LedgerTotal({ total }) {
   return (
@@ -1366,6 +1348,7 @@ function ScopedLedgerScreen({
         projects,
         timeseries,
         categoryReport,
+        summary,
       ] = await Promise.all([
         api.categories({ ...options, params: { includeRemoved: true } }),
         readExpenses(),
@@ -1375,6 +1358,9 @@ function ScopedLedgerScreen({
         api.projects({}, options),
         optionalReport(api.reportTimeseries(detailQuery, options)),
         optionalReport(api.reportCategories(detailQuery, options)),
+        mode === "shared"
+          ? optionalReport(Promise.resolve().then(() => api.reportSummary(detailQuery, options)))
+          : Promise.resolve({}),
       ]);
       return {
         categories,
@@ -1387,6 +1373,8 @@ function ScopedLedgerScreen({
         timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
         categoryReport: categoryReport.value,
         categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
+        summary: summary.value,
+        summaryError: summary.failure ? errorText(summary.failure) : "",
       };
     };
     load()
@@ -1831,11 +1819,14 @@ function ScopedLedgerScreen({
       }
     );
     try {
-      const [expenses, project, timeseries, categoryReport] = await Promise.all([
+      const [expenses, project, timeseries, categoryReport, summary] = await Promise.all([
         api.expenses({ ...detailQuery, limit: EXPENSE_PAGE_SIZE }, options).then(validateExpensePage),
         mode === "project" ? api.project(projectId, options) : Promise.resolve(null),
         optionalReport(api.reportTimeseries(detailQuery, options)),
         optionalReport(api.reportCategories(detailQuery, options)),
+        mode === "shared"
+          ? optionalReport(Promise.resolve().then(() => api.reportSummary(detailQuery, options)))
+          : Promise.resolve({}),
       ]);
       if (signal.aborted || request !== requestId.current || !mounted.current) return;
       resetExpensePage();
@@ -1847,6 +1838,8 @@ function ScopedLedgerScreen({
         timeseriesError: timeseries.failure ? errorText(timeseries.failure) : "",
         categoryReport: categoryReport.value,
         categoryReportError: categoryReport.failure ? errorText(categoryReport.failure) : "",
+        summary: summary.value,
+        summaryError: summary.failure ? errorText(summary.failure) : "",
       }));
     } catch (failure) {
       if (signal.aborted || request !== requestId.current || !mounted.current) return;
@@ -2060,7 +2053,7 @@ function ScopedLedgerScreen({
     inspectionOpenerRef.current = event.currentTarget;
     if (!inspectionRef.current) {
       const snapshot = {
-        records: validRecords,
+        query: detailQuery,
         categories: data.categories,
         target,
         label: title,
@@ -3406,6 +3399,12 @@ function ScopedLedgerScreen({
                 tabIndex={0}
                 hidden={view !== "reports"}
               >
+                {mode === "shared" && (
+                  <>
+                    <LedgerSummary report={data.summary} error={data.summaryError} sharedOnly />
+                    <p className="ledger-help">{T("Totals follow the current date and category filters.")}</p>
+                  </>
+                )}
                 <div className="ledger-reports">
                   <ReportGroups
                     title={T("Expenses over time")}
@@ -3882,7 +3881,7 @@ function ScopedLedgerScreen({
         createPortal(
           <ExpenseReviewDialog
             open={inspectionOpen}
-            records={inspection.records}
+            query={inspection.query}
             categories={inspection.categories}
             target={inspection.target}
             scopeLabel={inspection.label}

@@ -56,11 +56,12 @@ function loadCatalog(code) {
     pending = Promise.all([LOCALE_LOADERS[code](), import("./locales/dynamic.js"),
       import("./locales/ledger.js"), import("./locales/ledger-longform.js"),
       import("./locales/ledger-ui.js"), import("./locales/ledger-scopes.js"),
-      import("./locales/ledger-screen.js")])
-      .then(([phrases, dynamic, ledger, longform, ui, scopes, screen]) => ({
+      import("./locales/ledger-screen.js"), import("./locales/ledger-summary.js")])
+      .then(([phrases, dynamic, ledger, longform, ui, scopes, screen, summary]) => ({
         phrases: { ...phrases.PHRASES, ...ledger.LEDGER_PHRASES[code],
           ...longform.LEDGER_LONG_PHRASES[code], ...ui.LEDGER_UI_PHRASES[code],
-          ...scopes.LEDGER_SCOPE_PHRASES[code], ...screen.LEDGER_SCREEN_PHRASES[code] },
+          ...scopes.LEDGER_SCOPE_PHRASES[code], ...screen.LEDGER_SCREEN_PHRASES[code],
+          ...summary.LEDGER_SUMMARY_PHRASES[code] },
         dynamicRules: dynamic.DYNAMIC_PHRASE_TRANSLATIONS,
       }))
       .catch(() => ({ phrases: null, dynamicRules: null }));

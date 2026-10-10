@@ -3,6 +3,7 @@ const SCREEN_TO_PATH = {
   login: "/login",
   oauth: "/oauth",
   ledgerProjects: "/projects",
+  ledgerOverview: "/overview",
   ledgerCategories: "/categories",
   ledgerShared: "/shared",
   ledgerMembers: "/members",

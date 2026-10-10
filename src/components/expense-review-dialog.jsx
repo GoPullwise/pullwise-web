@@ -6,7 +6,7 @@ import { T, useLang } from "../i18n.jsx";
 import { I } from "../icons.jsx";
 import "./expense-review-dialog.css";
 
-const LIMIT = 10;
+const LIMIT = 100;
 const CHECK_STATUSES = new Set(["checked", "issue", "uncertain", "unavailable"]);
 
 function validScore(value) {
@@ -53,6 +53,27 @@ function sameTarget(left, right) {
   );
 }
 
+function reviewRecords(page, target) {
+  if (
+    !Array.isArray(page?.items) ||
+    page.items.length > LIMIT ||
+    page.items.some(
+      (expense) =>
+        typeof expense?.id !== "string" ||
+        !expense.id ||
+        !Number.isSafeInteger(expense.revision) ||
+        expense.revision < 1 ||
+        !sameTarget(expense.target, target)
+    ) ||
+    new Set(page.items.map((expense) => expense.id)).size !== page.items.length ||
+    (!page.items.length && page.nextCursor) ||
+    (page.nextCursor != null &&
+      (typeof page.nextCursor !== "string" || !page.nextCursor))
+  )
+    throw new Error("Invalid review selection");
+  return page.items;
+}
+
 function reviewError(failure) {
   const code = failure?.code || failure?.payload?.error?.code;
   if (code === "JEV_BUDGET_LIMIT")
@@ -60,8 +81,6 @@ function reviewError(failure) {
       "Monthly Jev budget reached. Continue manually.",
       "本月 Jev 预算已用完，请继续手工记账。"
     );
-  if (code === "SUGGESTION_LIMIT")
-    return T("Daily Jev allowance reached. Try another day.", "今日 Jev 额度已用完，请改天再试。");
   if (code === "JEV_PLAN_REQUIRED" || code === "MAX_REQUIRED")
     return T(
       "Jev assistance requires the ledger Owner's Pro or Max plan.",
@@ -208,7 +227,7 @@ function ReviewChecks({ result, expense, records, categories }) {
 
 export function ExpenseReviewDialog({
   open,
-  records,
+  query,
   categories,
   target,
   scopeLabel,
@@ -228,11 +247,15 @@ export function ExpenseReviewDialog({
   const progressRef = useRef(null);
   const mountedRef = useRef(false);
   const profileRef = useRef(null);
+  const recordsRef = useRef(null);
+  const recordsLoadedRef = useRef(false);
   const runRef = useRef(null);
   const editRef = useRef(null);
   const accessFailureRef = useRef(onAccessFailure);
   accessFailureRef.current = onAccessFailure;
-  const [selected, setSelected] = useState(() => records.slice(0, LIMIT).map((item) => item.id));
+  const [records, setRecords] = useState([]);
+  const [recordsState, setRecordsState] = useState("loading");
+  const [selected, setSelected] = useState([]);
   const [profile, setProfile] = useState(null);
   const [profileState, setProfileState] = useState("loading");
   const [results, setResults] = useState({});
@@ -264,6 +287,7 @@ export function ExpenseReviewDialog({
   };
   const close = () => {
     stop();
+    recordsRef.current?.controller.abort();
     editRef.current?.controller.abort();
     onClose();
   };
@@ -274,6 +298,7 @@ export function ExpenseReviewDialog({
     return () => {
       mountedRef.current = false;
       profileRef.current?.abort();
+      recordsRef.current?.controller.abort();
       runRef.current?.controller.abort();
       editRef.current?.controller.abort();
     };
@@ -302,11 +327,55 @@ export function ExpenseReviewDialog({
       });
     return () => controller.abort();
   }, [open, api]);
+  useEffect(() => {
+    if (!open || recordsLoadedRef.current || recordsRef.current) return undefined;
+    const release = beginEditRead();
+    if (!release) {
+      setRecordsState("failed");
+      return undefined;
+    }
+    const request = { controller: new AbortController(), release };
+    recordsRef.current = request;
+    const current = () =>
+      mountedRef.current &&
+      recordsRef.current === request &&
+      !request.controller.signal.aborted;
+    setRecordsState("loading");
+    Promise.resolve()
+      .then(() => {
+        if (!current()) return undefined;
+        return api.expenses({ ...query, limit: LIMIT }, { signal: request.controller.signal });
+      })
+      .then((page) => {
+        if (!current()) return;
+        const expenses = reviewRecords(page, target);
+        recordsLoadedRef.current = true;
+        setRecords(expenses);
+        setSelected(expenses.map((expense) => expense.id));
+        setRecordsState("loaded");
+      })
+      .catch((failure) => {
+        if (!current()) return;
+        setRecords([]);
+        setSelected([]);
+        if ([401, 403].includes(failure?.status)) {
+          setResults({});
+          accessFailureRef.current(failure);
+        } else setRecordsState("failed");
+      })
+      .finally(() => {
+        if (recordsRef.current === request) recordsRef.current = null;
+        request.release();
+      });
+    return () => request.controller.abort();
+  }, [open, api, query, target, beginEditRead]);
   const start = async () => {
     if (
       !open ||
       runRef.current ||
       editRef.current ||
+      recordsRef.current ||
+      recordsState !== "loaded" ||
       blocked ||
       started ||
       !eligible ||
@@ -456,21 +525,21 @@ export function ExpenseReviewDialog({
           <div ref={progressRef} className="expense-review-description" tabIndex={0}>
             <p id={`${dialogId}-description`}>
               {T(
-                "Review up to 10 currently loaded expenses. Jev only selects choices and scores; it does not change records.",
-                "最多巡检 10 条当前已加载的支出。Jev 只选择选项和评分，不会修改账目。"
+                "Select up to 100 expenses matching the current filters. Jev only selects choices and scores; it does not change records.",
+                "最多选择 100 条符合当前筛选条件的支出进行巡检。Jev 只选择选项和评分，不会修改账目。"
               )}
             </p>
             <p>{scopeLabel}</p>
             <p>
               {T(
-                "Current filters apply. Unloaded history is not included.",
-                "仅检查当前筛选下已加载的账目，不包含尚未加载的历史记录。"
+                "The first 100 matching expenses are loaded for review. Other history is not included.",
+                "巡检单独读取符合当前筛选条件的前 100 条支出，不包含其他历史记录。"
               )}
             </p>
             <p>
               {T(
-                "Only Start review sends inspection requests. Monthly and daily Jev limits apply; stopping cannot refund an already-started check.",
-                "只有点击「开始巡检」才会发送巡检请求。巡检受 Jev 月度及每日额度限制，停止不能退还已开始检查的消耗。"
+                "Only Start review sends inspection requests. The monthly Jev allowance applies; stopping cannot refund an already-started check.",
+                "只有点击「开始巡检」才会发送巡检请求。巡检使用 Jev 月度额度，停止不能退还已开始检查的消耗。"
               )}
             </p>
             <p>
@@ -488,6 +557,20 @@ export function ExpenseReviewDialog({
           </div>
           {profileState === "loading" && (
             <p role="status">{T("Checking Jev availability…", "正在检查 Jev 是否可用…")}</p>
+          )}
+          {recordsState === "loading" && (
+            <p role="status">{T("Loading expenses for review…", "正在读取待巡检支出…")}</p>
+          )}
+          {recordsState === "failed" && (
+            <p role="alert">
+              {T(
+                "Expenses could not be loaded for review. Close and reopen to try again.",
+                "无法读取待巡检支出，请关闭并重新打开后重试。"
+              )}
+            </p>
+          )}
+          {recordsState === "loaded" && !records.length && (
+            <p>{T("No expenses match the current filters.", "当前筛选下没有支出。")}</p>
           )}
           {profileState === "failed" && (
             <p role="alert">
@@ -517,7 +600,7 @@ export function ExpenseReviewDialog({
           )}
           {!started && (
             <p role="status">
-              {T("Selected: {count} / 10", "已选择：{count} / 10").replace(
+              {T("Selected: {count} / 100", "已选择：{count} / 100").replace(
                 "{count}",
                 String(selected.length)
               )}
@@ -653,6 +736,7 @@ export function ExpenseReviewDialog({
               running ||
               blocked ||
               !selected.length ||
+              recordsState !== "loaded" ||
               !eligible ||
               profileState !== "loaded"
             }

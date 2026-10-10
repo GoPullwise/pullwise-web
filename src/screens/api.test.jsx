@@ -192,7 +192,7 @@ describe("API screens", () => {
     const request = screen.getByText(/checks one saved expense with an empty JSON body/i);
     expect(request).toHaveTextContent("expenses:write");
     expect(request).toHaveTextContent("Owner's effective Pro or Max plan");
-    expect(request).toHaveTextContent("20-attempt UTC daily cap");
+    expect(request).toHaveTextContent("monthly Jev allowance used by expense saves, without a daily attempt cap");
     expect(request).toHaveTextContent("Reviews never change expenses or their revision");
     expect(request).toHaveTextContent("are not retried automatically");
     expect(request).toHaveTextContent("review does not use Idempotency-Key replay");
@@ -203,7 +203,8 @@ describe("API screens", () => {
     expect(response).toHaveTextContent(
       "fixed codes: disabled, provider_unavailable, no_categories or invalid_context"
     );
-    expect(response).toHaveTextContent("local rules on up to 30 other expenses");
+    expect(response).toHaveTextContent("same authorized target, occurredOn date, currency and exact amount");
+    expect(response).toHaveTextContent("Purpose does not need to match");
     expect(response).toHaveTextContent("candidate {id, revision}, without expense details");
     expect(response).toHaveTextContent(
       "Local duplicate checks can remain available when the model is unavailable"

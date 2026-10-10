@@ -678,6 +678,38 @@
   align-items: start;
   container: ledger-reports / inline-size;
 }
+.ledger-summary-currencies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 24px 48px;
+}
+.ledger-summary-currency {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+}
+.ledger-summary-currency > div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.ledger-summary-currency dt {
+  color: var(--text-3);
+}
+.ledger-summary-currency dd {
+  min-width: 0;
+  margin: 0;
+}
+.ledger-summary-currency .financial-value-number {
+  font-size: var(--fs-value-secondary);
+}
+.ledger-summary-primary .financial-value-number {
+  font-size: var(--fs-value-primary);
+}
+.ledger-summary-filters {
+  align-items: end;
+}
 /* Two 300px report columns and their 48px gap share one terminal section. */
 @container ledger-reports (min-width: 648px) {
   .ledger-screen .ledger-reports > .panel {

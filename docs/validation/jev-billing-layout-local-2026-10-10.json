@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-10",
+  "scope": "Local Billing capacity and paid Jev allowance display; exact Used and Total allowance values.",
+  "result": "Chromium complete and WebKit desktop passed; WebKit touch and Firefox launch stopped by host limitations.",
+  "sourceRevision": "d7571755de8688a58ee510a1f1b75a01961b6580",
+  "sourceSha256": {
+    "src/screens/billing.jsx": "5ab9a20743a18d1206b43baad4b2a11b2b08451d855480845bcc2f936c2d1a9e",
+    "src/locales/billing-usage.js": "93ed3500a07c41f62d924aec4155af2f29d67114d440e6008560a65c9649b541",
+    "src/components/financial-value.jsx": "86ef72bb701c8c7eb9f798ace4a2c202712cac79e50c315e2f9a6d50c5f48275",
+    "styles/screens.css": "73179f053d3e39f86befa0d38eca91b0bd23cd2f18123c974eee906c48e7b4ad",
+    "scripts/check-billing-usage-layout.mjs": "9646cf6169f652968f3d2e6d0633c537d12ee78cc82ad854506902cdbbf483c4"
+  },
+  "builtArtifactSha256": {
+    "dist/index.html": "e02d8ce67f1201cec4dd56bdb9c5b6b3464d51eb0b64908f16cc90b61d29efc4",
+    "dist/assets/billing-Bq0vRfIr.js": "ee4f1c1db0d9dadb7b8ef345d7f3a93876559bd73440bc437a8d3a6ff3774b68",
+    "dist/assets/index-BkKGSkXm.css": "866cfee37c12841d72f2b5546657dfbf978a406456d4a9482bc8ae46f3d22702"
+  },
+  "checks": {
+    "billingUnitTestsPassed": 110,
+    "billingServerTargetedTestsPassed": 40,
+    "targetedEslintPassed": true,
+    "chromium": {
+      "status": "passed",
+      "version": "151.0.7922.173",
+      "contexts": 24,
+      "sectionStates": 72,
+      "viewportWidths": [
+        1906,
+        1024,
+        390,
+        320
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "locales": [
+        "en",
+        "zh",
+        "ja",
+        "ko",
+        "fr",
+        "es"
+      ],
+      "localeCoverage": "en/zh at every width; all six locales at 320px.",
+      "touchEvidence": "Both mobile profiles asserted pointer:coarse and navigator.maxTouchPoints > 0.",
+      "billingPlanReadsPerContext": "One initial read; one explicit manual refresh only for the 320px stress state.",
+      "largestApiReadCountInAContext": 7,
+      "selectedOtherLedgerCasePassed": true
+    },
+    "webkit": {
+      "status": "desktop_passed_touch_stopped",
+      "version": "26.0",
+      "passedContexts": 8,
+      "passedSectionStates": 16,
+      "passedViewportWidths": [
+        1906,
+        1024
+      ],
+      "passedLocales": [
+        "en",
+        "zh"
+      ],
+      "passedThemes": [
+        "light",
+        "dark"
+      ],
+      "touchStop": {
+        "viewportWidth": 390,
+        "locale": "en",
+        "theme": "light",
+        "coarsePointer": true,
+        "maxTouchPoints": 0,
+        "reason": "The restored WebKit host did not establish valid touch emulation; the required assertion stopped the run."
+      },
+      "hostRecovery": "Missing dynamic libraries restored in scratch; unchanged browser binary launched and rendered. No touch assertion was bypassed."
+    },
+    "firefox": {
+      "status": "host_launch_stopped",
+      "build": "1497",
+      "contexts": 0,
+      "sectionStates": 0,
+      "launchTimeoutMs": 180000,
+      "diagnostics": [
+        "glxtest: libpci missing",
+        "Unable to open a connection to the X server",
+        "No GPUs detected via PCI",
+        "Sandbox: writing /proc/self/uid_map: EROFS",
+        "RenderCompositorSWGL failed mapping default framebuffer, no dt"
+      ],
+      "followup": "An independent smoke after scratch dependency restoration confirmed the same host launch limitation. No repeated full acceptance run or sandbox protection bypass."
+    }
+  },
+  "validatedBehavior": [
+    "Exact project and expense counts, including zero and JavaScript-safe-integer stress values.",
+    "Exact USD Jev allowance values retain up to six fractional digits and remain selectable.",
+    "Used and Total allowance have accessible labels and responsive emphasis without clipping, overlap, ellipsis or document overflow.",
+    "The billing read remains personal-ledger scoped even when another ledger is selected.",
+    "No polling, calculated remaining amount, progress meter or extra Jev network request.",
+    "The Jev copy identifies the UTC month, monthly reset without rollover, annual-subscription policy and conservative model reservation rather than actual invoice."
+  ],
+  "limitations": {
+    "syntheticLocalGetFixturesOnly": true,
+    "physicalDevices": false,
+    "realProviderCalls": 0,
+    "remoteBusinessRequests": 0,
+    "databaseWrites": 0,
+    "webkitMobileAcceptance": false,
+    "firefoxAcceptance": false
+  }
+}

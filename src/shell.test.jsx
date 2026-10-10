@@ -340,6 +340,7 @@ describe("Sidebar navigation", () => {
     render(<Sidebar section="ledgerProjects" go={go} />);
 
     const projects = screen.getByRole("link", { name: /^projects$/i });
+    const overview = screen.getByRole("link", { name: /^spending overview$/i });
     const shared = screen.getByRole("link", { name: /^shared pool$/i });
     const apiKeys = screen.getByRole("link", { name: /^api keys$/i });
     const billing = screen.getByRole("link", { name: /^billing$/i });
@@ -349,6 +350,7 @@ describe("Sidebar navigation", () => {
     expect(screen.queryByRole("link", { name: /^issues$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^scan history$/i })).not.toBeInTheDocument();
     expect(projects).toHaveAttribute("href", "/projects");
+    expect(overview).toHaveAttribute("href", "/overview");
     expect(shared).toHaveAttribute("href", "/shared");
     expect(apiKeys).toHaveAttribute("href", "/api-keys");
     expect(billing).toHaveAttribute("href", "/billing");

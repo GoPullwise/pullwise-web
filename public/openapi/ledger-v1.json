@@ -2782,7 +2782,7 @@
       "patch": {
         "operationId": "updateExpense",
         "x-pullwise-scope": "expenses:write",
-        "description": "Send the complete editable expense input, including target, occurredOn,\namount, currency and purpose. This endpoint replaces those fields; it\ndoes not merge a partial body. Omitted note, quantity and unit become null.\nRequires the current If-Match revision before inference. Moving an\nexpense checks write authority on both old and new targets. When the\nledger owner's Pro or Max plan, activation gates and usage budget allow it,\ncategoryId may be omitted to select a confident existing active category.\nThe selected category must remain active at the atomic update, including\nwhen inference chooses the previous category. Explicit categories,\ntargets, money and dates are preserved; explicitly retaining the previous\narchived category is permitted. Unavailable or uncertain automatic\nclassification returns 422 CATEGORY_REQUIRED without updating the expense.\nAssistance uses the same daily and monthly budget as expense creation;\nadvisory target suggestions never move the expense.\n",
+        "description": "Send the complete editable expense input, including target, occurredOn,\namount, currency and purpose. This endpoint replaces those fields; it\ndoes not merge a partial body. Omitted note, quantity and unit become null.\nRequires the current If-Match revision before inference. Moving an\nexpense checks write authority on both old and new targets. When the\nledger owner's Pro or Max plan, activation gates and usage budget allow it,\ncategoryId may be omitted to select a confident existing active category.\nThe selected category must remain active at the atomic update, including\nwhen inference chooses the previous category. Explicit categories,\ntargets, money and dates are preserved; explicitly retaining the previous\narchived category is permitted. Unavailable or uncertain automatic\nclassification returns 422 CATEGORY_REQUIRED without updating the expense.\nAssistance uses the same monthly Jev budget as expense creation, without a daily attempt cap;\nadvisory target suggestions never move the expense.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -2863,7 +2863,7 @@
       "post": {
         "operationId": "reviewExpense",
         "x-pullwise-scope": "expenses:write",
-        "description": "Explicit advisory review of one current saved expense, bound to If-Match. The request is an empty object; clients cannot replace saved purpose, note, money, category or target. Requires the ledger Owner's current Pro or Max plan and the actual actor's expense-write and target authority. Jev selects and scores existing category/scope choices; it does not generate explanations or reports. Only this saved record's purpose and note and current active category names enter the model. Categories and target kinds are advice only; no expense, financial audit, recent activity, revision, record count or commercial write allowance is changed. Model attempts share the existing 20 per UTC day and Pro USD 3 / Max USD 5 per UTC month reservation; admitted failures remain charged. With no active categories the model can still check target kind. Disabled, failed or invalid model context returns partial checks while the local duplicate rule remains available. That bounded rule checks at most 30 other current records on the same authorized target, with equal currency and amount, within seven dates, and a case-insensitive matching purpose. It does not prove ledger-wide uniqueness. Duplicate output contains only ID and revision, including for write-only keys. Saved source, permissions, category and duplicate candidate are freshly rechecked and atomically fenced before results are published; a source changed during review returns 412. There is no automatic apply, target move, money update, retry, batch endpoint or idempotent model replay.",
+        "description": "Explicit advisory review of one current saved expense, bound to If-Match. The request is an empty object; clients cannot replace saved purpose, note, money, category or target. Requires the ledger Owner's current Pro or Max plan and the actual actor's expense-write and target authority. Jev selects and scores existing category/scope choices; it does not generate explanations or reports. Only this saved record's purpose and note and current active category names enter the model. Categories and target kinds are advice only; no expense, financial audit, recent activity, revision, record count or commercial write allowance is changed. Model attempts share the Pro USD 3 / Max USD 5 per UTC month reservation, without a daily attempt cap; admitted failures remain charged. With no active categories the model can still check target kind. Disabled, failed or invalid model context returns partial checks while the local duplicate rule remains available. That rule finds another current record on the same authorized target with the same expense date, currency and integer minor-unit amount; purpose text need not match. It does not prove ledger-wide uniqueness. Duplicate output contains only ID and revision, including for write-only keys. Saved source, permissions, category and duplicate candidate are freshly rechecked and atomically fenced before results are published; a source changed during review returns 412. There is no automatic apply, target move, money update, retry, batch endpoint or idempotent model replay.",
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
@@ -2928,7 +2928,7 @@
             }
           },
           "429": {
-            "description": "SUGGESTION_LIMIT at the existing daily attempt limit or JEV_BUDGET_LIMIT at the shared monthly reservation limit",
+            "description": "JEV_BUDGET_LIMIT at the shared monthly reservation limit",
             "content": {
               "application/json": {
                 "schema": {
@@ -3434,7 +3434,7 @@
         ],
         "operationId": "suggestExpense",
         "x-pullwise-scope": "suggestions:use",
-        "description": "Advanced draft advice only; ordinary expense writes already attempt eligible Pro or Max assistance without this endpoint or its scope. Never writes an expense. Disabled unless evaluated and enabled. Requires the ledger owner's current paid plan, irrespective of the actor's personal plan. Shares the ledger owner's limit of 20 attempts per UTC day and monthly Jev reservation with automatic assistance; defaults are USD 3 for Pro and USD 5 for Max per UTC calendar month, without rollover.",
+        "description": "Advanced draft advice only; ordinary expense writes already attempt eligible Pro or Max assistance without this endpoint or its scope. Never writes an expense. Disabled unless evaluated and enabled. Requires the ledger owner's current paid plan, irrespective of the actor's personal plan. Shares the ledger owner's monthly Jev reservation with automatic assistance, without a daily attempt cap; defaults are USD 3 for Pro and USD 5 for Max per UTC calendar month, without rollover.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3535,7 +3535,7 @@
             }
           },
           "429": {
-            "description": "Ledger owner rate or daily/monthly suggestion budget exhausted",
+            "description": "Ledger owner rate or monthly Jev budget exhausted",
             "content": {
               "application/json": {
                 "schema": {
@@ -5171,7 +5171,8 @@
         "required": [
           "workspaceId",
           "projects",
-          "expenseRecords"
+          "expenseRecords",
+          "jev"
         ],
         "description": "Read-only selected-ledger capacity. Cumulative project counts retain archived and removed projects. Expense counts include undeleted Shared pool expenses and undeleted expenses in nonremoved projects, including archived projects and recurring-generated expenses. Soft deletion releases expense capacity while preserving financial audit and replay history. Permanent project removal releases its active expense places and erases its attributable business history. Current effective plan and operator configuration set the limits.",
         "properties": {
@@ -5183,6 +5184,50 @@
           },
           "expenseRecords": {
             "$ref": "#/components/schemas/CapacityUsage"
+          },
+          "jev": {
+            "description": "Current UTC-month conservative model reservations and configured allowance for the ledger Owner's effective Pro or Max plan. Null for Free. Reads never initialize or reset usage; older-month reservations display as zero. Billing always uses the actor's personal ledger, independently of workspace selection.",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JevUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "JevUsage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "month",
+          "currency",
+          "usedMicrousd",
+          "limitMicrousd"
+        ],
+        "properties": {
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$",
+            "description": "UTC calendar month; unused allowance does not roll over"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "usedMicrousd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "Conservative pre-call reservation in millionths of USD, including admitted failed or ambiguous attempts; not actual invoiced usage"
+          },
+          "limitMicrousd": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000,
+            "description": "Current configured monthly allowance in millionths of USD"
           }
         }
       },
@@ -6955,7 +7000,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Provider configuration or daily/monthly budget fallback code; advisory only"
+            "description": "Provider configuration or monthly Jev budget fallback code; advisory only"
           },
           "categorySource": {
             "type": [
@@ -6997,7 +7042,7 @@
               },
               "duplicateExpenseId": {
                 "type": "string",
-                "description": "Matching active expense on the same authorized target, currency and amount within seven days, excluding the expense being edited; advisory only"
+                "description": "Matching active expense on the same authorized target, expense date, currency and integer minor-unit amount, excluding the expense being edited; purpose text need not match; advisory only"
               }
             }
           },
@@ -7371,5 +7416,5 @@
       }
     }
   },
-  "x-pullwise-source-sha256": "4ff3f1c8a518d009157edb687ccbcf5b85b601c002899d492f44229c82ee6611"
+  "x-pullwise-source-sha256": "5cc7febcb1e0d4c9f84ab97899a4cf487b4d158a26d144408abce1c040c1c925"
 }

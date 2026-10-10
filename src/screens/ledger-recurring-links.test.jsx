@@ -328,6 +328,36 @@ describe("Project links in the real ledger views", () => {
 });
 
 describe("Recurring entry in project and shared expenses", () => {
+  it("refreshes the shared-pool total through the same operation when adding a saved pending expense", async () => {
+    const api = client();
+    const initial = rule({ pendingOccurrences: [{ periodKey: "M2026-09", scheduledOn: "2026-09-30", amount: "2.25", currency: "USD", purpose: "Saved hosting", blockedCode: "RECORD_LIMIT" }] });
+    api.recurringRules.mockResolvedValue({ items: [initial], nextCursor: null });
+    api.updateRecurringRule.mockResolvedValue({ ...initial, revision: 3, pendingOccurrences: [] });
+    const summary = (amountMinor) => ({ groups: [
+      { target: "account", projectId: null, currency: "USD", amountMinor },
+      { target: "shared", projectId: null, currency: "USD", amountMinor },
+    ] });
+    let resolveSummary;
+    const refresh = new Promise((resolve) => { resolveSummary = resolve; });
+    api.reportSummary.mockResolvedValueOnce(summary(250)).mockReturnValueOnce(refresh);
+    render(<LedgerScreen api={api} go={vi.fn()} mode="shared" />);
+    await screen.findByRole("button", { name: "Add 2026-09-30 to expenses" });
+    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    const totals = screen.getByRole("region", { name: "Shared pool total" });
+    expect(totals.querySelector(".financial-value")).toHaveTextContent("USD 2.50");
+    fireEvent.click(screen.getByRole("tab", { name: "Expenses" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add 2026-09-30 to expenses" }));
+    await waitFor(() => expect(api.reportSummary).toHaveBeenCalledTimes(2));
+    expect(api.reportSummary).toHaveBeenLastCalledWith({ target: "shared" }, { signal: expect.any(AbortSignal) });
+    expect(screen.getByRole("button", { name: "Reload", exact: true })).toBeDisabled();
+    expect(api.expenses).toHaveBeenLastCalledWith({ target: "shared", limit: 10 }, { signal: expect.any(AbortSignal) });
+    await act(async () => resolveSummary(summary(475)));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reload", exact: true })).toBeEnabled());
+    fireEvent.click(screen.getByRole("tab", { name: "Reports" }));
+    expect(totals.querySelector(".financial-value")).toHaveTextContent("USD 4.75");
+    expect(api.updateRecurringRule).toHaveBeenCalledOnce();
+  });
+
   it.each(["project", "shared"])("allows Jev to categorize a new %s recurring plan and preserves its category-required draft", async (mode) => {
     const api = client();
     api.createRecurringRule.mockRejectedValueOnce({ status: 422, payload: { error: { code: "CATEGORY_REQUIRED" } } });

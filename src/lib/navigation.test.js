@@ -120,6 +120,10 @@ describe("admin routes", () => {
 });
 
 describe("dashboard routes", () => {
+  it("has a dedicated spending overview path", () => {
+    expect(pathFromScreen("ledgerOverview")).toBe("/overview");
+    expect(screenFromPath("/overview")).toBe("ledgerOverview");
+  });
   it("uses dashboard overview as the canonical dashboard path", () => {
     expect(pathFromScreen("ledgerProjects")).toBe("/projects");
     expect(screenFromPath("/projects")).toBe("ledgerProjects");

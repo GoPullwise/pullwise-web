@@ -1,5 +1,28 @@
 # Pullwise Web
 
+## Jev usage and expense totals (2026-10-10)
+
+The user removes Jev's application-side daily attempt cap and increases the
+explicit serial review queue to 100 filtered records, loaded by a separate
+intent-driven selection read without changing ordinary ten-record pagination.
+Retain monthly
+Owner allowance, stop behavior and permission/stale-response guards. Duplicate
+advice requires the same authorized target, expense date, currency and amount;
+purpose text need not match. Remove obsolete daily-limit product copy.
+
+Billing shows Pro/Max Jev Used and Total allowance beside existing account usage,
+for the personal Owner's UTC month through its existing read/refresh. Preserve
+exact micro-USD values and explain conservative reservation accounting without
+claiming actual invoiced use. Free has no paid Jev usage section.
+
+The user requests overall project-plus-Shared-Pool totals for this month, a chosen
+month or a custom period. Restore compact Shared Pool Reports totals and add a
+separate Spend overview entry using the existing summary API, with independent
+currency totals and current selected-ledger scope. This supersedes the older
+removal of these totals below. Keep explicit refresh, no polling, precise money,
+read-error honesty and draft/permission isolation. Existing main/preview release
+authority applies; production D1 remains paused.
+
 ## HTTPS sign-in entry and aligned controls (2026-10-10)
 
 The user confirms iPhone Safari email sign-in works after explicitly adding
@@ -65,7 +88,8 @@ preview through the established workflow; production remains paused.
 
 The user approved compatibility fixes for common Safari and Android Chrome
 versions, with an independent, clean phone layout based on native app hierarchy.
-Phone widths through 760px use a compact topbar, three primary bottom tabs plus
+Phone widths through 760px use a compact topbar, four primary bottom tabs
+(Spending overview, Projects, Shared pool and Categories) plus
 the native More account/tools selector, single-column forms and lists, and one
 collapsible Display options icon in the topbar. Public phone pages keep the
 collapsed floating entry with clear footer space. iPad and desktop use the same sidebar and

@@ -199,11 +199,11 @@ function fixedTarget(params) {
   throw new Error("Fixture reads require the current project or shared-pool target.");
 }
 
-function filteredExpenses(params) {
-  const kind = fixedTarget(params);
+function filteredExpenses(params, allowAll = false) {
+  const kind = allowAll && !params.get("target") && !params.get("projectId") ? "all" : fixedTarget(params);
   return expenses.filter(
     (row) =>
-      row.target.kind === kind &&
+      (kind === "all" || row.target.kind === kind) &&
       (!params.get("from") || row.occurredOn >= params.get("from")) &&
       (!params.get("to") || row.occurredOn < params.get("to")) &&
       (!params.get("categoryId") || row.categoryId === params.get("categoryId")) &&
@@ -212,6 +212,20 @@ function filteredExpenses(params) {
 }
 
 function report(rows, dimension, params) {
+  if (dimension === "summary") {
+    const groups = new Map();
+    for (const row of rows) {
+      const dimensions = [[row.target.kind, row.target.projectId || null], ["account", null]];
+      if (row.target.kind === "project") dimensions.push(["project", null]);
+      for (const [target, projectId] of dimensions) {
+        const key = `${target}:${projectId}:${row.currency}`;
+        const group = groups.get(key) || { target, projectId, categoryId: null, bucket: null, currency: row.currency, amountMinor: 0 };
+        group.amountMinor += row.amountMinor;
+        groups.set(key, group);
+      }
+    }
+    return { groups: [...groups.values()] };
+  }
   const groups = new Map();
   for (const row of rows) {
     const bucket =
@@ -304,6 +318,8 @@ function payloadFor(path, params) {
       ? "timeseries"
       : path === "/api/v1/reports/categories"
         ? "categories"
+        : path === "/api/v1/reports/summary"
+          ? "summary"
         : null;
   if (path === "/api/v1/expenses" || reportKind) {
     assertQuery(params, [
@@ -319,7 +335,7 @@ function payloadFor(path, params) {
     if (params.has("bucket") && !["day", "month"].includes(params.get("bucket"))) {
       throw new Error("Invalid fixture timeseries bucket.");
     }
-    const rows = filteredExpenses(params);
+    const rows = filteredExpenses(params, reportKind === "summary");
     return reportKind ? report(rows, reportKind, params) : { items: rows, nextCursor: null };
   }
   return undefined;

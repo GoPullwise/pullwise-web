@@ -1,5 +1,64 @@
 # Current local acceptance
 
+## Monthly Jev allowance, 100-record review, spending overview and Billing (2026-10-10)
+
+The user removes the application daily Jev cap and retains the Owner's existing
+UTC-month model allowance. Save assistance, recurring categorization, advanced
+drafts and review share the atomic monthly reservation. Current UI and API copy
+no longer claims a daily limit. Duplicate candidates now require the same
+expense date, currency and exact minor-unit amount within the authorized target;
+purpose text does not need to match. Inspection explicitly reads the first
+100 filtered records in one bounded request, independent of ordinary ten-record
+pagination, and processes selected records serially only after Start. Closing,
+filter/access changes, stale/invalid pages and read failures retain the existing
+abort, lock and identity fences. It does not follow cursors or poll.
+
+The new `/overview` Spending overview defaults to the local current calendar
+month, accepts another month or an inclusive custom date range, and uses the
+existing authorized report summary. It displays all expenses, all projects and
+Shared pool separately for each currency, counts per-project details only through
+the project aggregate, and validates that project plus shared equals the account
+amount. Integer/BigInt calculations preserve totals above the JavaScript safe
+number bound. Currency precision follows the Server's fixed minor-unit contract,
+including MGA, IQD and CLF; browser Intl defaults cannot change its scale.
+Shared pool Reports restores a compact filtered total and refreshes it after
+ordinary or recurring recovery writes. Read errors remain visible independently
+of charts. The phone navigation now has four Ledger destinations plus More.
+
+Billing exposes Pro/Max Jev Used and Total allowance, the current UTC month and
+exact microUSD values through its existing GET/manual Refresh. It reads the
+actual account's personal ledger even when another ledger is selected. Copy
+identifies conservative model reservations, monthly reset without rollover and
+the same rule for annual subscriptions. Free hides the paid section; unavailable
+or malformed usage does not become a fabricated zero. The user's lower-priority
+request to replace the plain usage display with concise charts follows the
+GitHub popup and Owner-role styling work.
+
+The final `npm run check` passes ESLint, **72 files / 1,493 tests**, and the
+production build after the currency-precision correction. Worker configuration,
+API-contract mirror, Server/Web preview dry-run and whitespace checks pass. The
+merged Server suite passes **2,546 tests / 62 subtests**, with its separate
+canonical/native reservation evidence in the Server repository.
+
+[Spending overview local evidence](jev-overview-layout-local-2026-10-10.json)
+records the existing Chromium mobile/date geometry runs and three final-built
+captures, including MGA/IQD/CLF, multiple currencies, custom dates and an exact
+aggregate above the safe-number limit. Earlier geometry evidence is explicitly
+identified as preceding the formatting-only precision fix. Final captures and
+unit regressions use the corrected formatter; all requests are intercepted local
+fixtures and no provider/remote business operation is delivered.
+
+[Billing local browser evidence](jev-billing-layout-local-2026-10-10.json) passes
+24 Chromium 151 contexts / 72 section states across six languages, light/dark,
+1906/1024/390/320px and personal-ledger scope/stress/manual-refresh cases. Eight
+WebKit 26 desktop contexts / 16 section states pass after locally restoring its
+missing dynamic libraries. WebKit mobile stops at required maxTouchPoints>0
+(the current host reports zero); Firefox cannot launch under the host's existing
+sandbox/graphics constraints. No touch assertion or sandbox protection is bypassed.
+These are local intercepted browser fixtures; no remote business request,
+provider call or database write is performed. Physical-device, WebKit-mobile and
+Firefox acceptance are not claimed.
+
 ## HTTPS sign-in entry and control spacing (2026-10-10)
 
 [Preview publication](mobile-controls-preview-release-2026-10-10.json) records

@@ -84,7 +84,7 @@ describe("ledger REST paths", () => {
 
   it.each([
     [412, "PRECONDITION_FAILED"],
-    [429, "SUGGESTION_LIMIT"],
+    [429, "RATE_LIMITED"],
     [429, "JEV_BUDGET_LIMIT"],
     [403, "JEV_PLAN_REQUIRED"],
   ])("does not retry or write an expense after a review fails with %s %s", async (status, code) => {

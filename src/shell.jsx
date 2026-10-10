@@ -164,6 +164,7 @@ export function Sidebar({ go, section = "ledgerProjects", id, navigationDisabled
     };
   }, []);
   const ledger = [
+    { k: "ledgerOverview", label: T("Spending overview"), icon: <I.Clock size={15} /> },
     { k: "ledgerProjects", label: T("Projects", "项目"), icon: <I.GitBranch size={15} /> },
     { k: "ledgerShared", label: T("Shared pool", "公共支出池"), icon: <I.Package size={15} /> },
     { k: "ledgerCategories", label: T("Categories", "类别"), icon: <I.Layout size={15} /> },

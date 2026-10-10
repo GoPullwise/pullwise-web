@@ -115,14 +115,15 @@ const view = (f) => (
     onAccessChanged={f.onAccessChanged}
   />
 );
-async function open(f) {
+async function open(f, ready = true) {
   const rendered = render(view(f));
   const opener = await screen.findByRole("button", { name: "Expense review" });
   fireEvent.click(opener);
   const dialog = await screen.findByRole("dialog", { name: "Expense review" });
-  await waitFor(() =>
-    expect(within(dialog).getByRole("button", { name: "Start review" })).toBeEnabled()
-  );
+  if (ready)
+    await waitFor(() =>
+      expect(within(dialog).getByRole("button", { name: "Start review" })).toBeEnabled()
+    );
   return { rendered, dialog, opener };
 }
 async function startAndFinish(f) {
@@ -136,35 +137,42 @@ async function startAndFinish(f) {
 
 describe("explicit inspection of selected saved expenses", () => {
   it.each(["project", "shared"])(
-    "opens %s inspection without a review request and selects only the ten current-page expenses",
+    "loads up to one hundred %s review expenses independently of the ten-record page",
     async (mode) => {
       const user = userEvent.setup();
-      const f = fixture({ mode, count: 12 });
+      const f = fixture({ mode, count: 101 });
       const { dialog, opener } = await open(f);
       expect(f.api.me).toHaveBeenCalledExactlyOnceWith({ signal: expect.any(AbortSignal) });
       expect(f.api.reviewExpense).not.toHaveBeenCalled();
-      expect(f.api.expenses).toHaveBeenCalledExactlyOnceWith(
-        mode === "project"
-          ? { target: "project", projectId: "prj_review", limit: 10 }
-          : { target: "shared", limit: 10 },
+      expect(f.api.expenses).toHaveBeenCalledTimes(2);
+      const query = mode === "project"
+        ? { target: "project", projectId: "prj_review" }
+        : { target: "shared" };
+      expect(f.api.expenses).toHaveBeenNthCalledWith(
+        1, { ...query, limit: 10 },
         expect.objectContaining({ signal: expect.any(AbortSignal) })
       );
-      expect(within(dialog).getByText("Selected: 10 / 10")).toBeVisible();
-      expect(within(dialog).getAllByRole("checkbox")).toHaveLength(10);
-      expect(within(dialog).queryByRole("checkbox", { name: "Review Hosting 10" })).not.toBeInTheDocument();
-      expect(within(dialog).queryByRole("checkbox", { name: "Review Hosting 11" })).not.toBeInTheDocument();
-      const last = within(dialog).getByRole("checkbox", { name: "Review Hosting 9" });
+      expect(f.api.expenses).toHaveBeenNthCalledWith(
+        2, { ...query, limit: 100 },
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
+      );
+      expect(within(dialog).getByText("Selected: 100 / 100")).toBeVisible();
+      expect(within(dialog).getAllByRole("checkbox")).toHaveLength(100);
+      expect(within(dialog).getByRole("checkbox", { name: "Review Hosting 10" })).toBeChecked();
+      expect(within(dialog).getByRole("checkbox", { name: "Review Hosting 99" })).toBeChecked();
+      expect(within(dialog).queryByRole("checkbox", { name: "Review Hosting 100" })).not.toBeInTheDocument();
+      const last = within(dialog).getByRole("checkbox", { name: "Review Hosting 99" });
       await user.click(last);
-      expect(within(dialog).getByText("Selected: 9 / 10")).toBeVisible();
+      expect(within(dialog).getByText("Selected: 99 / 100")).toBeVisible();
       expect(last).toBeEnabled();
       await user.click(last);
       expect(
         within(dialog)
           .getAllByRole("checkbox")
           .filter((item) => item.checked)
-      ).toHaveLength(10);
+      ).toHaveLength(100);
       expect(
-        within(dialog).getByText("Current filters apply. Unloaded history is not included.")
+        within(dialog).getByText("The first 100 matching expenses are loaded for review. Other history is not included.")
       ).toBeVisible();
       expect(document.querySelector(".ledger-screen").inert).toBe(true);
       await user.keyboard("{Escape}");
@@ -172,7 +180,134 @@ describe("explicit inspection of selected saved expenses", () => {
       expect(document.querySelector(".ledger-screen").inert).toBe(false);
       await waitFor(() => expect(opener).toHaveFocus());
       expect(f.api.reviewExpense).not.toHaveBeenCalled();
-      expect(f.api.expenses).toHaveBeenCalledOnce();
+      expect(f.api.expenses).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("reads the filtered selection from its first page without changing the ordinary expense page", async () => {
+    const f = fixture({ count: 101 });
+    render(view(f));
+    await screen.findByRole("heading", { name: "Hosting 0" });
+    fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
+    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-10-01" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Next", exact: true })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Next", exact: true }));
+    await screen.findByRole("heading", { name: "Hosting 10" });
+    const before = f.api.expenses.mock.calls.length;
+    const opener = screen.getByRole("button", { name: "Expense review" });
+    await waitFor(() => expect(opener).toBeEnabled());
+    fireEvent.click(opener);
+    const dialog = await screen.findByRole("dialog");
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Start review" })).toBeEnabled());
+    expect(f.api.expenses).toHaveBeenLastCalledWith(
+      { target: "shared", from: "2026-10-01", limit: 100 },
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    expect(f.api.expenses).toHaveBeenCalledTimes(before + 1);
+    expect(within(dialog).getByRole("checkbox", { name: "Review Hosting 0" })).toBeChecked();
+    expect(within(dialog).getAllByRole("checkbox")).toHaveLength(100);
+    expect(f.api.reviewExpense).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getAllByRole("button", { name: "Close" })[0]);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: "Hosting 10" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Hosting 0" })).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".ledger-expense-row")).toHaveLength(10);
+    expect(f.api.expenses).toHaveBeenCalledTimes(before + 1);
+  });
+
+  it("aborts an unfinished selection read and keeps its page guard until the read settles", async () => {
+    const f = fixture({ count: 101 });
+    const held = deferred();
+    const list = f.api.expenses.getMockImplementation();
+    f.api.expenses.mockImplementation((query, options) =>
+      query.limit === 100 ? held.promise : list(query, options)
+    );
+    const { dialog, opener } = await open(f, false);
+    await waitFor(() => expect(f.api.expenses).toHaveBeenCalledTimes(2));
+    expect(within(dialog).getByRole("button", { name: "Start review" })).toBeDisabled();
+    expect(within(dialog).getByText("Loading expenses for review…")).toBeVisible();
+    const signal = f.api.expenses.mock.calls[1][1].signal;
+    fireEvent.click(within(dialog).getAllByRole("button", { name: "Close" })[0]);
+    expect(signal.aborted).toBe(true);
+    expect(opener).toBeDisabled();
+    await act(async () => held.resolve({ items: f.expenses.slice(0, 100), nextCursor: "more" }));
+    await waitFor(() => expect(opener).toBeEnabled());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hosting 99")).not.toBeInTheDocument();
+    expect(f.api.reviewExpense).not.toHaveBeenCalled();
+    fireEvent.click(opener);
+    await waitFor(() => expect(f.api.expenses).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Start review" })).toBeEnabled());
+  });
+
+  it.each([401, 403, 500])("handles a selection read failure %s without model requests", async (status) => {
+    const f = fixture();
+    const failure = new ApiError("Selection unavailable", {
+      status,
+      payload: { error: { code: status === 500 ? "UNAVAILABLE" : "WORKSPACE_FORBIDDEN" } },
+    });
+    const list = f.api.expenses.getMockImplementation();
+    f.api.expenses.mockImplementation((query, options) =>
+      query.limit === 100 ? Promise.reject(failure) : list(query, options)
+    );
+    const { dialog } = await open(f, false);
+    if (status === 500) {
+      expect(await within(dialog).findByRole("alert")).toHaveTextContent("Expenses could not be loaded for review.");
+      expect(within(dialog).getByRole("button", { name: "Start review" })).toBeDisabled();
+      expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument();
+      expect(f.onAccessChanged).not.toHaveBeenCalled();
+    } else {
+      await waitFor(() => expect(f.onAccessChanged).toHaveBeenCalledWith(failure));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Hosting 0" })).not.toBeInTheDocument();
+    }
+    expect(f.api.reviewExpense).not.toHaveBeenCalled();
+    expect(f.api.expenses).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["workspace", "role"])("discards a late selection after a %s change", async (change) => {
+    const f = fixture({ count: 101 });
+    const held = deferred();
+    const list = f.api.expenses.getMockImplementation();
+    f.api.expenses.mockImplementation((query, options) =>
+      query.limit === 100 ? held.promise : list(query, options)
+    );
+    const { rendered } = await open(f, false);
+    await waitFor(() => expect(f.api.expenses).toHaveBeenCalledTimes(2));
+    const signal = f.api.expenses.mock.calls[1][1].signal;
+    const fresh = fixture({ count: 1, write: change !== "role" });
+    fresh.expenses[0].purpose = "Current authorized expense";
+    if (change === "workspace") fresh.workspace = { ...fresh.workspace, id: "usr_other_owner" };
+    rendered.rerender(view(fresh));
+    expect(signal.aborted).toBe(true);
+    await act(async () => held.resolve({ items: f.expenses.slice(0, 100), nextCursor: "more" }));
+    await screen.findByRole("heading", { name: "Current authorized expense" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hosting 99")).not.toBeInTheDocument();
+    expect(f.api.reviewExpense).not.toHaveBeenCalled();
+    expect(fresh.api.reviewExpense).not.toHaveBeenCalled();
+    if (change === "role") expect(screen.queryByRole("button", { name: "Expense review" })).not.toBeInTheDocument();
+  });
+
+  it.each(["too-many", "wrong-target", "duplicate-id", "invalid-revision", "missing-items"])(
+    "rejects an invalid selection response: %s",
+    async (kind) => {
+      const f = fixture({ count: 101 });
+      const page = { items: f.expenses.slice(0, 100), nextCursor: "more" };
+      if (kind === "too-many") page.items = f.expenses;
+      if (kind === "wrong-target") page.items[0] = { ...page.items[0], target: { kind: "project", projectId: "prj_other" } };
+      if (kind === "duplicate-id") page.items[1] = page.items[0];
+      if (kind === "invalid-revision") page.items[0] = { ...page.items[0], revision: 0 };
+      if (kind === "missing-items") delete page.items;
+      const list = f.api.expenses.getMockImplementation();
+      f.api.expenses.mockImplementation((query, options) =>
+        query.limit === 100 ? Promise.resolve(page) : list(query, options)
+      );
+      const { dialog } = await open(f, false);
+      expect(await within(dialog).findByRole("alert")).toHaveTextContent("Expenses could not be loaded for review.");
+      expect(within(dialog).getByRole("button", { name: "Start review" })).toBeDisabled();
+      expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument();
+      expect(f.api.reviewExpense).not.toHaveBeenCalled();
     }
   );
 
@@ -240,7 +375,7 @@ describe("explicit inspection of selected saved expenses", () => {
     expect(f.api.reviewExpense).toHaveBeenCalledTimes(2);
     expect(within(dialog).getAllByText("Cancelled")).toHaveLength(2);
     expect(within(dialog).getByText("No confident choice. Review it manually.")).toBeVisible();
-    expect(f.api.expenses).toHaveBeenCalledOnce();
+    expect(f.api.expenses).toHaveBeenCalledTimes(2);
     expect(f.api.updateExpense).not.toHaveBeenCalled();
     expect(f.api.createExpense).not.toHaveBeenCalled();
     expect(f.api.removeExpense).not.toHaveBeenCalled();
@@ -458,7 +593,7 @@ describe("explicit inspection of selected saved expenses", () => {
     expect(screen.getByRole("button", { name: "Reload", exact: true })).toBeEnabled();
   });
 
-  it.each(["JEV_BUDGET_LIMIT", "SUGGESTION_LIMIT"])(
+  it.each(["JEV_BUDGET_LIMIT", "RATE_LIMITED"])(
     "stops the queue at %s without automatic retries or list reload",
     async (code) => {
       const f = fixture();
@@ -468,20 +603,34 @@ describe("explicit inspection of selected saved expenses", () => {
       const { dialog } = await startAndFinish(f);
       expect(f.api.reviewExpense).toHaveBeenCalledOnce();
       expect(within(dialog).getAllByText("Cancelled")).toHaveLength(2);
-      expect(f.api.expenses).toHaveBeenCalledOnce();
+      expect(f.api.expenses).toHaveBeenCalledTimes(2);
       expect(f.api.updateExpense).not.toHaveBeenCalled();
+      const message =
+        code === "JEV_BUDGET_LIMIT"
+          ? "Monthly Jev budget reached. Continue manually."
+          : "This expense could not be reviewed. Start a new review to try again.";
+      expect(within(dialog).getAllByText(message)).toHaveLength(2);
+      expect(dialog.textContent).not.toContain("Daily Jev allowance");
     }
   );
 
-  it("checks at most ten records in loaded order without following pagination", async () => {
-    const f = fixture({ count: 12 });
-    const { dialog } = await startAndFinish(f);
-    expect(f.api.reviewExpense.mock.calls.map(([id, revision]) => [id, revision])).toEqual(
-      f.expenses.slice(0, 10).map((expense) => [expense.id, expense.revision])
-    );
-    expect(dialog.querySelectorAll('[data-review-state="done"]')).toHaveLength(10);
-    expect(f.api.expenses).toHaveBeenCalledOnce();
-  });
+  it.each([11, 100, 101])(
+    "checks up to one hundred of %s matching records in order without following pagination",
+    async (count) => {
+      const f = fixture({ count });
+      const { dialog } = await open(f);
+      await act(async () =>
+        fireEvent.click(within(dialog).getByRole("button", { name: "Start review" }))
+      );
+      expect(within(dialog).getByRole("button", { name: "New selection" })).toBeEnabled();
+      const chosen = f.expenses.slice(0, 100);
+      expect(f.api.reviewExpense.mock.calls.map(([id, revision]) => [id, revision])).toEqual(
+        chosen.map((expense) => [expense.id, expense.revision])
+      );
+      expect(dialog.querySelectorAll('[data-review-state="done"]')).toHaveLength(chosen.length);
+      expect(f.api.expenses).toHaveBeenCalledTimes(2);
+    }
+  );
 
   it.each([401, 403])(
     "clears protected records when opening eligibility returns %s",
@@ -612,7 +761,7 @@ describe("explicit inspection of selected saved expenses", () => {
       expect(screen.queryByRole("heading", { name: "Hosting 0" })).not.toBeInTheDocument();
       expect(f.onAccessChanged).toHaveBeenCalledWith(failure);
       expect(f.api.reviewExpense).toHaveBeenCalledTimes(2);
-      expect(f.api.expenses).toHaveBeenCalledOnce();
+      expect(f.api.expenses).toHaveBeenCalledTimes(2);
     }
   );
 });

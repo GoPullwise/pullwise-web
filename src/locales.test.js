@@ -14,6 +14,7 @@ import { LEDGER_LONG_PHRASES } from "./locales/ledger-longform.js";
 import { LEDGER_UI_PHRASES } from "./locales/ledger-ui.js";
 import { LEDGER_SCREEN_PHRASES } from "./locales/ledger-screen.js";
 import { LEDGER_SCOPE_PHRASES } from "./locales/ledger-scopes.js";
+import { LEDGER_SUMMARY_PHRASES } from "./locales/ledger-summary.js";
 
 const BASE_PHRASES = { zh: ZH_PHRASES, ja: JA_PHRASES, ko: KO_PHRASES, fr: FR_PHRASES, es: ES_PHRASES };
 const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
@@ -143,7 +144,8 @@ describe("ledger locale copy", () => {
       await setLang(locale);
       const phrases = { ...BASE_PHRASES[locale], ...LEDGER_PHRASES[locale],
         ...LEDGER_LONG_PHRASES[locale], ...LEDGER_UI_PHRASES[locale],
-        ...LEDGER_SCOPE_PHRASES[locale], ...LEDGER_SCREEN_PHRASES[locale] };
+        ...LEDGER_SCOPE_PHRASES[locale], ...LEDGER_SCREEN_PHRASES[locale],
+        ...LEDGER_SUMMARY_PHRASES[locale] };
       for (const english of [...CURRENT_COPY, ...API_KEY_SCOPES.flatMap(scope => [scope.labelEn, scope.descEn])]) {
         expect(Object.hasOwn(phrases, english), `${locale}: ${english}`).toBe(true);
         const translated = phrases[english];
@@ -182,7 +184,7 @@ describe("ledger locale copy", () => {
       expect(request).toContain("{}");
       expect(request).toContain("If-Match");
       expect(request).toContain("expenses:write");
-      expect(request).toContain("20");
+      expect(request).not.toContain("20");
     });
   }
 });

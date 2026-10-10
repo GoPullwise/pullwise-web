@@ -1,4 +1,26 @@
 export const BILLING_USAGE_COPY = {
+  jevTitle: [
+    "Jev usage",
+    { zh: "Jev 用量", ja: "Jev の使用量", ko: "Jev 사용량", fr: "Utilisation de Jev", es: "Uso de Jev" },
+  ],
+  jevAllowance: [
+    "Jev assistance allowance",
+    { zh: "Jev 辅助额度", ja: "Jev アシスト利用枠", ko: "Jev 지원 한도", fr: "Allocation d’assistance Jev", es: "Asignación de asistencia Jev" },
+  ],
+  jevMonth: [
+    "UTC month",
+    { zh: "UTC 月份", ja: "UTC の月", ko: "UTC 월", fr: "Mois UTC", es: "Mes UTC" },
+  ],
+  jevPolicy: [
+    "Used tracks the allowance reserved for model calls, not the provider’s actual invoice. This is for the ledger you own. The allowance resets each UTC calendar month without rollover, including annual subscriptions. Use Refresh usage to update these values.",
+    {
+      zh: "已使用额度按模型调用的保守预留计算，并非服务商实际账单。这里显示你拥有的账本用量。额度按 UTC 自然月重置，不结转，年订阅也一样。点击“刷新用量”可更新数值。",
+      ja: "使用量はモデル呼び出しに予約した利用枠であり、プロバイダーの実際の請求額ではありません。あなたが所有する帳簿の使用量です。年額契約も含め、枠は UTC の暦月ごとにリセットされ、繰り越されません。「使用量を更新」で数値を更新できます。",
+      ko: "사용량은 모델 호출을 위해 보수적으로 예약한 한도이며 공급자의 실제 청구액이 아닙니다. 본인이 소유한 장부의 사용량입니다. 연간 구독도 한도는 UTC 달력 월마다 초기화되며 이월되지 않습니다. 사용량 새로고침으로 값을 갱신하세요.",
+      fr: "L’utilisation correspond au quota réservé pour les appels au modèle, pas à la facture réelle du fournisseur. Elle concerne le registre dont vous êtes propriétaire. Le quota est réinitialisé chaque mois civil UTC sans report, y compris pour les abonnements annuels. Utilisez Actualiser l’utilisation pour mettre à jour ces valeurs.",
+      es: "El uso refleja el cupo reservado para las llamadas al modelo, no la factura real del proveedor. Corresponde al libro que posees. El cupo se restablece cada mes natural UTC sin acumulación, también en las suscripciones anuales. Usa Actualizar uso para actualizar estos valores.",
+    },
+  ],
   title: [
     "Ledger usage",
     {

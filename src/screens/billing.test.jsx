@@ -123,6 +123,120 @@ describe("BillingScreen", () => {
     return article;
   }
 
+  function withJevUsage(planId = "pro", jev = {
+    month: "2026-10", currency: "USD", usedMicrousd: 1234567, limitMicrousd: 3000000,
+  }) {
+    const payload = withUsage(planId, { used: 2, limit: 20 }, { used: 8, limit: 20000 });
+    payload.ledgerUsage.jev = jev;
+    return payload;
+  }
+
+  it.each(["pro", "max"])(
+    "shows exact monthly Jev reservations for %s even when assistance is unavailable",
+    async (planId) => {
+      const payload = withJevUsage(planId);
+      payload.plans = payload.plans.map((plan) => ({
+        ...plan,
+        entitlements: { jev: { eligible: plan.id !== "free", available: false } },
+      }));
+      payload.account.interval = "year";
+      pullwiseApi.billing.getPlan.mockResolvedValue(payload);
+      render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+      const region = await screen.findByRole("region", { name: "Jev usage" });
+      expect(region).toHaveTextContent("UTC month: 2026-10");
+      expect(within(region).getAllByRole("term").map((node) => node.textContent))
+        .toEqual(["Used", "Total allowance"]);
+      expect(within(region).getAllByRole("definition").map((node) => node.textContent))
+        .toEqual(["USD 1.234567", "USD 3.00"]);
+      expect(region).toHaveTextContent("not the provider’s actual invoice");
+      expect(region).toHaveTextContent("without rollover, including annual subscriptions");
+      expect(region).not.toHaveTextContent(/Remaining|Over limit|Daily/);
+      expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+    }
+  );
+
+  it("keeps zero reservations and configured zero allowance exact", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("pro", {
+      month: "2026-10", currency: "USD", usedMicrousd: 0, limitMicrousd: 0,
+    }));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Jev usage" });
+    expect(within(region).getAllByRole("definition").map((node) => node.textContent))
+      .toEqual(["USD 0.00", "USD 0.00"]);
+  });
+
+  it("does not round a safe-integer reservation or hide usage above a changed allowance", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("max", {
+      month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER,
+      limitMicrousd: 4250001,
+    }));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Jev usage" });
+    expect(within(region).getAllByRole("definition").map((node) => node.textContent))
+      .toEqual(["USD 9,007,199,254.740991", "USD 4.250001"]);
+  });
+
+  it.each([
+    null,
+    { month: "2026-10", currency: "USD", usedMicrousd: null, limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "USD", usedMicrousd: "0", limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "USD", usedMicrousd: 1.5, limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "USD", usedMicrousd: Number.MAX_SAFE_INTEGER + 1, limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "USD", usedMicrousd: -1, limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "USD", usedMicrousd: 0 },
+    { month: "2026-10", currency: "USD", usedMicrousd: 0, limitMicrousd: -1 },
+    { month: "2026-13", currency: "USD", usedMicrousd: 0, limitMicrousd: 3000000 },
+    { month: "2026-10", currency: "EUR", usedMicrousd: 0, limitMicrousd: 3000000 },
+  ])("shows unavailable for unknown or invalid paid Jev usage: %j", async (jev) => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("pro", jev));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: "Jev usage" });
+    expect(within(region).getByText("Usage unavailable")).toBeInTheDocument();
+    expect(within(region).queryByRole("definition")).not.toBeInTheDocument();
+    expect(region).not.toHaveTextContent("USD 0.00");
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+  });
+
+  it("does not display paid Jev usage for a Free account", async () => {
+    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage("free"));
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    await screen.findByRole("region", { name: "Ledger usage" });
+    expect(screen.queryByRole("region", { name: "Jev usage" })).not.toBeInTheDocument();
+  });
+
+  it("refreshes Jev values only with the existing manual usage read", async () => {
+    pullwiseApi.billing.getPlan
+      .mockResolvedValueOnce(withJevUsage("pro", null))
+      .mockResolvedValueOnce(withJevUsage());
+    const user = userEvent.setup();
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const initial = await screen.findByRole("region", { name: "Jev usage" });
+    expect(within(initial).getByText("Usage unavailable")).toBeInTheDocument();
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledOnce();
+    await user.click(screen.getByRole("button", { name: "Refresh usage" }));
+    const refreshed = await screen.findByRole("region", { name: "Jev usage" });
+    expect(refreshed).toHaveTextContent("USD 1.234567");
+    expect(pullwiseApi.billing.getPlan).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ["en", "Jev usage", "UTC month", "1.234567", "without rollover"],
+    ["zh", "Jev 用量", "UTC 月份", "1.234567", "不结转"],
+    ["ja", "Jev の使用量", "UTC の月", "1.234567", "繰り越されません"],
+    ["ko", "Jev 사용량", "UTC 월", "1.234567", "이월되지 않습니다"],
+    ["fr", "Utilisation de Jev", "Mois UTC", "1,234567", "sans report"],
+    ["es", "Uso de Jev", "Mes UTC", "1,234567", "sin acumulación"],
+  ])("localizes Jev usage and its monthly policy in %s", async (lang, title, month, amount, rollover) => {
+    await setLang(lang);
+    pullwiseApi.billing.getPlan.mockResolvedValue(withJevUsage());
+    render(<BillingScreen go={vi.fn()} navigate={vi.fn()} />);
+    const region = await screen.findByRole("region", { name: title });
+    expect(region).toHaveTextContent(`${month}: 2026-10`);
+    expect(region).toHaveTextContent(`USD ${amount}`);
+    expect(region).toHaveTextContent(rollover);
+    if (lang !== "en") expect(region).not.toHaveTextContent("Jev usage");
+  });
+
   it.each([
     ["free", 2, 3, 79, 100],
     ["pro", 12, 20, 1200, 20000],
